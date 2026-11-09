@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useFxCurrency } from '@/hooks/use-fx-currency'
 import { CURRENCIES, currencySymbol, relativeTime } from '@/lib/format'
 import { type FxTable, getFxTable } from '@/lib/fx'
+import { useLive } from '@/lib/live'
 import { useT } from '@/lib/i18n'
 import { Page } from './page'
 
@@ -124,10 +125,15 @@ export function RatesScreen() {
   const [table, setTable] = useState<FxTable | null>(null)
   const [failed, setFailed] = useState(false)
   const [converting, setConverting] = useState<string | null>(null)
+  const ratesVersion = useLive((s) => s.rates)
+
+  // A new base clears the table. New rates swap it in place, no flash.
+  useEffect(() => {
+    setTable(null)
+  }, [base])
 
   useEffect(() => {
     let live = true
-    setTable(null)
     setFailed(false)
     getFxTable(base)
       .then((tb) => live && setTable(tb))
@@ -135,7 +141,7 @@ export function RatesScreen() {
     return () => {
       live = false
     }
-  }, [base])
+  }, [base, ratesVersion])
 
   // Converting into the new base itself makes no sense: leave the converter.
   const activeConverter = converting === base ? null : converting

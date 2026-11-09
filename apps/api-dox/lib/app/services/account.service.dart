@@ -5,6 +5,8 @@ import 'package:api_dox/app/repositories/account.repository.dart';
 import 'package:api_dox/app/repositories/account_entry.repository.dart';
 import 'package:api_dox/app/repositories/account_member.repository.dart';
 import 'package:api_dox/app/repositories/group_member.repository.dart';
+import 'package:api_dox/app/services/live.service.dart';
+import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:api_dox/utils/date_util.dart';
@@ -74,12 +76,14 @@ class AccountService {
     this.entries,
     this.members,
     this.accountMembers,
+    this.live,
   );
 
   final AccountRepository accounts;
   final AccountEntryRepository entries;
   final GroupMemberRepository members;
   final AccountMemberRepository accountMembers;
+  final LiveService live;
 
   Future<List<AccountWithBalance>> withBalances(User user) async {
     List<Account> list = await accounts.listByUser(user.id!);
@@ -154,6 +158,7 @@ class AccountService {
     if (input.isDefault != null) {
       await _applyLegacyDefault(user, account, input.isDefault!);
     }
+    await live.accountChanged(account.id!);
     return AccountWithBalance(account, 0, input.isDefault ?? false);
   }
 
@@ -176,6 +181,7 @@ class AccountService {
     if (changes.isNotEmpty) {
       account = await accounts.update(account.id!, changes);
     }
+    await live.accountChanged(account.id!);
     Set<int> defaults = await members.defaultAccountIdsForUser(user.id!);
     return AccountWithBalance(
       account,
@@ -187,7 +193,9 @@ class AccountService {
   /// Its entries go with it (the foreign key cascades).
   Future<void> delete(User user, int? id) async {
     Account account = await find(user, id);
+    Set<int> users = await live.usersOfAccount(account.id!);
     await accounts.delete(account.id!);
+    await live.usersChanged(users, liveTopicAccounts);
   }
 
   /// This member's pay-from account in the group.
@@ -239,9 +247,9 @@ class AccountService {
 
   Future<int> balanceOf(Account account) => entries.balanceOf(account.id!);
 
-  Future<AccountEntry> createEntry(Account account, CreateEntry input) {
+  Future<AccountEntry> createEntry(Account account, CreateEntry input) async {
     assertNonZero(input.amount);
-    return entries.create(
+    AccountEntry entry = await entries.create(
       NewEntry(
         accountId: account.id!,
         amountCents: MoneyUtil.toCents(input.amount),
@@ -249,6 +257,8 @@ class AccountService {
         note: input.note,
       ),
     );
+    await live.accountChanged(account.id!);
+    return entry;
   }
 
   /// Set the balance to `input.balance` by booking one entry for the
@@ -263,7 +273,7 @@ class AccountService {
     if (difference == 0) {
       throw HttpError.unprocessable('The balance is already this amount');
     }
-    return entries.create(
+    AccountEntry entry = await entries.create(
       NewEntry(
         accountId: account.id!,
         amountCents: difference,
@@ -271,6 +281,8 @@ class AccountService {
         note: input.note ?? balanceAdjustmentNote,
       ),
     );
+    await live.accountChanged(account.id!);
+    return entry;
   }
 
   Future<AccountEntry> updateEntry(
@@ -285,10 +297,15 @@ class AccountService {
     if (input.occurredOn != null) changes['occurred_on'] = input.occurredOn;
     if (input.note.isPresent) changes['note'] = input.note.value;
     if (changes.isEmpty) return entry;
-    return entries.update(entry.id!, changes);
+    AccountEntry updated = await entries.update(entry.id!, changes);
+    await live.accountChanged(entry.accountId);
+    return updated;
   }
 
-  Future<void> deleteEntry(AccountEntry entry) => entries.delete(entry.id!);
+  Future<void> deleteEntry(AccountEntry entry) async {
+    await entries.delete(entry.id!);
+    await live.accountChanged(entry.accountId);
+  }
 
   /// Move money between two of the user's accounts: an OUT entry on the
   /// source and an IN entry on the destination, in one transaction.
@@ -303,7 +320,7 @@ class AccountService {
     Account from = await find(user, input.fromAccountId);
     Account to = await find(user, input.toAccountId);
     String? note = input.note;
-    return entries.createPair(
+    (AccountEntry, AccountEntry) pair = await entries.createPair(
       NewEntry(
         accountId: from.id!,
         amountCents: -MoneyUtil.toCents(input.amount),
@@ -317,6 +334,9 @@ class AccountService {
         note: note ?? '← ${from.name}',
       ),
     );
+    await live.accountChanged(from.id!);
+    await live.accountChanged(to.id!);
+    return pair;
   }
 
   /// Adding an expense books a matching OUT entry in an account. Linked by

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { api, getActiveGroupId } from '@/lib/api'
 import { onAuthChange, signInWithGoogle, signInWithToken, signOut } from '@/lib/firebase'
+import { startLive, stopLive } from '@/lib/live'
 import { signInWithPasskeyToken } from '@/lib/passkey'
 import type { McpClient, User } from '@/lib/types'
 import { useAccounts } from './accounts'
@@ -79,6 +80,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       clearTimeout(giveUp)
       if (!fbUser) {
         hydratedUid = null
+        stopLive()
         useGroups.getState().reset()
         set({ user: null, loading: false, booting: false })
         return
@@ -101,6 +103,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       // onIdTokenChanged also fires on every hourly token refresh.
       if (hydratedUid === fbUser.uid) return
       hydratedUid = fbUser.uid
+      startLive()
 
       const groups = useGroups.getState()
       if (getActiveGroupId() !== null) {

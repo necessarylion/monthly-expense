@@ -27,6 +27,7 @@ import { useLoadMore } from '@/hooks/use-load-more'
 import { api } from '@/lib/api'
 import { CURRENCIES, formatMoney, formatMoneyFromCents, formatShortDate } from '@/lib/format'
 import { type AccountsTotal, getAccountsTotal } from '@/lib/fx'
+import { useLive } from '@/lib/live'
 import { useT } from '@/lib/i18n'
 import type { Account, AccountEntry } from '@/lib/types'
 import { useIsDesktop } from '@/hooks/use-is-desktop'
@@ -195,6 +196,7 @@ export function AccountsScreen() {
   const lastError = useAccounts((s) => s.lastError)
   const openId = useAccounts((s) => s.openId)
   const code = useFxCurrency((s) => s.code)
+  const ratesVersion = useLive((s) => s.rates)
   const [total, setTotal] = useState<AccountsTotal | null>(null)
   const [totalFailed, setTotalFailed] = useState(false)
   const [history, setHistory] = useState<History | null>(null)
@@ -247,6 +249,11 @@ export function AccountsScreen() {
     void loadTotal()
     void loadHistory()
   }, [accounts, loadTotal, loadHistory])
+
+  // New rates move the converted total.
+  useEffect(() => {
+    if (ratesVersion > 0) void loadTotal()
+  }, [ratesVersion, loadTotal])
 
   /**
    * Pick the wallet only once the swipe settles. Picking mid-swipe loads its

@@ -720,14 +720,9 @@ export function HomeScreen() {
       }
     : undefined
 
-  async function refresh() {
-    const s = useExpenses.getState()
-    await Promise.all([s.loadMonth(), s.loadCategories()])
-  }
-
   return (
     // Phone: one column. Desktop: summary on the left, the list on the right.
-    <Page onRefresh={refresh} className="gap-6 lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10">
+    <Page className="gap-6 lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10">
       <div className="flex min-w-0 flex-col gap-6 lg:flex-1">
         <Allowance currency={currency} group={group} />
         {!trip && <CompareLine compare={compare} currency={currency} />}
