@@ -1,93 +1,118 @@
 # Monthly Expense
 
-A small personal expense tracker. **React + Vite + shadcn/ui** on the front end,
-**Dart (Dox framework) + SQLite (or Postgres)** on the back end, **Firebase (Google login)** for auth,
-and an **MCP server** so an LLM can add expenses and read summaries for you.
+A small expense tracker for you and the people you share money with.
+Log expenses, track wallets in many currencies, keep a shopping list, and
+let an AI assistant (over MCP) add expenses and read summaries for you.
+
+- **Web app:** React + Vite + shadcn/ui
+- **API:** Dart ([Dox](https://dartondox.dev) framework), SQLite or Postgres
+- **Sign-in:** Firebase (Google)
+- **AI:** an MCP server with OAuth sign-in
 
 ```
 monthly-expense/
 ├── apps/
-│   ├── api-dox/     # Dox API (REST API + MCP server), see apps/api-dox/README.md
+│   ├── api-dox/     # REST API + MCP server (see apps/api-dox/README.md)
 │   └── web/         # React SPA (Vite, Tailwind v4, shadcn/ui, Rare UI)
-├── Dockerfile             # multi-stage build → single image
+├── Dockerfile       # one image: the SPA and the API
 ├── docker-compose.yml
-└── .github/workflows/api-dox.yml   # tests, then publishes to ghcr.io
+├── dev.sh           # runs the API and the web app together
+└── .github/workflows/api-dox.yml   # tests, then pushes the image to ghcr.io
 ```
 
-## Architecture
+## How it works
 
-- The frontend signs in via the Firebase JS SDK (Google provider) and stores
-  no session — every API request carries the Firebase **ID token** as
-  `Authorization: Bearer <id-token>`.
-- The backend verifies that token with `firebase_admin_sdk` on every request and
-  resolves it to a local `users` row (created on first sight).
-- The MCP endpoint is `/mcp`. Clients sign in with OAuth.
-  See the [MCP](#mcp-use-with-claude) section.
+- The web app signs in with Firebase (Google). It keeps no session.
+  Every API request sends the Firebase **ID token** as
+  `Authorization: Bearer <token>`.
+- The API checks the token with `firebase_admin_sdk` on every request. It
+  finds the user, or makes one on the first sign-in.
+- The web app has no Firebase config built in. It loads `/config.js` from
+  the API, which makes it from the API env. So one image works with any
+  Firebase project.
+- The API serves the built web app too. Production is one container.
 
-## Prerequisites
+## What you need
 
-- **Dart** 3.13+ for the API, and **Bun** (`brew install oven-sh/bun/bun`) for the web app.
-- A **Firebase project** with the Google auth provider enabled. You need:
-  - A web app config (apiKey, authDomain, projectId, appId) — for the SPA.
-  - A service account JSON — for the API.
+- **Dart** 3.13+ for the API.
+- **Bun** for the web app (`brew install oven-sh/bun/bun`).
+- A **Firebase project** with the Google sign-in provider on. From it you need:
+  - the **web app config** (`apiKey`, `projectId`, `appId`), and
+  - a **service account** (Project settings → Service accounts → Generate key).
 
-## Local development
+## Run it locally
 
 ```bash
-# 1. Backend
+# 1. API
 cd apps/api-dox
-cp .env.example .env       # fill in APP_KEY, FIREBASE_*; set PORT=3334
+cp .env.example .env       # fill in APP_KEY and FIREBASE_*, set PORT=3334
 dart pub get
-dart run bin/server.dart   # http://localhost:3334 (runs migrations on start)
+dart run bin/server.dart   # http://localhost:3334, runs migrations on start
 
-# 2. Frontend (in a second terminal)
+# 2. Web app (in a second terminal)
 cd apps/web
 bun install
 bun pm trust --all
 bun run dev                # http://localhost:5173
 ```
 
-Then open <http://localhost:5173>, sign in with Google, and start logging
-expenses.
+Open <http://localhost:5173> and sign in with Google.
 
-Or run both at once from the repo root: `./dev.sh`.
+Or run both from the repo root: `./dev.sh`.
 
-### Backend env vars
+The web dev server sends `/api`, `/config.js` and `/mcp` to the API on
+port 3334. So the web app needs no `.env`.
 
-See `apps/api-dox/.env.example` and `apps/api-dox/README.md`.
+## Env vars
 
-### Firebase config
+All env vars belong to the API. See [apps/api-dox/.env.example](apps/api-dox/.env.example)
+for the full list. The main ones:
 
-The web app has no Firebase config of its own. It loads `/config.js`
-from the API, which makes it from these API env vars. So one image works
-with any Firebase project, and a self-hoster only sets env vars.
-
-| Variable | Purpose |
+| Variable | What it is |
 |---|---|
-| `FIREBASE_PROJECT_ID` | Firebase project (Admin and Web SDK) |
-| `FIREBASE_API_KEY` | Web SDK API key |
-| `FIREBASE_AUTH_DOMAIN` | Optional. Default: `<project id>.firebaseapp.com` |
-| `FIREBASE_APP_ID` | Web SDK app id |
+| `APP_KEY` | Exactly 32 characters. Signs MCP sessions. Keep it the same across deploys. `dox key:generate` makes one. |
+| `APP_URL` | The public URL, like `https://expense.example.com`. MCP sign-in uses it. |
+| `DATABASE_URL` | Empty: SQLite at `DB_PATH`. A `postgres://` URL: Postgres. |
+| `ALLOWED_EMAILS` | Comma separated emails that may sign in. Empty: anyone. |
+| `FIREBASE_PROJECT_ID` | Your Firebase project id. |
+| `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | From the service account JSON. Secret. |
+| `FIREBASE_API_KEY`, `FIREBASE_APP_ID` | From the Firebase web app config. Sent to the browser. |
+| `FIREBASE_AUTH_DOMAIN` | Optional. Default: `<project id>.firebaseapp.com`. |
 
-The web app needs no `.env`. `VITE_API_URL` is optional (default `/api/v1`).
+## Self-host with Docker
+
+The `Dockerfile` builds the web app, compiles the API to a native binary
+(`dart build cli`), and puts both in a small Debian image. The binary runs
+migrations on start.
+
+```bash
+cp apps/api-dox/.env.example .env   # fill in APP_KEY, APP_URL, FIREBASE_*
+docker compose up -d --build
+# → http://localhost:3333
+```
+
+Or use the published image: `ghcr.io/necessarylion/monthly-expense:latest`.
+
+SQLite data is kept in the `expense-data` volume.
+
+In the Firebase console, add your domain to **Authentication → Settings →
+Authorized domains**. If you don't, Google sign-in fails on your domain.
 
 ## REST API
 
-All routes are prefixed `/api/v1` and require `Authorization: Bearer <firebase-id-token>`.
+The routes are under `/api/v1`. All of them need
+`Authorization: Bearer <firebase-id-token>`. Group routes (categories,
+expenses, summary, shopping list) also need an `X-Group-Id` header.
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/me` | Current user profile |
-| `GET` | `/categories` | All categories visible to the user (system defaults + custom) |
-| `POST` | `/categories` | Create a custom category `{ name, iconKey, color }` |
-| `DELETE` | `/categories/:id` | Delete a custom category |
-| `GET` | `/expenses?month=YYYY-MM` | Expenses for a month (default: current) |
-| `POST` | `/expenses` | Create `{ categoryId, amount, occurredOn, note? }` |
-| `PATCH` | `/expenses/:id` | Partial update |
-| `DELETE` | `/expenses/:id` | Delete |
-| `GET` | `/summary?month=YYYY-MM` | Totals overall and per-category for a month |
+- Me, groups, members and budgets
+- Categories, expenses, frequent expenses and the monthly summary
+- Wallets (`/accounts`): entries, transfers, members, totals and history
+- Exchange rates (`/fx`) and the shopping list
 
-Amounts are sent/received as **decimals in dollars** but stored as integer cents.
+The full list is in [apps/api-dox/lib/routes/api.dart](apps/api-dox/lib/routes/api.dart).
+With `APP_ENV=development`, the API also serves OpenAPI docs at `/docs`.
+
+Money is sent as decimals (`12.50`) and stored as integer cents.
 
 ## MCP (use with Claude)
 
@@ -95,13 +120,10 @@ The MCP endpoint is `{APP_URL}/mcp`. Clients sign in with OAuth: they open
 the web app's consent page, and you approve them there. You can sign
 clients out on the **Me** page.
 
-The API has 44 tools: one for each thing the HTTP API can do. That is me,
-groups and their members, budgets, the default wallet, categories, expenses
-(also frequent ones and the monthly summary), wallets (with members,
-entries, transfers, totals and history), exchange rates and the shopping
-list. Each tool takes the same input as its HTTP route (the same DTO,
-camelCase keys), plus the ids that HTTP takes from the URL, like `groupId`
-or `accountId`. Start with `list_groups` to find a `groupId`.
+There are 44 tools, one for each thing the HTTP API can do. Each tool takes
+the same input as its HTTP route, plus the ids that HTTP takes from the
+URL, like `groupId` or `accountId`. Start with `list_groups` to find a
+`groupId`.
 
 Add `https://your-host/mcp` as a custom connector on claude.ai, or with
 Claude Code:
@@ -110,41 +132,21 @@ Claude Code:
 claude mcp add --transport http monthly-expense "https://your-host/mcp"
 ```
 
-### 3. Try it
-
-Ask Claude things like:
+Then ask things like:
 
 - "Add a $4.50 coffee under Food for today."
 - "What did I spend on transport this month?"
 - "Give me the May 2026 summary."
 
-Claude will call `add_expense`, `monthly_summary`, etc. on your behalf. New
-entries show up in the web app on next refresh.
+## CI
 
-## Production: Docker
+[api-dox.yml](.github/workflows/api-dox.yml) runs the API tests on SQLite
+and Postgres. On every push to `main`, it builds the image and pushes it to
+`ghcr.io/<owner>/<repo>`. The build needs no secrets.
 
-The multi-stage `Dockerfile` builds the SPA, AOT-compiles the API
-(`dart build cli`), and produces a small image with just the binary, its
-native libraries and the SPA. The API serves the SPA from `public/` and runs migrations
-on start.
-
-```bash
-cp apps/api-dox/.env.example .env   # fill in APP_KEY, APP_URL, FIREBASE_*
-docker compose up -d --build
-# → http://localhost:3333
-```
-
-SQLite is persisted in the named volume `expense-data`.
-
-## CI: publishing the image
-
-`.github/workflows/api-dox.yml` runs the tests, then builds and pushes
-`ghcr.io/<owner>/<repo>` on every push to `main`. The build needs no
-secrets. All Firebase settings (Admin and Web SDK) are set at run time
-via the compose env file.
-
-After the image is pushed on `main`, CI calls the Coolify deploy webhook
-(`COOLIFY_DEPLOY_URL` variable, `COOLIFY_DEPLOY_TOKEN` secret).
+To deploy after the push, set the `COOLIFY_DEPLOY_URL` variable and the
+`COOLIFY_DEPLOY_TOKEN` secret. CI then calls the Coolify deploy webhook.
+Without them, CI skips the deploy step.
 
 ## Credits
 

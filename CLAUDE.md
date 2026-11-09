@@ -11,18 +11,24 @@ Read this before changing code. It captures the non-obvious bits.
   Commands and rules: `apps/api-dox/README.md` and `apps/api-dox/AGENTS.md`.
 - **Frontend** (`apps/web`): React 19 + Vite + TS, Zustand stores, Tailwind v4,
   shadcn/ui (Radix base, `components.json`) plus a few Rare UI components,
-  `motion`, `vaul`, Firebase JS SDK, lucide-react. Plain SPA — no router, no PWA/service worker
-  (removed; `main.ts` keeps a one-off unregister for old installs).
+  `motion`, `vaul`, Firebase JS SDK, lucide-react. Plain SPA: no router, no
+  PWA or service worker (removed; `main.tsx` keeps a one-off unregister for
+  old installs).
 - **Package manager** (web): **bun**.
 
 ## Auth model (don't add sessions)
 
 - The frontend signs in via Firebase Google popup and stores nothing locally.
 - Every API request carries the Firebase **ID token** as `Authorization: Bearer <token>`.
-  `apps/web/src/api.ts` attaches it from `getIdToken()` automatically.
+  `apps/web/src/lib/api.ts` attaches it from `getIdToken()` automatically.
 - `lib/app/http/middleware/auth.middleware.dart` checks the token and finds or
   makes the user. `group.middleware.dart` reads `X-Group-Id` and checks
   membership. Routes are in `lib/routes/api.dart`.
+- The Firebase web config is not in the bundle. `index.html` loads
+  `/config.js` (`ConfigController`) before the app, and `lib/firebase.ts`
+  reads `window.__APP_CONFIG__`. The API makes it from `FIREBASE_PROJECT_ID`,
+  `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN` and `FIREBASE_APP_ID`. In dev,
+  Vite proxies `/config.js` to the API. Do not add `VITE_FIREBASE_*` back.
 
 ## MCP
 
@@ -54,9 +60,11 @@ Read this before changing code. It captures the non-obvious bits.
 - Layout: `src/screens/` (one file per tab), `src/sheets/` (bottom sheets),
   `src/components/app/` (our shared parts), `src/components/ui/` (shadcn and
   Rare UI files, added with `bunx shadcn add`; edit them freely).
-- Tabs: Home (allowance, calendar, quick add, list), Wallet (the user calls
-  accounts "wallets" in all UI text; code and API keep `accounts`), Rates, Me
-  (settings list with drill-in pages, `useUi.settingsTab`).
+- Tabs (`useUi.tab`): Home (`home`: allowance, calendar, quick add, list),
+  Wallet (`accounts`: the user calls accounts "wallets" in all UI text; code
+  and API keep `accounts`), List (`list`: the shopping list), Me (`settings`:
+  a settings list with drill-in pages, `useUi.settingsTab`; Rates is one of
+  them). The middle bar button opens the expense sheet; it is not a tab.
 - Home's quick-add chips come from `GET /expenses/frequent`; the wallet cards'
   trend lines from `GET /accounts/history?days=30`.
 - Stores live in `src/stores/` (Zustand). `useAuth` owns the Firebase listener
@@ -67,8 +75,9 @@ Read this before changing code. It captures the non-obvious bits.
 - i18n is a tiny `t()` in `src/lib/i18n.ts` over `src/locales/{en,my}.ts`
   (vue-i18n syntax: `{name}` placeholders, `{'@'}` escapes). Components call
   `useT()` so they re-render when the language changes. Add every new key to both files.
-- Theme: `light | dark | system`, stored in `localStorage['app:theme']`. A
-  script in `index.html` sets the `dark` class before first paint.
+- Theme: `light | dark | system | pink`, stored in `localStorage['app:theme']`
+  (`lib/theme.ts`). `pink` is a light theme with its own `.pink` palette. A
+  script in `index.html` sets the class before first paint.
 - Every add/edit form is a `Sheet` (`components/app/sheet.tsx`): a floating vaul
   drawer whose height animates between views. Deletes inside sheets use Rare
   UI's `DeleteButton` (confirm in place); success shows a `toast`.
@@ -95,8 +104,10 @@ Read this before changing code. It captures the non-obvious bits.
 - One image, multi-stage: builds the SPA → AOT-compiles the API (`dart build cli`)
   → small Debian runtime with the binary, its `lib/*.so` and `public/`.
 - The binary runs migrations on start. No separate migrate command in compose.
-- After the image is pushed on `main`, CI calls the Coolify deploy webhook.
-- Nothing Firebase is baked into the image. The SPA loads `/config.js`
-  (`ConfigController`) before it starts, which the API makes from
-  `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`,
-  `FIREBASE_APP_ID`. Admin secrets are also set at run time.
+- The image is `ghcr.io/<owner>/<repo>`. After it is pushed on `main`, CI
+  calls the Coolify deploy webhook (skipped when `COOLIFY_DEPLOY_URL` is not set).
+- The build needs no secrets. All env, Firebase included, is set at run
+  time. The only env example is `apps/api-dox/.env.example`; compose reads
+  a copy of it as `.env` in the repo root.
+- The repo is public. Never commit `.env`, keys, real emails or server
+  URLs. Use `example.com` style values in docs and tests.
