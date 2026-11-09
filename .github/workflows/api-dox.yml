@@ -43,6 +43,14 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 3.13.7
+      # Keep the native libraries the build hooks download (SQLite,
+      # Postgres, MySQL, HTTP). GitHub often answers those downloads with
+      # 504, so a run with a cache hit does not download them again.
+      - uses: actions/cache@v4
+        with:
+          path: apps/api-dox/.dart_tool/hooks_runner
+          key: dart-hooks-${{ github.job }}-${{ hashFiles('apps/api-dox/pubspec.lock') }}
+          restore-keys: dart-hooks-${{ github.job }}-
       - run: dart pub get
       - run: dart format --output=none --set-exit-if-changed lib test bin db
       - run: dart analyze --fatal-infos
@@ -62,6 +70,14 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 3.13.7
+      # Keep the native libraries the build hooks download (SQLite,
+      # Postgres, MySQL, HTTP). GitHub often answers those downloads with
+      # 504, so a run with a cache hit does not download them again.
+      - uses: actions/cache@v4
+        with:
+          path: apps/api-dox/.dart_tool/hooks_runner
+          key: dart-hooks-${{ github.job }}-${{ hashFiles('apps/api-dox/pubspec.lock') }}
+          restore-keys: dart-hooks-${{ github.job }}-
       - run: dart pub get
       # The build hooks download SQLite from GitHub, which sometimes
       # answers 504: try 3 times.
