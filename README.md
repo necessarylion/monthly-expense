@@ -152,3 +152,7 @@ Without them, CI skips the deploy step.
 
 The web UI uses [shadcn/ui](https://ui.shadcn.com) and components from
 [Rare UI](https://rareui.com) (MIT + Commons Clause + Attribution).
+
+## License
+
+[MIT](LICENSE). Rare UI files keep their own license (see Credits).
