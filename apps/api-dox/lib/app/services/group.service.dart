@@ -132,8 +132,12 @@ class GroupService {
     return pending.length;
   }
 
-  Future<List<Group>> listForUser(User user) {
-    return members.joinedGroupsForUser(user.id!);
+  /// A user who left their last group gets a new personal group here.
+  /// Sign-in does the same, but its result is cached for a short time.
+  Future<List<Group>> listForUser(User user) async {
+    List<Group> list = await members.joinedGroupsForUser(user.id!);
+    if (list.isEmpty) return <Group>[await ensurePersonalGroup(user)];
+    return list;
   }
 
   /// 404, not 403, so outsiders do not learn that the group exists.

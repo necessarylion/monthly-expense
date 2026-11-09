@@ -16,6 +16,11 @@ class UserService {
   final AccountShareService accountShares;
   final AppSettings settings;
 
+  /// Firebase uid -> the user and when the entry ends. Each isolate has its
+  /// own. It skips the sign-in queries for a user seen a moment ago.
+  // ponytail: grows by one entry per user; fine for a small user count.
+  final Map<String, (User, DateTime)> _recent = <String, (User, DateTime)>{};
+
   /// True when ALLOWED_EMAILS is empty or lists this email.
   bool isEmailAllowed(String? email) {
     List<String> allowed = settings.allowedEmails;
@@ -25,8 +30,32 @@ class UserService {
   /// Find the user by Firebase UID, or create them on first sign-in.
   /// Profile fields are refreshed from the token. Then make sure the user
   /// has a group and has joined every group and wallet that invited their
-  /// email.
+  /// email. A user seen in the last [authUserCacheTtl] skips all of this,
+  /// so a new invite can show up that much later.
   Future<User> findOrCreate(FirebaseIdentity identity) async {
+    User? cached = _cached(identity);
+    if (cached != null) return cached;
+    User user = await _findOrCreate(identity);
+    _recent[identity.uid] = (user, DateTime.now().add(authUserCacheTtl));
+    return user;
+  }
+
+  /// The cached user, or null when there is none, it is old, or the token
+  /// has a new name, email or photo (the full path saves those).
+  User? _cached(FirebaseIdentity identity) {
+    (User, DateTime)? entry = _recent[identity.uid];
+    if (entry == null || entry.$2.isBefore(DateTime.now())) return null;
+    if (!_sameProfile(entry.$1, identity)) return null;
+    return entry.$1;
+  }
+
+  static bool _sameProfile(User user, FirebaseIdentity identity) {
+    return user.email == (identity.email ?? '') &&
+        user.displayName == identity.name &&
+        user.photoUrl == identity.picture;
+  }
+
+  Future<User> _findOrCreate(FirebaseIdentity identity) async {
     User? user = await users.findByFirebaseUid(identity.uid);
     if (user != null && await groups.hasGroup(user)) {
       return _setUp(user, identity);
@@ -69,12 +98,9 @@ class UserService {
   }
 
   Future<User> _setUp(User user, FirebaseIdentity identity) async {
-    String email = identity.email ?? '';
-    if (user.email != email ||
-        user.displayName != identity.name ||
-        user.photoUrl != identity.picture) {
+    if (!_sameProfile(user, identity)) {
       user = await users.update(user.id!, <String, dynamic>{
-        'email': email,
+        'email': identity.email ?? '',
         'display_name': identity.name,
         'photo_url': identity.picture,
       });

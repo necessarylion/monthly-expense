@@ -25,6 +25,10 @@ const int balanceHistoryMaxDays = 365;
 /// A first sign-in holds its lock at most this long (also the wait).
 const Duration firstSignInLockTtl = Duration(seconds: 15);
 
+/// A signed-in user is kept in memory this long, so most requests skip
+/// the sign-in queries (find user, claim invites, personal group).
+const Duration authUserCacheTtl = Duration(minutes: 1);
+
 /// Outgoing calls to Google (Firebase public keys) give up after this.
 const Duration firebaseVerifyTimeout = Duration(seconds: 10);
 
