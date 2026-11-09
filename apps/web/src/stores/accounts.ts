@@ -87,6 +87,14 @@ const EMPTY = {
 let loadingMoreRecent = false
 let loadingMoreEntries = false
 
+/**
+ * Live events can start a reload at any time. Only the newest reload may
+ * write, and a "load more" page is dropped when a reload replaced the list
+ * meanwhile (its offset no longer fits).
+ */
+let listRequest = 0
+let entriesRequest = 0
+
 export const useAccounts = create<AccountsState>((set, get) => {
   async function reloadAll() {
     await Promise.all([get().load(), get().loadEntries()])
@@ -115,6 +123,7 @@ export const useAccounts = create<AccountsState>((set, get) => {
     },
 
     async load() {
+      const request = ++listRequest
       set({ loading: true, lastError: null })
       try {
         // Refetch what's already on screen (min one page) so reloads don't collapse the list.
@@ -123,6 +132,7 @@ export const useAccounts = create<AccountsState>((set, get) => {
           api.get<{ data: Account[] }>('/accounts'),
           api.get<{ data: AccountEntry[] }>('/accounts/recent-entries', { params: { limit } }),
         ])
+        if (request !== listRequest) return
         set({
           accounts: accRes.data.data,
           recent: recentRes.data.data,
@@ -149,13 +159,14 @@ export const useAccounts = create<AccountsState>((set, get) => {
       const id = get().openId
       if (id === null) return
       const limit = Math.max(PAGE, get().entries.length)
+      const request = ++entriesRequest
       set({ loading: true })
       try {
         const { data } = await api.get<{ data: AccountEntry[] }>(`/accounts/${id}/entries`, {
           params: { limit },
         })
         // The user may have backed out (or opened another account) meanwhile.
-        if (get().openId === id) {
+        if (get().openId === id && request === entriesRequest) {
           set({ entries: data.data, entriesHasMore: data.data.length === limit })
         }
       } catch (e: any) {
@@ -168,10 +179,12 @@ export const useAccounts = create<AccountsState>((set, get) => {
     async loadMoreRecent() {
       if (!get().recentHasMore || loadingMoreRecent) return
       loadingMoreRecent = true
+      const request = listRequest
       try {
         const { data } = await api.get<{ data: AccountEntry[] }>('/accounts/recent-entries', {
           params: { limit: PAGE, offset: get().recent.length },
         })
+        if (request !== listRequest) return
         set({ recent: [...get().recent, ...data.data], recentHasMore: data.data.length === PAGE })
       } finally {
         loadingMoreRecent = false
@@ -182,11 +195,12 @@ export const useAccounts = create<AccountsState>((set, get) => {
       const id = get().openId
       if (id === null || !get().entriesHasMore || loadingMoreEntries) return
       loadingMoreEntries = true
+      const request = entriesRequest
       try {
         const { data } = await api.get<{ data: AccountEntry[] }>(`/accounts/${id}/entries`, {
           params: { limit: PAGE, offset: get().entries.length },
         })
-        if (get().openId === id) {
+        if (get().openId === id && request === entriesRequest) {
           set({
             entries: [...get().entries, ...data.data],
             entriesHasMore: data.data.length === PAGE,

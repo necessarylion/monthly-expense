@@ -41,6 +41,20 @@ Read this before changing code. It captures the non-obvious bits.
   The consent page is the web app's `/oauth/authorize`. Tools are in
   `lib/app/mcp/tools`. See `apps/api-dox/README.md`.
 
+## Live updates
+
+- Socket.IO (`dox_socketio`) at `/socket.io/`, websocket only. The app
+  sends its Firebase ID token in `auth.token`; each socket joins
+  `user:<id>` (`lib/app/socket/live.namespace.dart`).
+- After a write, a service calls `LiveService`, which sends `changed`
+  `{topic, groupId?}` to the users who can see the data. The event has no
+  data: `apps/web/src/lib/live.ts` reloads that store. Topic names are in
+  `lib/constants/live.dart` and must match `live.ts`.
+- New writes that others should see: call `LiveService` in the service,
+  not the controller (MCP tools and jobs use the services too).
+- Many isolates share events through dox_socketio's `IsolateAdapter`. No
+  Redis. There is no pull to refresh; do not add it back.
+
 ## Data shape
 
 - Money is **integer cents** in the DB. Convert at the edges with `MoneyUtil`.

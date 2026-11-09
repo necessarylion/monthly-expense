@@ -34,6 +34,13 @@ interface ExpensesState {
   deleteCategory(id: number): Promise<void>
 }
 
+/**
+ * Live events can start a load at any time. Only the newest load of each
+ * kind may write, and only while its group is still active.
+ */
+let monthRequest = 0
+let categoriesRequest = 0
+
 /** Expense changes can book or adjust an entry in the default account. */
 function refreshAccounts() {
   const accounts = useAccounts.getState()
@@ -54,17 +61,22 @@ export const useExpenses = create<ExpensesState>((set, get) => ({
   },
 
   async loadCategories() {
-    if (!useGroups.getState().activeId) {
+    const groupId = useGroups.getState().activeId
+    const request = ++categoriesRequest
+    if (!groupId) {
       set({ categories: [] })
       return
     }
     const { data } = await api.get<{ data: Category[] }>('/categories')
+    if (request !== categoriesRequest || groupId !== useGroups.getState().activeId) return
     set({ categories: data.data })
   },
 
   async loadMonth(key = get().month) {
     set({ month: key })
-    if (!useGroups.getState().activeId) {
+    const groupId = useGroups.getState().activeId
+    const request = ++monthRequest
+    if (!groupId) {
       get().clear()
       return
     }
@@ -74,8 +86,8 @@ export const useExpenses = create<ExpensesState>((set, get) => ({
         api.get<{ data: Expense[] }>('/expenses', { params: { month: key } }),
         api.get<{ data: MonthlySummary }>('/summary', { params: { month: key } }),
       ])
-      // A newer month switch may have landed meanwhile.
-      if (get().month !== key) return
+      // A newer load (another month, another group, a live event) wins.
+      if (request !== monthRequest || groupId !== useGroups.getState().activeId) return
       set({ expenses: expRes.data.data, summary: sumRes.data.data, syncedAt: Date.now() })
     } catch (e: any) {
       set({ lastError: e?.message ?? 'Failed to load expenses' })

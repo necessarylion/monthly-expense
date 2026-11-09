@@ -1206,7 +1206,7 @@ export function SettingsScreen() {
           // Rates brings its own Page (it swaps to a converter view inside).
           <RatesScreen />
         ) : (
-          <Page onRefresh={page === 'groups' ? () => useGroups.getState().load() : undefined} className="gap-5">
+          <Page className="gap-5">
             <SettingsPage page={page} />
           </Page>
         )}

@@ -1,6 +1,8 @@
 import 'package:api_dox/app/dtos/shopping_item/shopping_item.dto.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/shopping_item.repository.dart';
+import 'package:api_dox/app/services/live.service.dart';
+import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:api_dox/utils/date_util.dart';
 import 'package:dox_core/dox_core.dart';
@@ -9,9 +11,10 @@ import 'package:dox_core/dox_core.dart';
 /// items.
 @Inject()
 class ShoppingListService {
-  ShoppingListService(this.items);
+  ShoppingListService(this.items, this.live);
 
   final ShoppingItemRepository items;
+  final LiveService live;
 
   /// Still to buy (oldest first), then bought (latest first).
   Future<List<ShoppingItem>> list(Group group) async {
@@ -37,22 +40,39 @@ class ShoppingListService {
     return item;
   }
 
-  Future<ShoppingItem> create(Group group, User user, String name) {
-    return items.create(group.id!, name, user.id!);
+  Future<ShoppingItem> create(Group group, User user, String name) async {
+    ShoppingItem item = await items.create(group.id!, name, user.id!);
+    await _changed(group.id!);
+    return item;
   }
 
-  Future<ShoppingItem> update(ShoppingItem item, UpdateShoppingItem fields) {
+  Future<ShoppingItem> update(
+    ShoppingItem item,
+    UpdateShoppingItem fields,
+  ) async {
     Map<String, dynamic> changes = <String, dynamic>{
       if (fields.name != null) 'name': fields.name,
       // Ticking an already-bought item keeps its first time.
       if (fields.done != null)
         'done_at': fields.done! ? (item.doneAt ?? DateUtil.nowSql()) : null,
     };
-    if (changes.isEmpty) return Future<ShoppingItem>.value(item);
-    return items.update(item.id!, changes);
+    if (changes.isEmpty) return item;
+    ShoppingItem updated = await items.update(item.id!, changes);
+    await _changed(item.groupId);
+    return updated;
   }
 
-  Future<void> delete(ShoppingItem item) => items.delete(item.id!);
+  Future<void> delete(ShoppingItem item) async {
+    await items.delete(item.id!);
+    await _changed(item.groupId);
+  }
 
-  Future<int> clearDone(Group group) => items.deleteDone(group.id!);
+  Future<int> clearDone(Group group) async {
+    int removed = await items.deleteDone(group.id!);
+    if (removed > 0) await _changed(group.id!);
+    return removed;
+  }
+
+  Future<void> _changed(int groupId) =>
+      live.groupChanged(groupId, liveTopicShopping);
 }

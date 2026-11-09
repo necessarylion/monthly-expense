@@ -1,13 +1,16 @@
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/budget.repository.dart';
+import 'package:api_dox/app/services/live.service.dart';
+import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:dox_core/dox_core.dart';
 
 @Inject()
 class BudgetService {
-  BudgetService(this.budgets);
+  BudgetService(this.budgets, this.live);
 
   final BudgetRepository budgets;
+  final LiveService live;
 
   /// The budget for a month. A month without its own row uses the latest
   /// row before it. Null when no budget was ever set.
@@ -37,6 +40,7 @@ class BudgetService {
     );
     if (budgetCents == null) {
       if (existing != null) await budgets.delete(existing.id!);
+      await live.groupChanged(group.id!, liveTopicGroup);
       return getForMonth(group, monthKey);
     }
     if (existing != null) {
@@ -44,6 +48,7 @@ class BudgetService {
     } else {
       await budgets.create(group.id!, monthKey, budgetCents);
     }
+    await live.groupChanged(group.id!, liveTopicGroup);
     return budgetCents;
   }
 

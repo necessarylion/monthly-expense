@@ -2,6 +2,8 @@ import 'package:api_dox/app/dtos/category/category.dto.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/category.repository.dart';
 import 'package:api_dox/app/repositories/expense.repository.dart';
+import 'package:api_dox/app/services/live.service.dart';
+import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:api_dox/utils/money_util.dart';
 import 'package:api_dox/utils/slug_util.dart';
@@ -9,10 +11,11 @@ import 'package:dox_core/dox_core.dart';
 
 @Inject()
 class CategoryService {
-  CategoryService(this.categories, this.expenses);
+  CategoryService(this.categories, this.expenses, this.live);
 
   final CategoryRepository categories;
   final ExpenseRepository expenses;
+  final LiveService live;
 
   Future<List<Category>> list(Group group) => categories.listByGroup(group.id!);
 
@@ -38,10 +41,10 @@ class CategoryService {
     return categories.findByGroupAndSlug(group.id!, slug);
   }
 
-  Future<Category> create(Group group, CreateCategory fields) {
+  Future<Category> create(Group group, CreateCategory fields) async {
     String slug = SlugUtil.slugify(fields.name);
     if (slug.isEmpty) throw HttpError.unprocessable('Invalid category name');
-    return categories.create(
+    Category category = await categories.create(
       NewCategory(
         groupId: group.id!,
         name: fields.name,
@@ -50,6 +53,8 @@ class CategoryService {
         color: fields.color,
       ),
     );
+    await live.groupChanged(group.id!, liveTopicGroup);
+    return category;
   }
 
   /// A new name also gets a new slug.
@@ -89,6 +94,7 @@ class CategoryService {
   Future<int> delete(Category category) async {
     int cleared = await expenses.clearCategory(category.id!);
     await categories.delete(category.id!);
+    await live.groupChanged(category.groupId, liveTopicGroup);
     return cleared;
   }
 
@@ -97,6 +103,8 @@ class CategoryService {
     Map<String, dynamic> changes,
   ) async {
     if (changes.isEmpty) return category;
-    return categories.update(category.id!, changes);
+    Category updated = await categories.update(category.id!, changes);
+    await live.groupChanged(category.groupId, liveTopicGroup);
+    return updated;
   }
 }

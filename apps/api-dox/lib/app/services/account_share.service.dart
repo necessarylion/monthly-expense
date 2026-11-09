@@ -2,6 +2,8 @@ import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/account_member.repository.dart';
 import 'package:api_dox/app/repositories/user.repository.dart';
 import 'package:api_dox/app/services/group.service.dart';
+import 'package:api_dox/app/services/live.service.dart';
+import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:api_dox/utils/date_util.dart';
@@ -54,10 +56,11 @@ class AccountMemberView {
 /// cannot be removed, so the wallet always has an owner.
 @Inject()
 class AccountShareService {
-  AccountShareService(this.members, this.users);
+  AccountShareService(this.members, this.users, this.live);
 
   final AccountMemberRepository members;
   final UserRepository users;
+  final LiveService live;
 
   /// The owner first, then members in invite order.
   Future<List<AccountMemberView>> listMembers(Account account) async {
@@ -111,6 +114,7 @@ class AccountShareService {
       invitedByUserId: inviter.id,
       joinedAt: user == null ? null : DateUtil.nowSql(),
     );
+    await live.accountChanged(account.id!);
     return AccountMemberView.of(member);
   }
 
@@ -120,7 +124,9 @@ class AccountShareService {
         ? null
         : await members.findByAccountAndId(account.id!, memberId);
     if (member == null) throw HttpError.notFound('Member not found');
+    Set<int> users = await live.usersOfAccount(account.id!);
     await members.delete(member.id!);
+    await live.notify(users, liveTopicAccounts);
   }
 
   /// Attach every pending wallet invite for this user's email. Runs on

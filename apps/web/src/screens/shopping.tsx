@@ -111,7 +111,7 @@ export function ShoppingScreen() {
   }
 
   return (
-    <Page onRefresh={() => useShopping.getState().load()} className="gap-5">
+    <Page className="gap-5">
       <form onSubmit={(e) => void add(e)} className="flex gap-2">
         <Input
           ref={input}

@@ -4,6 +4,7 @@ import 'package:api_dox/app/repositories/expense.repository.dart';
 import 'package:api_dox/app/services/account.service.dart';
 import 'package:api_dox/app/services/budget.service.dart';
 import 'package:api_dox/app/services/category.service.dart';
+import 'package:api_dox/app/services/live.service.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:api_dox/utils/date_util.dart';
@@ -64,12 +65,19 @@ class MonthlySummary {
 
 @Inject()
 class ExpenseService {
-  ExpenseService(this.expenses, this.categories, this.budgets, this.accounts);
+  ExpenseService(
+    this.expenses,
+    this.categories,
+    this.budgets,
+    this.accounts,
+    this.live,
+  );
 
   final ExpenseRepository expenses;
   final CategoryService categories;
   final BudgetService budgets;
   final AccountService accounts;
+  final LiveService live;
 
   /// The month's expenses with their category, newest first.
   Future<List<ExpenseWithCategory>> listForMonth(
@@ -175,6 +183,7 @@ class ExpenseService {
       accountId: accountId,
     );
     await expenses.attachWalletOwners(<Expense>[expense]);
+    await _changed(expense);
     return ExpenseWithCategory(expense, category);
   }
 
@@ -204,6 +213,7 @@ class ExpenseService {
         : await categories.findInGroup(group, updated.categoryId);
     await accounts.syncExpenseOutflow(updated, category);
     await expenses.attachWalletOwners(<Expense>[updated]);
+    await _changed(updated);
     return ExpenseWithCategory(updated, category);
   }
 
@@ -243,8 +253,21 @@ class ExpenseService {
     ];
   }
 
-  /// The booked account entry goes with it (the foreign key cascades).
-  Future<void> delete(Expense expense) => expenses.delete(expense.id!);
+  /// The booked account entry goes with it (the foreign key cascades), so
+  /// its wallet is found first.
+  Future<void> delete(Expense expense) async {
+    int? accountId = await live.accountOfExpense(expense.id!);
+    await expenses.delete(expense.id!);
+    await live.expenseChanged(expense.groupId, accountId);
+  }
+
+  /// Tell the group, and the wallet the expense is booked in.
+  Future<void> _changed(Expense expense) async {
+    await live.expenseChanged(
+      expense.groupId,
+      await live.accountOfExpense(expense.id!),
+    );
+  }
 
   /// Insertion sort: stable, and the lists are short (one row per category).
   static void stableSortByTotalDesc(List<CategoryTotal> rows) {

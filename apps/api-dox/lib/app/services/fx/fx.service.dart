@@ -3,6 +3,7 @@ import 'package:api_dox/app/services/fx/gold_quote_provider.dart';
 import 'package:api_dox/constants/fx.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:api_dox/utils/money_util.dart';
+import 'package:api_dox/app/services/live.service.dart';
 import 'package:dox_core/dox_core.dart';
 
 /// A rate table for one base currency.
@@ -41,10 +42,11 @@ final RegExp _currencyCode = RegExp(r'^[A-Z]{3}$');
 /// its own provider.
 @Inject()
 class FxService {
-  FxService(this.coinbase, this.goldProvider);
+  FxService(this.coinbase, this.goldProvider, this.live);
 
   final CoinbaseRateProvider coinbase;
   final GoldQuoteProvider goldProvider;
+  final LiveService live;
 
   Future<GoldQuote> goldQuote() => goldProvider.quote();
 
@@ -76,6 +78,9 @@ class FxService {
         // provider hiccup
       }
     }
+    // ponytail: tells the apps even when no rate moved; compare the
+    // tables first if this wakes them up too often.
+    await live.ratesChanged();
   }
 
   /// Sum balances into [currency] cents using [rates] ("1 unit of currency

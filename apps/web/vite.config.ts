@@ -10,12 +10,14 @@ const API_PROXY = process.env.API_PROXY || 'http://localhost:3334'
 const proxy = Object.fromEntries(
   ['/api', '/config.js', '/mcp', '/.well-known', '/oauth/register', '/oauth/token'].map((path) => [path, API_PROXY])
 )
+// Live updates (src/lib/live.ts): a websocket, so it needs `ws`.
+const liveProxy = { '/socket.io': { target: API_PROXY, ws: true } }
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: { port: 5173, host: true, proxy },
-  preview: { port: 5173, host: true, proxy },
+  server: { port: 5173, host: true, proxy: { ...proxy, ...liveProxy } },
+  preview: { port: 5173, host: true, proxy: { ...proxy, ...liveProxy } },
 })
