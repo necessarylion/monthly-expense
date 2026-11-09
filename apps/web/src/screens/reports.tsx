@@ -356,7 +356,7 @@ export function SearchPage() {
               <li key={e.id} className="border-b border-border/70 last:border-b-0">
                 <button
                   type="button"
-                  onClick={() => useUi.getState().openExpense(e)}
+                  onClick={() => useUi.getState().openExpenseDetail(e)}
                   className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors active:bg-muted"
                 >
                   <CategoryIcon iconKey={category?.iconKey ?? null} color={category?.color ?? null} size={36} />

@@ -35,6 +35,8 @@ interface UiState {
   /** `undefined` = closed, `null` = new expense, else the expense being edited. */
   expenseSheet: Expense | null | undefined
   expenseDraft: ExpenseDraft | null
+  /** The expense shown read-only (tap in a list); null = closed. */
+  expenseDetail: Expense | null
   categoriesOpen: boolean
   setTab(tab: Tab): void
   setSettingsTab(tab: SettingsTab): void
@@ -43,6 +45,8 @@ interface UiState {
   openGroups(mode: 'create' | 'manage'): void
   openExpense(expense: Expense | null, draft?: ExpenseDraft): void
   closeExpense(): void
+  openExpenseDetail(expense: Expense): void
+  closeExpenseDetail(): void
   setCategoriesOpen(open: boolean): void
 }
 
@@ -52,6 +56,7 @@ export const useUi = create<UiState>((set) => ({
   groupsView: 'list',
   expenseSheet: undefined,
   expenseDraft: null,
+  expenseDetail: null,
   categoriesOpen: false,
   setTab: (tab) => set({ tab }),
   setSettingsTab: (settingsTab) => set({ settingsTab }),
@@ -65,5 +70,7 @@ export const useUi = create<UiState>((set) => ({
     }),
   openExpense: (expense, draft) => set({ expenseSheet: expense, expenseDraft: draft ?? null }),
   closeExpense: () => set({ expenseSheet: undefined, expenseDraft: null }),
+  openExpenseDetail: (expenseDetail) => set({ expenseDetail }),
+  closeExpenseDetail: () => set({ expenseDetail: null }),
   setCategoriesOpen: (categoriesOpen) => set({ categoriesOpen }),
 }))

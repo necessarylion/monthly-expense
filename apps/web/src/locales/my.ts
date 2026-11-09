@@ -65,6 +65,9 @@ export default {
     deleteAria: 'အသုံးစရိတ်ကို ဖျက်ရန်',
   },
   expenseModal: {
+    titleDetail: 'အသုံးစရိတ်',
+    edit: 'ပြင်ရန်',
+    paidBy: 'ပေးသူ',
     payFrom: 'ဘယ်ပိုက်ဆံအိတ်ကနေလဲ',
     titleNew: 'အသုံးစရိတ် အသစ်',
     titleEdit: 'အသုံးစရိတ်ကို ပြင်ဆင်ရန်',

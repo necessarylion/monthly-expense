@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { CategoriesSheet } from '@/sheets/categories-sheet'
+import { ExpenseDetailSheet } from '@/sheets/expense-detail-sheet'
 import { ExpenseSheet } from '@/sheets/expense-sheet'
 import { useExpenses } from '@/stores/expenses'
 import { useGroups } from '@/stores/groups'
@@ -203,6 +204,7 @@ export function Dashboard() {
       <TabBar />
       </div>
       <ExpenseSheet />
+      <ExpenseDetailSheet />
       <CategoriesSheet />
     </div>
   )

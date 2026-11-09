@@ -602,7 +602,7 @@ function ExpenseList({
 }) {
   const t = useT()
   const categoryById = useCategoryById()
-  const openExpense = useUi((s) => s.openExpense)
+  const openDetail = useUi((s) => s.openExpenseDetail)
 
   const groups = useMemo(() => {
     const out: { date: string; total: number; items: Expense[] }[] = []
@@ -634,7 +634,7 @@ function ExpenseList({
               const category = e.categoryId === null ? undefined : categoryById.get(e.categoryId)
               return (
                 <li key={e.id} className="border-b border-border/70 last:border-b-0">
-                  <button type="button" onClick={() => openExpense(e)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors active:bg-muted">
+                  <button type="button" onClick={() => openDetail(e)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors active:bg-muted">
                     <CategoryIcon iconKey={category?.iconKey ?? null} color={category?.color ?? null} size={38} />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate text-[15px] font-medium">{e.note || category?.name || t('overview.noCategory')}</span>

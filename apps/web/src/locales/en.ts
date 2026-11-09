@@ -64,6 +64,9 @@ export default {
     deleteAria: 'Delete expense',
   },
   expenseModal: {
+    titleDetail: 'Expense',
+    edit: 'Edit',
+    paidBy: 'Paid by',
     payFrom: 'Pay from',
     titleNew: 'New Expense',
     titleEdit: 'Edit Expense',
