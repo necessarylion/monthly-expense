@@ -23,3 +23,9 @@ dev_dependencies:
   build_runner: ^2.4.13
   lints: ^6.1.0
   test: ^1.26.3
+
+hooks:
+  user_defines:
+    # The app uses SQLite or Postgres, never MySQL: skip that download.
+    dox_mysql_native:
+      skip: true
