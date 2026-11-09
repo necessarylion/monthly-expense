@@ -51,6 +51,10 @@ jobs:
           path: apps/api-dox/.dart_tool/hooks_runner
           key: dart-hooks-${{ github.job }}-${{ hashFiles('apps/api-dox/pubspec.lock') }}
           restore-keys: dart-hooks-${{ github.job }}-
+      # These tests run on Postgres only (the SQLite test skips itself),
+      # so use the system SQLite instead of downloading one.
+      - name: Skip the SQLite download
+        run: sed -i 's/^  user_defines:$/&\n    sqlite3:\n      source: system/' pubspec.yaml
       - run: dart pub get
       - run: dart format --output=none --set-exit-if-changed lib test bin db
       - run: dart analyze --fatal-infos
