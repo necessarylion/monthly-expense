@@ -33,6 +33,7 @@ import type { Account, AccountEntry } from '@/lib/types'
 import { useIsDesktop } from '@/hooks/use-is-desktop'
 import { cn } from '@/lib/utils'
 import { AccountFormSheet } from '@/sheets/account-form-sheet'
+import { EntryDetailSheet } from '@/sheets/entry-detail-sheet'
 import { EntrySheet } from '@/sheets/entry-sheet'
 import { TransferSheet } from '@/sheets/transfer-sheet'
 import { useAccounts } from '@/stores/accounts'
@@ -41,7 +42,8 @@ import { Page } from './page'
 type SheetState =
   | { kind: 'none' }
   | { kind: 'form'; account: Account | null }
-  | { kind: 'entry'; entry: AccountEntry | null; accountId: number | null; mode?: 'set' }
+  | { kind: 'entry'; accountId: number | null; mode?: 'set' }
+  | { kind: 'detail'; entry: AccountEntry }
   | { kind: 'transfer' }
 
 interface History {
@@ -66,12 +68,12 @@ function ActionButton({ icon, label, ...props }: ComponentProps<'button'> & { ic
   )
 }
 
-function EntryRow({ entry, currency, account, onEdit }: { entry: AccountEntry; currency: string; account?: Account; onEdit(): void }) {
+function EntryRow({ entry, currency, account, onOpen }: { entry: AccountEntry; currency: string; account?: Account; onOpen(): void }) {
   const t = useT()
   const isIn = entry.amountCents >= 0
   return (
     <li className="border-b border-border/70 last:border-b-0">
-      <button type="button" onClick={onEdit} aria-label={t('accounts.editEntryAria')} className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors active:bg-muted">
+      <button type="button" onClick={onOpen} aria-label={t('accounts.viewEntryAria')} className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors active:bg-muted">
         <span
           className={cn('flex size-9 shrink-0 items-center justify-center rounded-full [&_svg]:size-[18px]', isIn ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground')}
         >
@@ -400,12 +402,12 @@ export function AccountsScreen() {
               icon={<PlusIcon />}
               label={t('accounts.addTransaction')}
               disabled={accounts.length === 0}
-              onClick={() => setSheet({ kind: 'entry', entry: null, accountId: selected?.id ?? null })}
+              onClick={() => setSheet({ kind: 'entry', accountId: selected?.id ?? null })}
             />
             <ActionButton icon={<ArrowLeftRightIcon />} label={t('accounts.transfer')} disabled={accounts.length < 2} onClick={() => setSheet({ kind: 'transfer' })} />
             {selected ? (
               <>
-                <ActionButton icon={<EqualIcon />} label={t('accounts.setBalance')} onClick={() => setSheet({ kind: 'entry', entry: null, accountId: selected.id, mode: 'set' })} />
+                <ActionButton icon={<EqualIcon />} label={t('accounts.setBalance')} onClick={() => setSheet({ kind: 'entry', accountId: selected.id, mode: 'set' })} />
                 <ActionButton icon={<MoreHorizontalIcon />} label={t('accounts.more')} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} />
                 <ChoiceSheet
                   open={moreOpen}
@@ -450,7 +452,7 @@ export function AccountsScreen() {
                   entry={e}
                   currency={listCurrency(e)}
                   account={selected ? undefined : byId.get(e.accountId)}
-                  onEdit={() => setSheet({ kind: 'entry', entry: e, accountId: e.accountId })}
+                  onOpen={() => setSheet({ kind: 'detail', entry: e })}
                 />
               ))}
             </ul>
@@ -462,11 +464,11 @@ export function AccountsScreen() {
       <AccountFormSheet open={sheet.kind === 'form'} account={sheet.kind === 'form' ? sheet.account : null} onClose={() => setSheet({ kind: 'none' })} />
       <EntrySheet
         open={sheet.kind === 'entry'}
-        entry={sheet.kind === 'entry' ? sheet.entry : null}
         accountId={sheet.kind === 'entry' ? sheet.accountId : null}
         initialMode={sheet.kind === 'entry' ? sheet.mode : undefined}
         onClose={() => setSheet({ kind: 'none' })}
       />
+      <EntryDetailSheet entry={sheet.kind === 'detail' ? sheet.entry : null} onClose={() => setSheet({ kind: 'none' })} />
       <TransferSheet open={sheet.kind === 'transfer'} onClose={() => setSheet({ kind: 'none' })} />
       <ConfirmDialog
         open={pendingDelete !== null}

@@ -4,7 +4,6 @@ import { DatePicker } from '@/components/app/date-picker'
 import { NumberPad } from '@/components/app/number-pad'
 import { Sheet } from '@/components/app/sheet'
 import { Button } from '@/components/ui/button'
-import { DeleteButton } from '@/components/ui/delete-button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast'
 import { useAmountInput } from '@/hooks/use-amount-input'
@@ -12,7 +11,6 @@ import { errorMessage } from '@/lib/errors'
 import { currencySymbol, formatMoneyFromCents, todayIso } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 import { tintBg } from '@/lib/overview'
-import type { AccountEntry } from '@/lib/types'
 import { centerPressedChip } from '@/lib/scroll'
 import { cn } from '@/lib/utils'
 import { useAccounts } from '@/stores/accounts'
@@ -21,20 +19,19 @@ import { AmountDisplay } from './expense-sheet'
 type Mode = 'in' | 'out' | 'set'
 
 /**
- * Money in, money out, or "set balance" (type the new balance, the server books
- * the difference). `entry` = edit that entry; `accountId` preselects an account.
+ * Add money in, money out, or "set balance" (type the new balance, the server
+ * books the difference). `accountId` preselects an account. Existing entries are
+ * not edited here; `EntryDetailSheet` shows them read-only.
  */
 export function EntrySheet({
   open,
-  entry,
   accountId: presetAccountId,
   initialMode = 'out',
   onClose,
 }: {
   open: boolean
-  entry: AccountEntry | null
   accountId: number | null
-  /** New entries only: open straight in this mode (e.g. 'set' for "Set balance"). */
+  /** Open straight in this mode (e.g. 'set' for "Set balance"). */
   initialMode?: Mode
   onClose(): void
 }) {
@@ -49,31 +46,22 @@ export function EntrySheet({
   const [error, setError] = useState<string | null>(null)
   const chips = useRef<HTMLDivElement>(null)
 
-  const isEdit = !!entry
   const account = accounts.find((a) => a.id === accountId) ?? null
   const currency = account?.currency ?? 'USD'
 
   useEffect(() => {
     if (!open) return
     setError(null)
-    if (entry) {
-      setAccountId(entry.accountId)
-      setMode(entry.amountCents < 0 ? 'out' : 'in')
-      input.set((Math.abs(entry.amountCents) / 100).toString(), true)
-      setDate(entry.occurredOn)
-      setNote(entry.note ?? '')
-    } else {
-      const id = presetAccountId ?? useAccounts.getState().accounts[0]?.id ?? null
-      setAccountId(id)
-      setMode(initialMode)
-      if (initialMode === 'set') startFromBalance(id)
-      else input.set('')
-      setDate(todayIso())
-      setNote('')
-    }
+    const id = presetAccountId ?? useAccounts.getState().accounts[0]?.id ?? null
+    setAccountId(id)
+    setMode(initialMode)
+    if (initialMode === 'set') startFromBalance(id)
+    else input.set('')
+    setDate(todayIso())
+    setNote('')
     requestAnimationFrame(() => centerPressedChip(chips.current))
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open
-  }, [open, entry, presetAccountId, initialMode])
+  }, [open, presetAccountId, initialMode])
 
   /** Set balance starts from the current balance; the first key replaces it. */
   function startFromBalance(id: number | null) {
@@ -112,13 +100,9 @@ export function EntrySheet({
         })
       } else {
         const amount = mode === 'in' ? n : -n
-        if (entry) {
-          await store.updateEntry(entry.accountId, entry.id, { amount, occurredOn: date, note: note || null })
-        } else {
-          await store.addEntry(accountId, { amount, occurredOn: date, note: note || undefined })
-        }
+        await store.addEntry(accountId, { amount, occurredOn: date, note: note || undefined })
       }
-      toast.success(t(entry ? 'toast.entrySaved' : 'toast.entryAdded'))
+      toast.success(t('toast.entryAdded'))
       onClose()
     } catch (e) {
       setError(errorMessage(e, t('accounts.failedToRecord')))
@@ -127,22 +111,10 @@ export function EntrySheet({
     }
   }
 
-  function remove() {
-    if (!entry) return
-    // Close first; the list reloads behind the sheet.
-    onClose()
-    useAccounts
-      .getState()
-      .deleteEntry(entry.accountId, entry.id)
-      .then(() => toast.success(t('toast.entryDeleted')))
-      .catch((e) => toast.error(errorMessage(e, t('common.delete'))))
-  }
-
   const modes: { value: Mode; label: string; Icon: typeof PlusIcon }[] = [
     { value: 'in', label: t('accounts.money_in'), Icon: PlusIcon },
     { value: 'out', label: t('accounts.money_out'), Icon: MinusIcon },
-    // Editing changes one entry; "set balance" only makes sense for a new one.
-    ...(isEdit ? [] : [{ value: 'set' as const, label: t('accounts.setBalance'), Icon: EqualIcon }]),
+    { value: 'set', label: t('accounts.setBalance'), Icon: EqualIcon },
   ]
 
   return (
@@ -150,20 +122,11 @@ export function EntrySheet({
       docked
       open={open}
       onClose={onClose}
-      title={isEdit ? t('accounts.editEntryTitle') : t('accounts.addTransaction')}
+      title={t('accounts.addTransaction')}
       footer={
-        <div className="flex items-center gap-2">
-          {isEdit && <DeleteButton onConfirm={remove} className="shrink-0" />}
-          <Button size="lg" className="h-12 flex-1 rounded-2xl text-base" disabled={!valid || submitting} onClick={() => void submit()}>
-            {submitting
-              ? t('common.saving')
-              : isEdit
-                ? t('common.save')
-                : mode === 'set'
-                  ? t('accounts.setBalance')
-                  : t('accounts.record')}
-          </Button>
-        </div>
+        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!valid || submitting} onClick={() => void submit()}>
+          {submitting ? t('common.saving') : mode === 'set' ? t('accounts.setBalance') : t('accounts.record')}
+        </Button>
       }
     >
       <div className="flex flex-col gap-4">
@@ -233,7 +196,6 @@ export function EntrySheet({
                 key={a.id}
                 type="button"
                 aria-pressed={active}
-                disabled={isEdit && !active}
                 onClick={() => chooseAccount(a.id)}
                 className={cn(
                   'flex items-center gap-2 rounded-full border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-40',

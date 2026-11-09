@@ -50,11 +50,6 @@ interface AccountsState {
     accountId: number,
     payload: { balance: number; occurredOn: string; note?: string }
   ): Promise<void>
-  updateEntry(
-    accountId: number,
-    entryId: number,
-    payload: { amount?: number; occurredOn?: string; note?: string | null }
-  ): Promise<void>
   /** One OUT + one IN entry, created atomically by the server. */
   transfer(payload: {
     fromAccountId: number
@@ -234,11 +229,6 @@ export const useAccounts = create<AccountsState>((set, get) => {
 
     async adjustBalance(accountId, payload) {
       await api.post(`/accounts/${accountId}/adjustments`, payload)
-      await reloadAll()
-    },
-
-    async updateEntry(accountId, entryId, payload) {
-      await api.patch(`/accounts/${accountId}/entries/${entryId}`, payload)
       await reloadAll()
     },
 
