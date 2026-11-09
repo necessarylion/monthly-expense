@@ -13,6 +13,10 @@ class GroupSerializer extends Serializer<Group> {
       'name': m.name,
       'currency': m.currency,
       'createdByUserId': m.createdByUserId,
+      'splitEnabled': m.splitEnabled ?? false,
+      'kind': m.isTrip ? 'trip' : 'monthly',
+      'tripStart': m.tripStart,
+      'tripDays': m.tripDays,
     };
   }
 }

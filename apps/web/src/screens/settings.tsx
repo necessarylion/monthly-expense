@@ -1,9 +1,11 @@
 import {
   ArrowLeftRightIcon,
+  ChartColumnIcon,
+  RepeatIcon,
+  SearchIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CoinsIcon,
   CopyIcon,
   KeyRoundIcon,
   LanguagesIcon,
@@ -12,9 +14,9 @@ import {
   PencilIcon,
   PlusIcon,
   ShapesIcon,
+  TargetIcon,
   SparklesIcon,
   SunMoonIcon,
-  TargetIcon,
   Trash2Icon,
   UsersIcon,
   WalletIcon,
@@ -23,22 +25,26 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
+import { DateField } from '@/components/app/date-picker'
+import { ErrorText, Section } from '@/components/app/section'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { DeleteButton } from '@/components/ui/delete-button'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { SelectField } from '@/components/app/select-field'
 import { DEFAULT_THEMES, ThemeSelector } from '@/components/ui/theme-selector'
 import { toast } from '@/components/ui/toast'
 import { errorMessage } from '@/lib/errors'
 import { addPasskey, passkeySupported } from '@/lib/passkey'
 import { api } from '@/lib/api'
-import type { Passkey } from '@/lib/types'
-import { currencySymbol, formatMoneyFromCents, monthLabel, relativeTime } from '@/lib/format'
+import type { Category, GroupKind, Passkey } from '@/lib/types'
+import { CategoryIcon } from '@/components/app/category-icon'
+import { currencySymbol, formatMoneyFromCents, monthLabel, relativeTime, todayIso } from '@/lib/format'
 import { LOCALE_OPTIONS, setLocale, useLocale, useT } from '@/lib/i18n'
 import { setTheme, type ThemePref, useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
@@ -50,6 +56,7 @@ import { useActiveGroup, useGroups } from '@/stores/groups'
 import { type SettingsTab, useUi } from '@/stores/ui'
 import { Page } from './page'
 import { RatesScreen } from './rates'
+import { RecurringPage, SearchPage, YearPage } from './reports'
 
 const THEMES = [
   {
@@ -91,27 +98,6 @@ const THEMES = [
     colors: { sidebar: '#1A241E', panel: '#121A15', border: 'transparent', strong: '#5FCF8C', muted: '#2A3A31', tile: '#223029' },
   },
 ]
-
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">{children}</CardContent>
-    </Card>
-  )
-}
-
-function ErrorText({ children }: { children: string | null }) {
-  if (!children) return null
-  return (
-    <p role="alert" className="text-sm text-destructive">
-      {children}
-    </p>
-  )
-}
 
 function Appearance() {
   const theme = useTheme((s) => s.pref)
@@ -257,6 +243,7 @@ function BudgetField() {
   const active = useActiveGroup()
   const month = useExpenses((s) => s.month)
   const current = useExpenses((s) => s.summary?.monthlyBudgetCents ?? null)
+  const trip = active?.kind === 'trip'
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -293,7 +280,10 @@ function BudgetField() {
   }
 
   return (
-    <Section title={t('settings.budgetFor', { month: monthLabel(month) })} description={t('settings.budgetNote')}>
+    <Section
+      title={trip ? t('reports.tripBudget') : t('settings.budgetFor', { month: monthLabel(month) })}
+      description={trip ? t('reports.tripBudgetNote') : t('settings.budgetNote')}
+    >
       <InputGroup className="h-11 rounded-xl">
         <InputGroupAddon>
           <InputGroupText>{currencySymbol(active?.currency ?? 'USD')}</InputGroupText>
@@ -311,6 +301,78 @@ function BudgetField() {
       <Button className="self-end rounded-xl" disabled={saving || !changed} onClick={() => void save()}>
         {saving ? t('common.saving') : t('settings.saveBudget')}
       </Button>
+    </Section>
+  )
+}
+
+/** One budget input per category; saves when it loses focus or on Enter. */
+function CategoryBudgetRow({ category, currency }: { category: Category; currency: string }) {
+  const t = useT()
+  const current = category.budgetCents
+  const [draft, setDraft] = useState(current === null ? '' : String(current / 100))
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setDraft(current === null ? '' : String(current / 100))
+  }, [current])
+
+  async function save() {
+    const normalized = draft.trim().replace(',', '.')
+    const value = normalized === '' ? null : Number(normalized)
+    if (value !== null && (Number.isNaN(value) || value < 0)) {
+      setError(t('settings.budgetPositive'))
+      return
+    }
+    if ((value === null ? null : Math.round(value * 100)) === current) return
+    setError(null)
+    try {
+      await useExpenses.getState().updateCategory(category.id, { budget: value })
+      toast.success(t('toast.saved'))
+    } catch (e) {
+      setError(errorMessage(e, t('settings.failedToSave')))
+    }
+  }
+
+  return (
+    <li className="flex flex-col gap-1 py-2">
+      <div className="flex items-center gap-3">
+        <CategoryIcon iconKey={category.iconKey} color={category.color} size={32} />
+        <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{category.name}</span>
+        <InputGroup className="h-10 w-36 rounded-xl">
+          <InputGroupAddon>
+            <InputGroupText>{currencySymbol(currency)}</InputGroupText>
+          </InputGroupAddon>
+          <InputGroupInput
+            inputMode="decimal"
+            aria-label={category.name}
+            value={draft}
+            placeholder={t('reports.noLimit')}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => void save()}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            className="text-base tabular-nums sm:text-sm"
+          />
+        </InputGroup>
+      </div>
+      <ErrorText>{error}</ErrorText>
+    </li>
+  )
+}
+
+function CategoryBudgets() {
+  const t = useT()
+  const categories = useExpenses((s) => s.categories)
+  const group = useActiveGroup()
+  const currency = group?.currency ?? 'USD'
+  const trip = group?.kind === 'trip'
+  if (categories.length === 0) return null
+  return (
+    <Section title={t('reports.categoryBudgets')} description={trip ? t('reports.categoryBudgetsTripNote') : t('reports.categoryBudgetsNote')}>
+      <ul className="flex flex-col divide-y divide-border/70">
+        {categories.map((c) => (
+          <CategoryBudgetRow key={c.id} category={c} currency={currency} />
+        ))}
+      </ul>
     </Section>
   )
 }
@@ -412,6 +474,174 @@ function Members() {
   )
 }
 
+/** Monthly or trip. */
+function GroupKindSelect({ value, onChange }: { value: GroupKind; onChange(kind: GroupKind): void }) {
+  const t = useT()
+  return (
+    <SelectField
+      size="lg"
+      className="w-full rounded-xl"
+      aria-label={t('reports.groupKind')}
+      value={value}
+      onChange={(v) => onChange(v as GroupKind)}
+      options={[
+        { value: 'monthly', label: t('reports.kindMonthly'), hint: t('reports.kindMonthlyHint') },
+        { value: 'trip', label: t('reports.kindTrip'), hint: t('reports.kindTripHint') },
+      ]}
+    />
+  )
+}
+
+/** A trip's first day and length. */
+function TripDatesInputs({ start, days, onStart, onDays }: { start: string; days: string; onStart(v: string): void; onDays(v: string): void }) {
+  const t = useT()
+  return (
+    <div className="grid grid-cols-[1fr_7rem] gap-2">
+      <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        {t('reports.tripStart')}
+        <DateField aria-label={t('reports.tripStart')} value={start} onChange={onStart} allowFuture />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        {t('reports.tripDays')}
+        <Input
+          type="number"
+          min={1}
+          max={366}
+          inputMode="numeric"
+          value={days}
+          onChange={(e) => onDays(e.target.value)}
+          className="h-11 rounded-xl text-center text-base sm:text-sm"
+        />
+      </label>
+    </div>
+  )
+}
+
+/** Days valid for a trip: a whole number from 1 to 366. */
+function tripDaysValue(text: string): number | null {
+  const n = Number(text)
+  return Number.isInteger(n) && n >= 1 && n <= 366 ? n : null
+}
+
+function TripDatesField() {
+  const t = useT()
+  const active = useActiveGroup()
+  const [start, setStart] = useState(active?.tripStart ?? todayIso())
+  const [days, setDays] = useState(active?.tripDays ? String(active.tripDays) : '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setStart(active?.tripStart ?? todayIso())
+    setDays(active?.tripDays ? String(active.tripDays) : '')
+  }, [active?.tripStart, active?.tripDays])
+
+  if (!active) return null
+  const n = tripDaysValue(days)
+  const changed = start !== active.tripStart || n !== active.tripDays
+
+  async function save() {
+    if (!active || n === null || !start) return
+    setSaving(true)
+    setError(null)
+    try {
+      await useGroups.getState().update(active.id, { tripStart: start, tripDays: n })
+      toast.success(t('toast.saved'))
+    } catch (e) {
+      setError(errorMessage(e, t('settings.failedToSave')))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <p className="text-sm text-muted-foreground">{t('reports.tripDaysNote')}</p>
+      <TripDatesInputs start={start} days={days} onStart={setStart} onDays={setDays} />
+      <ErrorText>{error}</ErrorText>
+      <Button className="self-end rounded-xl" disabled={saving || n === null || !start || !changed} onClick={() => void save()}>
+        {saving ? t('common.saving') : t('reports.saveTripDates')}
+      </Button>
+    </>
+  )
+}
+
+function GroupKindField() {
+  const t = useT()
+  const active = useActiveGroup()
+  const [error, setError] = useState<string | null>(null)
+  if (!active) return null
+
+  async function change(kind: GroupKind) {
+    if (!active || kind === active.kind) return
+    setError(null)
+    try {
+      await useGroups.getState().update(active.id, { kind })
+      // Home counts expenses differently now.
+      await useExpenses.getState().loadMonth()
+      toast.success(t('toast.saved'))
+    } catch (e) {
+      setError(errorMessage(e, t('settings.failedToSave')))
+    }
+  }
+
+  return (
+    <Section title={t('reports.groupKind')} description={t('reports.groupKindNote')}>
+      <GroupKindSelect value={active.kind} onChange={(k) => void change(k)} />
+      <ErrorText>{error}</ErrorText>
+      {active.kind === 'trip' && <TripDatesField />}
+    </Section>
+  )
+}
+
+/** Turns cost splitting on for the group. */
+function SplitCosts() {
+  const t = useT()
+  const active = useActiveGroup()
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  if (!active) return null
+
+  async function toggle(on: boolean) {
+    if (!active) return
+    setSaving(true)
+    setError(null)
+    try {
+      await useGroups.getState().update(active.id, { splitEnabled: on })
+    } catch (e) {
+      setError(errorMessage(e, t('settings.failedToSave')))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Section title={t('reports.splitCosts')} description={t('reports.splitCostsNote')}>
+      <label className="flex items-center justify-between gap-3 text-[15px] font-medium">
+        {t('reports.splitCostsToggle')}
+        <Switch checked={active.splitEnabled} disabled={saving} onCheckedChange={(on) => void toggle(on)} />
+      </label>
+      <ErrorText>{error}</ErrorText>
+    </Section>
+  )
+}
+
+/** Everything about the current group on one page. */
+function GroupSettings() {
+  const t = useT()
+  return (
+    <>
+      <Section title={t('settings.groupName')}>
+        <GroupNameField />
+      </Section>
+      <GroupKindField />
+      <CurrencyField />
+      <Members />
+      <SplitCosts />
+    </>
+  )
+}
+
 function GroupsList() {
   const t = useT()
   const view = useUi((s) => s.groupsView)
@@ -420,6 +650,9 @@ function GroupsList() {
   const activeId = useGroups((s) => s.activeId)
   const [name, setName] = useState('')
   const [currency, setCurrency] = useState('USD')
+  const [kind, setKind] = useState<GroupKind>('monthly')
+  const [tripStart, setTripStart] = useState(todayIso())
+  const [tripDays, setTripDays] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [renaming, setRenaming] = useState<{ id: number; value: string } | null>(null)
@@ -430,6 +663,9 @@ function GroupsList() {
     setError(null)
     if (view === 'create') {
       setName('')
+      setKind('monthly')
+      setTripStart(todayIso())
+      setTripDays('')
       const s = useGroups.getState()
       setCurrency(s.groups.find((g) => g.id === s.activeId)?.currency ?? 'USD')
     } else {
@@ -439,11 +675,14 @@ function GroupsList() {
 
   async function create() {
     const value = name.trim()
-    if (!value || busy) return
+    const days = tripDaysValue(tripDays)
+    if (!value || busy || (kind === 'trip' && days === null)) return
     setBusy(true)
     setError(null)
     try {
-      await useGroups.getState().create({ name: value, currency })
+      await useGroups
+        .getState()
+        .create(kind === 'trip' ? { name: value, currency, kind, tripStart, tripDays: days ?? undefined } : { name: value, currency, kind })
       toast.success(t('toast.groupCreated'))
       setView('list')
     } catch (e) {
@@ -501,12 +740,17 @@ function GroupsList() {
               <Label>{t('groups.currency')}</Label>
               <CurrencySelect value={currency} onChange={setCurrency} label={t('groups.currency')} />
             </div>
+            <div className="flex flex-col gap-2">
+              <Label>{t('reports.groupKind')}</Label>
+              <GroupKindSelect value={kind} onChange={setKind} />
+            </div>
+            {kind === 'trip' && <TripDatesInputs start={tripStart} days={tripDays} onStart={setTripStart} onDays={setTripDays} />}
             <ErrorText>{error}</ErrorText>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" className="rounded-xl" onClick={() => setView('list')}>
                 {t('common.cancel')}
               </Button>
-              <Button className="rounded-xl" disabled={busy || !name.trim()} onClick={() => void create()}>
+              <Button className="rounded-xl" disabled={busy || !name.trim() || (kind === 'trip' && tripDaysValue(tripDays) === null)} onClick={() => void create()}>
                 {busy ? t('groups.creating') : t('groups.create')}
               </Button>
             </div>
@@ -818,7 +1062,6 @@ function SettingsRoot() {
   const t = useT()
   const user = useAuth((s) => s.user)
   const active = useActiveGroup()
-  const members = useGroups((s) => s.members)
   const budget = useExpenses((s) => s.summary?.monthlyBudgetCents ?? null)
   const accounts = useAccounts((s) => s.accounts)
   const defaultAccountId = useAccounts((s) => s.defaultAccountId)
@@ -844,17 +1087,21 @@ function SettingsRoot() {
         </div>
       </div>
 
-      <RowGroup title={active?.name ?? t('groups.noGroup')}>
-        <Row icon={<TargetIcon />} tint="#f29f05" label={t('settings.monthlyBudget')} value={budget ? formatMoneyFromCents(budget, currency) : t('budget.notSet')} onClick={() => go('budget')} />
-        <Row icon={<ShapesIcon />} tint="#3a9d5d" label={t('settings.manageCategories')} onClick={() => setCategoriesOpen(true)} />
-        <Row icon={<WalletIcon />} tint="#2f7ec4" label={t('accounts.defaultForExpenses')} value={defaultWallet} onClick={() => go('wallet')} />
-        <Row icon={<CoinsIcon />} tint="#8a5cc2" label={t('settings.currency')} value={currency} onClick={() => go('currency')} />
-        <Row icon={<UsersIcon />} tint="#d9566b" label={t('groups.members')} value={members.length ? String(members.length) : undefined} onClick={() => go('members')} />
-        <Row icon={<PencilIcon />} tint="#7a6e62" label={t('settings.groupName')} value={active?.name} onClick={() => go('group')} />
+      <RowGroup title={t('reports.groupSection')}>
+        <Row icon={<UsersIcon />} tint="#d9566b" label={t('reports.groupSettings')} value={active?.name ?? t('groups.noGroup')} onClick={() => go('group')} />
+        <Row icon={<LayersIcon />} tint="#c8442f" label={t('settings.allGroups')} onClick={() => go('groups')} />
       </RowGroup>
 
-      <RowGroup>
-        <Row icon={<LayersIcon />} tint="#c8442f" label={t('settings.allGroups')} onClick={() => go('groups')} />
+      <RowGroup title={t('reports.spending')}>
+        <Row icon={<TargetIcon />} tint="#f29f05" label={active?.kind === 'trip' ? t('reports.tripBudget') : t('settings.monthlyBudget')} value={budget ? formatMoneyFromCents(budget, currency) : t('budget.notSet')} onClick={() => go('budget')} />
+        <Row icon={<ShapesIcon />} tint="#3a9d5d" label={t('settings.manageCategories')} onClick={() => setCategoriesOpen(true)} />
+        <Row icon={<WalletIcon />} tint="#2f7ec4" label={t('accounts.defaultForExpenses')} value={defaultWallet} onClick={() => go('wallet')} />
+      </RowGroup>
+
+      <RowGroup title={t('reports.tools')}>
+        {active?.kind !== 'trip' && <Row icon={<RepeatIcon />} tint="#0f8f6f" label={t('reports.recurring')} onClick={() => go('recurring')} />}
+        <Row icon={<SearchIcon />} tint="#3b6fd8" label={t('reports.search')} onClick={() => go('search')} />
+        <Row icon={<ChartColumnIcon />} tint="#b5487a" label={t('reports.year')} onClick={() => go('year')} />
       </RowGroup>
 
       <RowGroup title={t('settings.app')}>
@@ -892,23 +1139,31 @@ function SettingsRoot() {
 export const SETTINGS_TITLES: Record<Exclude<SettingsTab, 'root'>, string> = {
   budget: 'settings.monthlyBudget',
   wallet: 'accounts.defaultForExpenses',
-  currency: 'settings.currency',
-  members: 'groups.members',
-  group: 'settings.groupName',
+  group: 'reports.groupSettings',
   groups: 'settings.allGroups',
   appearance: 'settings.appearance',
   language: 'settings.language',
   mcp: 'settings.mcp',
   passkeys: 'settings.passkeys',
   rates: 'rates.title',
+  recurring: 'reports.recurring',
+  search: 'reports.search',
+  year: 'reports.year',
 }
 
 function SettingsPage({ page }: { page: SettingsTab }) {
-  if (page === 'budget') return <BudgetField />
+  if (page === 'budget')
+    return (
+      <>
+        <BudgetField />
+        <CategoryBudgets />
+      </>
+    )
+  if (page === 'recurring') return <RecurringPage />
+  if (page === 'search') return <SearchPage />
+  if (page === 'year') return <YearPage />
   if (page === 'wallet') return <DefaultAccountField />
-  if (page === 'currency') return <CurrencyField />
-  if (page === 'members') return <Members />
-  if (page === 'group') return <GroupNameField />
+  if (page === 'group') return <GroupSettings />
   if (page === 'groups') return <GroupsList />
   if (page === 'appearance') return <Appearance />
   if (page === 'language') return <Language />

@@ -30,7 +30,7 @@ interface ExpensesState {
   ): Promise<void>
   deleteExpense(id: number): Promise<void>
   addCategory(payload: { name: string; iconKey: string; color: string }): Promise<void>
-  updateCategory(id: number, payload: { name?: string; iconKey?: string; color?: string }): Promise<void>
+  updateCategory(id: number, payload: { name?: string; iconKey?: string; color?: string; budget?: number | null }): Promise<void>
   deleteCategory(id: number): Promise<void>
 }
 

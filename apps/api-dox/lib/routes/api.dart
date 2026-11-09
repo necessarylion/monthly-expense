@@ -9,6 +9,7 @@ import 'package:api_dox/app/http/controllers/me.controller.dart';
 import 'package:api_dox/app/http/controllers/oauth.controller.dart';
 import 'package:api_dox/app/http/controllers/passkey.controller.dart';
 import 'package:api_dox/app/services/mcp_oauth.service.dart';
+import 'package:api_dox/app/http/controllers/recurring.controller.dart';
 import 'package:api_dox/app/http/controllers/shopping_item.controller.dart';
 import 'package:api_dox/app/http/middleware/auth.middleware.dart';
 import 'package:api_dox/app/http/middleware/group.middleware.dart';
@@ -115,10 +116,17 @@ class ApiRouter extends Router {
 
         Route.get('/expenses', (ExpenseController c) => c.index);
         Route.get('/expenses/frequent', (ExpenseController c) => c.frequent);
+        Route.get('/expenses/search', (ExpenseController c) => c.search);
         Route.post('/expenses', (ExpenseController c) => c.store);
         Route.patch('/expenses/{id}', (ExpenseController c) => c.update);
         Route.delete('/expenses/{id}', (ExpenseController c) => c.destroy);
         Route.get('/summary', (ExpenseController c) => c.summary);
+        Route.get('/summary/year', (ExpenseController c) => c.year);
+        Route.get('/balances', (ExpenseController c) => c.balances);
+
+        Route.get('/recurring', (RecurringController c) => c.index);
+        Route.post('/recurring', (RecurringController c) => c.store);
+        Route.delete('/recurring/{id}', (RecurringController c) => c.destroy);
 
         Route.get('/shopping-items', (ShoppingItemController c) => c.index);
         Route.post('/shopping-items', (ShoppingItemController c) => c.store);

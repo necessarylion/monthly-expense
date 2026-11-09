@@ -80,6 +80,9 @@ class CreateGroupTool extends AppTool<CreateGroup> {
       user,
       name: input.name,
       currency: input.currency,
+      kind: input.kind,
+      tripStart: input.tripStart,
+      tripDays: input.tripDays,
     );
     return AppTool.json(<String, dynamic>{
       'group': GroupSerializer(group).toJson(),
@@ -105,13 +108,22 @@ class UpdateGroupTool extends AppTool<UpdateGroup> {
   @override
   Future<McpToolResult> run(UpdateGroup input, User user) async {
     Group group = await groupOf(user, input.groupId);
-    if (input.name == null && input.currency == null) {
+    if (input.name == null &&
+        input.currency == null &&
+        input.splitEnabled == null &&
+        input.kind == null &&
+        input.tripStart == null &&
+        input.tripDays == null) {
       return AppTool.text('No changes provided for group ${group.id}.');
     }
     Group updated = await groups.update(
       group,
       name: input.name,
       currency: input.currency,
+      splitEnabled: input.splitEnabled,
+      kind: input.kind,
+      tripStart: input.tripStart,
+      tripDays: input.tripDays,
     );
     return AppTool.json(<String, dynamic>{
       'group': GroupSerializer(updated).toJson(),

@@ -21,6 +21,10 @@ class Category extends CategoryGenerator {
   @Column()
   String color = '';
 
+  /// Monthly budget for this category. Null: no budget.
+  @Column(name: 'budget_cents')
+  int? budgetCents;
+
   @Column(name: 'created_at', cast: TimestampText())
   String createdAtText = '';
 
@@ -32,6 +36,7 @@ class Category extends CategoryGenerator {
     'slug',
     'icon_key',
     'color',
+    'budget_cents',
     'created_at',
   ];
 }

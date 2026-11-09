@@ -51,6 +51,25 @@ class _$CreateGroupDto extends DtoSchema<CreateGroup> {
       trim: true,
       textCase: 2,
     );
+    // kind: String?
+    Object? c2;
+    c2 = s.string(s.read(input, 'kind', emptyToNull: true), p, 'kind', _m);
+    // tripStart: String?
+    Object? c3;
+    c3 = s.string(
+      s.read(input, 'tripStart', emptyToNull: true),
+      p,
+      'tripStart',
+      _m,
+    );
+    // tripDays: int?
+    Object? c4;
+    c4 = s.integer(
+      s.read(input, 'tripDays', emptyToNull: true),
+      p,
+      'tripDays',
+      _m,
+    );
     if (s.issues.length != e) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 80)) {
@@ -78,10 +97,55 @@ class _$CreateGroupDto extends DtoSchema<CreateGroup> {
         );
       }
     }
+    if (c2 is String) {
+      if (!(const <String>{'monthly', 'trip'}.contains(c2))) {
+        s.fail(
+          p,
+          'kind',
+          IssueCodes.inList,
+          DefaultMessages.inList,
+          c2,
+          params: const <String, Object?>{'values': 'monthly, and trip'},
+          messages: _m,
+        );
+      }
+    }
+    if (c3 is String) {
+      if (!(const DateFormatted('Y-m-d')
+          .check(c3, s.context(p, 'tripStart', c3)))) {
+        s.failRule(const DateFormatted('Y-m-d'), p, 'tripStart', c3, _m);
+      }
+    }
+    if (c4 is int) {
+      if (!(c4 >= 1)) {
+        s.fail(
+          p,
+          'tripDays',
+          IssueCodes.min,
+          DefaultMessages.min,
+          c4,
+          params: const <String, Object?>{'min': 1},
+          messages: _m,
+        );
+      } else if (!(c4 <= 366)) {
+        s.fail(
+          p,
+          'tripDays',
+          IssueCodes.max,
+          DefaultMessages.max,
+          c4,
+          params: const <String, Object?>{'max': 366},
+          messages: _m,
+        );
+      }
+    }
     if (s.issues.length != e) return null;
     return CreateGroup(
       name: c0 as String,
       currency: c1 is Undefined ? null : c1 as String?,
+      kind: c2 is Undefined ? null : c2 as String?,
+      tripStart: c3 is Undefined ? null : c3 as String?,
+      tripDays: c4 is Undefined ? null : c4 as int?,
     );
   }
 
@@ -90,6 +154,9 @@ class _$CreateGroupDto extends DtoSchema<CreateGroup> {
     return CreateGroup(
       name: m['name'] as String,
       currency: m['currency'] == null ? null : (m['currency'] as String),
+      kind: m['kind'] == null ? null : (m['kind'] as String),
+      tripStart: m['tripStart'] == null ? null : (m['tripStart'] as String),
+      tripDays: m['tripDays'] == null ? null : ((m['tripDays'] as num).toInt()),
     );
   }
 
@@ -97,12 +164,21 @@ class _$CreateGroupDto extends DtoSchema<CreateGroup> {
   Map<String, dynamic> toMap(CreateGroup o) {
     String f0 = o.name;
     String? f1 = o.currency;
-    return <String, dynamic>{'name': f0, 'currency': f1};
+    String? f2 = o.kind;
+    String? f3 = o.tripStart;
+    int? f4 = o.tripDays;
+    return <String, dynamic>{
+      'name': f0,
+      'currency': f1,
+      'kind': f2,
+      'tripStart': f3,
+      'tripDays': f4,
+    };
   }
 
   @override
   Map<String, dynamic> toJsonSchema() {
-    return <String, dynamic>{
+    Map<String, dynamic> j = <String, dynamic>{
       'type': 'object',
       'title': 'CreateGroup',
       'properties': <String, dynamic>{
@@ -118,9 +194,30 @@ class _$CreateGroupDto extends DtoSchema<CreateGroup> {
           'description':
               '3-letter currency code, e.g. "THB" or "USD". Defaults to THB.',
         },
+        'kind': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'enum': <dynamic>['monthly', 'trip'],
+          'description': '"monthly" (budget and totals per month) or "trip" (one budget, no months: every expense counts, for a one-time event).',
+        },
+        'tripStart': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description':
+              'Trip only: the first day, YYYY-MM-DD. Defaults to today.',
+        },
+        'tripDays': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'minimum': 1,
+          'maximum': 366,
+          'description': 'Trip only: how many days the trip lasts.',
+        },
       },
       'required': <dynamic>['name'],
     };
+    JsonSchemaTools.merge(j, <String>[
+      'properties',
+      'tripStart',
+    ], const DateFormatted('Y-m-d').toJsonSchema());
+    return j;
   }
 }
 
@@ -174,6 +271,33 @@ class _$UpdateGroupDto extends DtoSchema<UpdateGroup> {
       trim: true,
       textCase: 2,
     );
+    // splitEnabled: bool?
+    Object? c3;
+    c3 = s.boolean(
+      s.read(input, 'splitEnabled', emptyToNull: true),
+      p,
+      'splitEnabled',
+      _m,
+    );
+    // kind: String?
+    Object? c4;
+    c4 = s.string(s.read(input, 'kind', emptyToNull: true), p, 'kind', _m);
+    // tripStart: String?
+    Object? c5;
+    c5 = s.string(
+      s.read(input, 'tripStart', emptyToNull: true),
+      p,
+      'tripStart',
+      _m,
+    );
+    // tripDays: int?
+    Object? c6;
+    c6 = s.integer(
+      s.read(input, 'tripDays', emptyToNull: true),
+      p,
+      'tripDays',
+      _m,
+    );
     if (s.issues.length != e) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
@@ -214,11 +338,57 @@ class _$UpdateGroupDto extends DtoSchema<UpdateGroup> {
         );
       }
     }
+    if (c4 is String) {
+      if (!(const <String>{'monthly', 'trip'}.contains(c4))) {
+        s.fail(
+          p,
+          'kind',
+          IssueCodes.inList,
+          DefaultMessages.inList,
+          c4,
+          params: const <String, Object?>{'values': 'monthly, and trip'},
+          messages: _m,
+        );
+      }
+    }
+    if (c5 is String) {
+      if (!(const DateFormatted('Y-m-d')
+          .check(c5, s.context(p, 'tripStart', c5)))) {
+        s.failRule(const DateFormatted('Y-m-d'), p, 'tripStart', c5, _m);
+      }
+    }
+    if (c6 is int) {
+      if (!(c6 >= 1)) {
+        s.fail(
+          p,
+          'tripDays',
+          IssueCodes.min,
+          DefaultMessages.min,
+          c6,
+          params: const <String, Object?>{'min': 1},
+          messages: _m,
+        );
+      } else if (!(c6 <= 366)) {
+        s.fail(
+          p,
+          'tripDays',
+          IssueCodes.max,
+          DefaultMessages.max,
+          c6,
+          params: const <String, Object?>{'max': 366},
+          messages: _m,
+        );
+      }
+    }
     if (s.issues.length != e) return null;
     return UpdateGroup(
       groupId: c0 is Undefined ? null : c0 as int?,
       name: c1 is Undefined ? null : c1 as String?,
       currency: c2 is Undefined ? null : c2 as String?,
+      splitEnabled: c3 is Undefined ? null : c3 as bool?,
+      kind: c4 is Undefined ? null : c4 as String?,
+      tripStart: c5 is Undefined ? null : c5 as String?,
+      tripDays: c6 is Undefined ? null : c6 as int?,
     );
   }
 
@@ -228,6 +398,12 @@ class _$UpdateGroupDto extends DtoSchema<UpdateGroup> {
       groupId: m['groupId'] == null ? null : ((m['groupId'] as num).toInt()),
       name: m['name'] == null ? null : (m['name'] as String),
       currency: m['currency'] == null ? null : (m['currency'] as String),
+      splitEnabled: m['splitEnabled'] == null
+          ? null
+          : (m['splitEnabled'] as bool),
+      kind: m['kind'] == null ? null : (m['kind'] as String),
+      tripStart: m['tripStart'] == null ? null : (m['tripStart'] as String),
+      tripDays: m['tripDays'] == null ? null : ((m['tripDays'] as num).toInt()),
     );
   }
 
@@ -236,12 +412,24 @@ class _$UpdateGroupDto extends DtoSchema<UpdateGroup> {
     int? f0 = o.groupId;
     String? f1 = o.name;
     String? f2 = o.currency;
-    return <String, dynamic>{'groupId': f0, 'name': f1, 'currency': f2};
+    bool? f3 = o.splitEnabled;
+    String? f4 = o.kind;
+    String? f5 = o.tripStart;
+    int? f6 = o.tripDays;
+    return <String, dynamic>{
+      'groupId': f0,
+      'name': f1,
+      'currency': f2,
+      'splitEnabled': f3,
+      'kind': f4,
+      'tripStart': f5,
+      'tripDays': f6,
+    };
   }
 
   @override
   Map<String, dynamic> toJsonSchema() {
-    return <String, dynamic>{
+    Map<String, dynamic> j = <String, dynamic>{
       'type': 'object',
       'title': 'UpdateGroup',
       'properties': <String, dynamic>{
@@ -262,8 +450,33 @@ class _$UpdateGroupDto extends DtoSchema<UpdateGroup> {
           'description':
               'New currency. 3-letter currency code, e.g. "THB" or "USD".',
         },
+        'splitEnabled': <String, dynamic>{
+          'type': <dynamic>['boolean', 'null'],
+          'description': 'Turn on to split costs: each expense has a payer, and the members settle up each month.',
+        },
+        'kind': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'enum': <dynamic>['monthly', 'trip'],
+          'description': '"monthly" (budget and totals per month) or "trip" (one budget, no months: every expense counts, for a one-time event).',
+        },
+        'tripStart': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description':
+              'Trip only: the first day, YYYY-MM-DD. Defaults to today.',
+        },
+        'tripDays': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'minimum': 1,
+          'maximum': 366,
+          'description': 'Trip only: how many days the trip lasts.',
+        },
       },
     };
+    JsonSchemaTools.merge(j, <String>[
+      'properties',
+      'tripStart',
+    ], const DateFormatted('Y-m-d').toJsonSchema());
+    return j;
   }
 }
 

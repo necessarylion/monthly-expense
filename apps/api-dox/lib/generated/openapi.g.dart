@@ -251,7 +251,7 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       method: 'update',
       argumentTypes: <String>['DoxRequest', 'int', 'UpdateGroup'],
       summary: 'Update a group',
-      description: 'Change the name or the currency.',
+      description: 'Change the name, the currency, or turn cost splitting on.',
       tags: <String>['Groups'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
@@ -676,6 +676,54 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
     ),
     OpenApiOperation(
       controller: 'ExpenseController',
+      method: 'search',
+      argumentTypes: <String>['DoxRequest', 'SearchQuery'],
+      summary: 'Search expenses',
+      description: 'Expenses that match every filter, newest first, at most 2000. `q` matches the note or the category name.',
+      tags: <String>['Expenses'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/SearchQuery'},
+      requestIn: 'query',
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'ExpenseController',
+      method: 'year',
+      argumentTypes: <String>['DoxRequest', 'YearQuery'],
+      summary: 'Yearly summary',
+      description: 'Totals for `?year=YYYY`, per month and per category.',
+      tags: <String>['Expenses'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/YearQuery'},
+      requestIn: 'query',
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'ExpenseController',
+      method: 'balances',
+      argumentTypes: <String>['DoxRequest', 'MonthQuery'],
+      summary: 'Who owes whom',
+      description: 'For `?month=YYYY-MM`: what each member paid, their equal share, and the payments that settle the month.',
+      tags: <String>['Expenses'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/MonthQuery'},
+      requestIn: 'query',
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'ExpenseController',
       method: 'index',
       argumentTypes: <String>['DoxRequest', 'MonthQuery'],
       summary: 'List expenses',
@@ -754,6 +802,46 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       argumentTypes: <String>['DoxRequest', 'int'],
       summary: 'Delete an expense',
       tags: <String>['Expenses'],
+      params: <Map<String, dynamic>>[
+        <String, dynamic>{'type': 'integer'},
+      ],
+      responses: <int, ResponseDoc>{
+        204: ResponseDoc(description: 'Done, no body'),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'RecurringController',
+      method: 'index',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'List recurring expenses',
+      description: 'The active group\'s monthly repeats, by day of the month.',
+      tags: <String>['Recurring expenses'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'RecurringController',
+      method: 'store',
+      argumentTypes: <String>['DoxRequest', 'CreateRecurring'],
+      summary: 'Add a recurring expense',
+      description: 'Adds a normal expense on `dayOfMonth` every month. When that day is today, today\'s expense is added at once.',
+      tags: <String>['Recurring expenses'],
+      schema: <String, dynamic>{
+        '\$ref': '#/components/schemas/CreateRecurring',
+      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
+    ),
+    OpenApiOperation(
+      controller: 'RecurringController',
+      method: 'destroy',
+      argumentTypes: <String>['DoxRequest', 'int'],
+      summary: 'Delete a recurring expense',
+      description: 'Expenses it already added stay.',
+      tags: <String>['Recurring expenses'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -1021,6 +1109,11 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       '/api/v1/expenses/frequent',
       'ExpenseController.frequent',
     ),
+    OpenApiRouteBinding(
+      'GET',
+      '/api/v1/expenses/search',
+      'ExpenseController.search',
+    ),
     OpenApiRouteBinding('POST', '/api/v1/expenses', 'ExpenseController.store'),
     OpenApiRouteBinding(
       'PATCH',
@@ -1033,6 +1126,31 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       'ExpenseController.destroy',
     ),
     OpenApiRouteBinding('GET', '/api/v1/summary', 'ExpenseController.summary'),
+    OpenApiRouteBinding(
+      'GET',
+      '/api/v1/summary/year',
+      'ExpenseController.year',
+    ),
+    OpenApiRouteBinding(
+      'GET',
+      '/api/v1/balances',
+      'ExpenseController.balances',
+    ),
+    OpenApiRouteBinding(
+      'GET',
+      '/api/v1/recurring',
+      'RecurringController.index',
+    ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/recurring',
+      'RecurringController.store',
+    ),
+    OpenApiRouteBinding(
+      'DELETE',
+      '/api/v1/recurring/{id}',
+      'RecurringController.destroy',
+    ),
     OpenApiRouteBinding(
       'GET',
       '/api/v1/shopping-items',
@@ -1241,6 +1359,22 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'description':
               '3-letter currency code, e.g. "THB" or "USD". Defaults to THB.',
         },
+        'kind': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'enum': <dynamic>['monthly', 'trip'],
+          'description': '"monthly" (budget and totals per month) or "trip" (one budget, no months: every expense counts, for a one-time event).',
+        },
+        'tripStart': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description':
+              'Trip only: the first day, YYYY-MM-DD. Defaults to today.',
+        },
+        'tripDays': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'minimum': 1,
+          'maximum': 366,
+          'description': 'Trip only: how many days the trip lasts.',
+        },
       },
       'required': <dynamic>['name'],
     },
@@ -1264,6 +1398,26 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'pattern': '^(?:[A-Z]{3})\$',
           'description':
               'New currency. 3-letter currency code, e.g. "THB" or "USD".',
+        },
+        'splitEnabled': <String, dynamic>{
+          'type': <dynamic>['boolean', 'null'],
+          'description': 'Turn on to split costs: each expense has a payer, and the members settle up each month.',
+        },
+        'kind': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'enum': <dynamic>['monthly', 'trip'],
+          'description': '"monthly" (budget and totals per month) or "trip" (one budget, no months: every expense counts, for a one-time event).',
+        },
+        'tripStart': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description':
+              'Trip only: the first day, YYYY-MM-DD. Defaults to today.',
+        },
+        'tripDays': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'minimum': 1,
+          'maximum': 366,
+          'description': 'Trip only: how many days the trip lasts.',
         },
       },
     },
@@ -1641,6 +1795,58 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'type': <dynamic>['string', 'null'],
           'description': 'New color. Hex color, e.g. "#3b82f6".',
         },
+        'budget': <String, dynamic>{
+          'type': <dynamic>['number', 'null'],
+          'minimum': 0,
+          'maximum': 1000000000,
+          'description': 'Monthly budget for this category in dollars. Pass null to clear it.',
+        },
+      },
+    },
+    'SearchQuery': <String, dynamic>{
+      'type': 'object',
+      'title': 'SearchQuery',
+      'properties': <String, dynamic>{
+        'groupId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Group ID (see list_groups). Needed by the MCP tools; HTTP uses the X-Group-Id header.',
+        },
+        'q': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'maxLength': 100,
+          'description': 'Text to find in the note or the category name.',
+        },
+        'categoryId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Only this category ID (see list_categories).',
+        },
+        'from': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description': 'First date, YYYY-MM-DD.',
+        },
+        'to': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description': 'Last date, YYYY-MM-DD.',
+        },
+      },
+    },
+    'YearQuery': <String, dynamic>{
+      'type': 'object',
+      'title': 'YearQuery',
+      'properties': <String, dynamic>{
+        'groupId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Group ID (see list_groups). Needed by the MCP tools; HTTP uses the X-Group-Id header.',
+        },
+        'year': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'minimum': 2000,
+          'maximum': 2100,
+          'description': 'Year, like 2026. Defaults to this year.',
+        },
       },
     },
     'MonthQuery': <String, dynamic>{
@@ -1731,6 +1937,45 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'description': 'New note. Pass null to clear it.',
         },
       },
+    },
+    'CreateRecurring': <String, dynamic>{
+      'type': 'object',
+      'title': 'CreateRecurring',
+      'properties': <String, dynamic>{
+        'groupId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Group ID (see list_groups). Needed by the MCP tools; HTTP uses the X-Group-Id header.',
+        },
+        'categoryId': <String, dynamic>{
+          'type': 'integer',
+          'exclusiveMinimum': 0,
+          'description': 'Category ID (see list_categories).',
+        },
+        'amount': <String, dynamic>{
+          'type': 'number',
+          'minimum': 0.01,
+          'maximum': 10000000,
+          'description': 'Amount in dollars (use a decimal, e.g. 12.50).',
+        },
+        'dayOfMonth': <String, dynamic>{
+          'type': 'integer',
+          'minimum': 1,
+          'maximum': 31,
+          'description': 'Day of the month it is added, 1 to 31. A short month uses its last day.',
+        },
+        'note': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'maxLength': 500,
+          'description': 'Optional note.',
+        },
+        'accountId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Wallet to pay from (see list_wallets). Leave it out to use your default wallet when it runs.',
+        },
+      },
+      'required': <dynamic>['categoryId', 'amount', 'dayOfMonth'],
     },
     'CreateShoppingItem': <String, dynamic>{
       'type': 'object',

@@ -18,5 +18,6 @@ export 'group_member/group_member.model.dart';
 export 'group_monthly_budget/group_monthly_budget.model.dart';
 export 'mcp_token/mcp_token.model.dart';
 export 'passkey/passkey.model.dart';
+export 'recurring_expense/recurring_expense.model.dart';
 export 'shopping_item/shopping_item.model.dart';
 export 'user/user.model.dart';

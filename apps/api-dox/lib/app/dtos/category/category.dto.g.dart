@@ -242,6 +242,9 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
       _m,
       trim: true,
     );
+    // budget: Maybe<num?>
+    Object? c5;
+    c5 = s.number(s.read(input, 'budget', emptyToNull: true), p, 'budget', _m);
     if (s.issues.length != e) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
@@ -300,6 +303,29 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
         s.failRule(const HexColor(), p, 'color', c4, _m);
       }
     }
+    if (c5 is num) {
+      if (!(c5 >= 0)) {
+        s.fail(
+          p,
+          'budget',
+          IssueCodes.min,
+          DefaultMessages.min,
+          c5,
+          params: const <String, Object?>{'min': 0},
+          messages: _m,
+        );
+      } else if (!(c5 <= 1000000000)) {
+        s.fail(
+          p,
+          'budget',
+          IssueCodes.max,
+          DefaultMessages.max,
+          c5,
+          params: const <String, Object?>{'max': 1000000000},
+          messages: _m,
+        );
+      }
+    }
     if (s.issues.length != e) return null;
     return UpdateCategory(
       groupId: c0 is Undefined ? null : c0 as int?,
@@ -307,6 +333,9 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
       name: c2 is Undefined ? null : c2 as String?,
       iconKey: c3 is Undefined ? null : c3 as String?,
       color: c4 is Undefined ? null : c4 as String?,
+      budget: c5 is Undefined
+          ? const Maybe<num?>.missing()
+          : Maybe<num?>(c5 as num?),
     );
   }
 
@@ -318,6 +347,9 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
       name: m['name'] == null ? null : (m['name'] as String),
       iconKey: m['iconKey'] == null ? null : (m['iconKey'] as String),
       color: m['color'] == null ? null : (m['color'] as String),
+      budget: m.containsKey('budget')
+          ? Maybe<num?>(m['budget'] == null ? null : (m['budget'] as num))
+          : const Maybe<num?>.missing(),
     );
   }
 
@@ -328,12 +360,14 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
     String? f2 = o.name;
     String? f3 = o.iconKey;
     String? f4 = o.color;
+    Maybe<num?> f5 = o.budget;
     return <String, dynamic>{
       'groupId': f0,
       'id': f1,
       'name': f2,
       'iconKey': f3,
       'color': f4,
+      if (f5 case Maybe<num?>(isPresent: true, value: num? g5)) 'budget': g5,
     };
   }
 
@@ -368,6 +402,12 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
         'color': <String, dynamic>{
           'type': <dynamic>['string', 'null'],
           'description': 'New color. Hex color, e.g. "#3b82f6".',
+        },
+        'budget': <String, dynamic>{
+          'type': <dynamic>['number', 'null'],
+          'minimum': 0,
+          'maximum': 1000000000,
+          'description': 'Monthly budget for this category in dollars. Pass null to clear it.',
         },
       },
     };

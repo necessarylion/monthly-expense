@@ -27,3 +27,6 @@ const String iconKeyHint =
     'Icon key. One of: utensils, car, home, shopping-bag, heart-pulse, film, '
     'receipt, wallet, coffee, gift, plane, book, dumbbell, fuel, shirt, zap, '
     'tag.';
+const String groupKindHint =
+    '"monthly" (budget and totals per month) or "trip" (one budget, no '
+    'months: every expense counts, for a one-time event).';

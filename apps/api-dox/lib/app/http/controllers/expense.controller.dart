@@ -3,6 +3,8 @@ import 'package:api_dox/app/serializers/expense.serializer.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/expense.repository.dart';
 import 'package:api_dox/app/services/expense.service.dart';
+import 'package:api_dox/app/services/report.service.dart';
+import 'package:api_dox/utils/date_util.dart';
 import 'package:api_dox/http/json_response.dart';
 import 'package:api_dox/http/request_context.dart';
 import 'package:api_dox/utils/month_util.dart';
@@ -11,9 +13,47 @@ import 'package:dox_core/dox_core.dart';
 @Inject()
 @Tags(<String>['Expenses'])
 class ExpenseController {
-  ExpenseController(this.expenses);
+  ExpenseController(this.expenses, this.reports);
 
   final ExpenseService expenses;
+  final ReportService reports;
+
+  @Summary('Search expenses')
+  @Description(
+    'Expenses that match every filter, newest first, at most 2000. `q` '
+    'matches the note or the category name.',
+  )
+  Future<Map<String, dynamic>> search(DoxRequest req, SearchQuery query) async {
+    List<ExpenseWithCategory> rows = await expenses.search(
+      req.activeGroup,
+      query,
+    );
+    return JsonResponse.ok(ExpenseSerializer(rows).toJson());
+  }
+
+  @Summary('Yearly summary')
+  @Description('Totals for `?year=YYYY`, per month and per category.')
+  Future<Map<String, dynamic>> year(DoxRequest req, YearQuery query) async {
+    int year = query.year ?? int.parse(DateUtil.today().substring(0, 4));
+    YearlySummary summary = await reports.yearly(req.activeGroup, year);
+    return JsonResponse.ok(summary.toJson());
+  }
+
+  @Summary('Who owes whom')
+  @Description(
+    'For `?month=YYYY-MM`: what each member paid, their equal share, and '
+    'the payments that settle the month.',
+  )
+  Future<Map<String, dynamic>> balances(
+    DoxRequest req,
+    MonthQuery query,
+  ) async {
+    MonthBalances balances = await reports.balances(
+      req.activeGroup,
+      MonthUtil.parse(query.month),
+    );
+    return JsonResponse.ok(balances.toJson());
+  }
 
   @Summary('List expenses')
   @Description(

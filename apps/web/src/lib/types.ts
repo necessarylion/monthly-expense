@@ -11,7 +11,17 @@ export interface Group {
   name: string
   currency: string
   createdByUserId: number | null
+  /** Members split costs: each expense has a payer, and they settle up. */
+  splitEnabled: boolean
+  /** `trip`: one budget, no months; every expense counts. */
+  kind: GroupKind
+  /** Trip only: first day, `YYYY-MM-DD`. */
+  tripStart: string | null
+  /** Trip only: how many days it lasts. */
+  tripDays: number | null
 }
+
+export type GroupKind = 'monthly' | 'trip'
 
 export interface GroupMember {
   id: number
@@ -30,12 +40,16 @@ export interface Category {
   slug: string
   iconKey: string
   color: string
+  /** Monthly limit for this category; null = no limit. */
+  budgetCents: number | null
 }
 
 export interface Expense {
   id: number
   groupId: number
   createdByUserId: number | null
+  /** Who paid: the creator unless someone else was picked. */
+  paidByUserId: number | null
   categoryId: number | null
   amountCents: number
   occurredOn: string
@@ -115,4 +129,32 @@ export interface McpClient {
   name: string
   lastUsedAt: string | null
   createdAt: string
+}
+
+/** An expense the API adds on `dayOfMonth` every month. */
+export interface RecurringExpense {
+  id: number
+  categoryId: number | null
+  /** Null: the creator's default wallet when it runs. */
+  accountId: number | null
+  amountCents: number
+  note: string | null
+  dayOfMonth: number
+  nextOn: string
+}
+
+export interface YearlySummary {
+  year: number
+  totalCents: number
+  count: number
+  months: { month: string; totalCents: number }[]
+  byCategory: MonthlySummary['byCategory']
+}
+
+/** Who paid what in a month, and the payments that settle it. */
+export interface MonthBalances {
+  month: string
+  totalCents: number
+  members: { userId: number; email: string; paidCents: number; shareCents: number; netCents: number }[]
+  transfers: { fromUserId: number; toUserId: number; amountCents: number }[]
 }

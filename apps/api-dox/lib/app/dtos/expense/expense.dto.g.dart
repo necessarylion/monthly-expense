@@ -584,3 +584,301 @@ class _$MonthQueryDto extends DtoSchema<MonthQuery> {
     return j;
   }
 }
+
+/// The checks, the converter and the JSON Schema of [SearchQuery].
+const DtoSchema<SearchQuery> $SearchQueryDto = _$SearchQueryDto();
+
+class _$SearchQueryDto extends DtoSchema<SearchQuery> {
+  const _$SearchQueryDto();
+
+  static const Map<String, String> _m = <String, String>{};
+
+  @override
+  Type get type => SearchQuery;
+
+  @override
+  String get name => 'SearchQuery';
+
+  @override
+  Source get source => Source.query;
+
+  @override
+  SearchQuery? convert(Object? input, DtoState s, List<Object> p) {
+    if (input is! Map) {
+      s.notObject(input, p, _m);
+      return null;
+    }
+    int e = s.issues.length;
+    // groupId: int?
+    Object? c0;
+    c0 = s.integer(
+      s.read(input, 'groupId', emptyToNull: true),
+      p,
+      'groupId',
+      _m,
+    );
+    // q: String?
+    Object? c1;
+    c1 = s.string(
+      s.read(input, 'q', emptyToNull: true),
+      p,
+      'q',
+      _m,
+      trim: true,
+    );
+    // categoryId: int?
+    Object? c2;
+    c2 = s.integer(
+      s.read(input, 'categoryId', emptyToNull: true),
+      p,
+      'categoryId',
+      _m,
+    );
+    // from: String?
+    Object? c3;
+    c3 = s.string(s.read(input, 'from', emptyToNull: true), p, 'from', _m);
+    // to: String?
+    Object? c4;
+    c4 = s.string(s.read(input, 'to', emptyToNull: true), p, 'to', _m);
+    if (s.issues.length != e) return null;
+    if (c0 is int) {
+      if (!(c0 > 0)) {
+        s.fail(
+          p,
+          'groupId',
+          IssueCodes.greaterThan,
+          DefaultMessages.greaterThan,
+          c0,
+          params: const <String, Object?>{'min': 0},
+          messages: _m,
+        );
+      }
+    }
+    if (c1 is String) {
+      if (!(c1.runes.length <= 100)) {
+        s.fail(
+          p,
+          'q',
+          IssueCodes.maxLength,
+          DefaultMessages.maxLength,
+          c1,
+          params: const <String, Object?>{'max': 100},
+          messages: _m,
+        );
+      }
+    }
+    if (c2 is int) {
+      if (!(c2 > 0)) {
+        s.fail(
+          p,
+          'categoryId',
+          IssueCodes.greaterThan,
+          DefaultMessages.greaterThan,
+          c2,
+          params: const <String, Object?>{'min': 0},
+          messages: _m,
+        );
+      }
+    }
+    if (c3 is String) {
+      if (!(const DateFormatted('Y-m-d').check(c3, s.context(p, 'from', c3)))) {
+        s.failRule(const DateFormatted('Y-m-d'), p, 'from', c3, _m);
+      }
+    }
+    if (c4 is String) {
+      if (!(const DateFormatted('Y-m-d').check(c4, s.context(p, 'to', c4)))) {
+        s.failRule(const DateFormatted('Y-m-d'), p, 'to', c4, _m);
+      }
+    }
+    if (s.issues.length != e) return null;
+    return SearchQuery(
+      groupId: c0 is Undefined ? null : c0 as int?,
+      q: c1 is Undefined ? null : c1 as String?,
+      categoryId: c2 is Undefined ? null : c2 as int?,
+      from: c3 is Undefined ? null : c3 as String?,
+      to: c4 is Undefined ? null : c4 as String?,
+    );
+  }
+
+  @override
+  SearchQuery fromMap(Map<String, dynamic> m) {
+    return SearchQuery(
+      groupId: m['groupId'] == null ? null : ((m['groupId'] as num).toInt()),
+      q: m['q'] == null ? null : (m['q'] as String),
+      categoryId: m['categoryId'] == null
+          ? null
+          : ((m['categoryId'] as num).toInt()),
+      from: m['from'] == null ? null : (m['from'] as String),
+      to: m['to'] == null ? null : (m['to'] as String),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap(SearchQuery o) {
+    int? f0 = o.groupId;
+    String? f1 = o.q;
+    int? f2 = o.categoryId;
+    String? f3 = o.from;
+    String? f4 = o.to;
+    return <String, dynamic>{
+      'groupId': f0,
+      'q': f1,
+      'categoryId': f2,
+      'from': f3,
+      'to': f4,
+    };
+  }
+
+  @override
+  Map<String, dynamic> toJsonSchema() {
+    Map<String, dynamic> j = <String, dynamic>{
+      'type': 'object',
+      'title': 'SearchQuery',
+      'properties': <String, dynamic>{
+        'groupId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Group ID (see list_groups). Needed by the MCP tools; HTTP uses the X-Group-Id header.',
+        },
+        'q': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'maxLength': 100,
+          'description': 'Text to find in the note or the category name.',
+        },
+        'categoryId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Only this category ID (see list_categories).',
+        },
+        'from': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description': 'First date, YYYY-MM-DD.',
+        },
+        'to': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'description': 'Last date, YYYY-MM-DD.',
+        },
+      },
+    };
+    JsonSchemaTools.merge(j, <String>[
+      'properties',
+      'from',
+    ], const DateFormatted('Y-m-d').toJsonSchema());
+    JsonSchemaTools.merge(j, <String>[
+      'properties',
+      'to',
+    ], const DateFormatted('Y-m-d').toJsonSchema());
+    return j;
+  }
+}
+
+/// The checks, the converter and the JSON Schema of [YearQuery].
+const DtoSchema<YearQuery> $YearQueryDto = _$YearQueryDto();
+
+class _$YearQueryDto extends DtoSchema<YearQuery> {
+  const _$YearQueryDto();
+
+  static const Map<String, String> _m = <String, String>{};
+
+  @override
+  Type get type => YearQuery;
+
+  @override
+  String get name => 'YearQuery';
+
+  @override
+  Source get source => Source.query;
+
+  @override
+  YearQuery? convert(Object? input, DtoState s, List<Object> p) {
+    if (input is! Map) {
+      s.notObject(input, p, _m);
+      return null;
+    }
+    int e = s.issues.length;
+    // groupId: int?
+    Object? c0;
+    c0 = s.integer(s.read(input, 'groupId'), p, 'groupId', _m);
+    // year: int?
+    Object? c1;
+    c1 = s.integer(s.read(input, 'year'), p, 'year', _m);
+    if (s.issues.length != e) return null;
+    if (c0 is int) {
+      if (!(c0 > 0)) {
+        s.fail(
+          p,
+          'groupId',
+          IssueCodes.greaterThan,
+          DefaultMessages.greaterThan,
+          c0,
+          params: const <String, Object?>{'min': 0},
+          messages: _m,
+        );
+      }
+    }
+    if (c1 is int) {
+      if (!(c1 >= 2000)) {
+        s.fail(
+          p,
+          'year',
+          IssueCodes.min,
+          DefaultMessages.min,
+          c1,
+          params: const <String, Object?>{'min': 2000},
+          messages: _m,
+        );
+      } else if (!(c1 <= 2100)) {
+        s.fail(
+          p,
+          'year',
+          IssueCodes.max,
+          DefaultMessages.max,
+          c1,
+          params: const <String, Object?>{'max': 2100},
+          messages: _m,
+        );
+      }
+    }
+    if (s.issues.length != e) return null;
+    return YearQuery(
+      groupId: c0 is Undefined ? null : c0 as int?,
+      year: c1 is Undefined ? null : c1 as int?,
+    );
+  }
+
+  @override
+  YearQuery fromMap(Map<String, dynamic> m) {
+    return YearQuery(
+      groupId: m['groupId'] == null ? null : ((m['groupId'] as num).toInt()),
+      year: m['year'] == null ? null : ((m['year'] as num).toInt()),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap(YearQuery o) {
+    int? f0 = o.groupId;
+    int? f1 = o.year;
+    return <String, dynamic>{'groupId': f0, 'year': f1};
+  }
+
+  @override
+  Map<String, dynamic> toJsonSchema() {
+    return <String, dynamic>{
+      'type': 'object',
+      'title': 'YearQuery',
+      'properties': <String, dynamic>{
+        'groupId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Group ID (see list_groups). Needed by the MCP tools; HTTP uses the X-Group-Id header.',
+        },
+        'year': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'minimum': 2000,
+          'maximum': 2100,
+          'description': 'Year, like 2026. Defaults to this year.',
+        },
+      },
+    };
+  }
+}

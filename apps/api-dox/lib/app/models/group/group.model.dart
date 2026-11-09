@@ -14,6 +14,25 @@ class Group extends GroupGenerator {
   @Column(name: 'created_by_user_id')
   int? createdByUserId;
 
+  /// The group splits costs: who paid, settle up. Null is off.
+  @Column(name: 'split_enabled')
+  bool? splitEnabled;
+
+  /// `monthly` (null) or `trip`. Use [isTrip].
+  @Column()
+  String? kind;
+
+  /// A trip has one budget and no months: every expense counts.
+  bool get isTrip => kind == 'trip';
+
+  /// A trip's first day, `YYYY-MM-DD`. Text, like every date here.
+  @Column(name: 'trip_start')
+  String? tripStart;
+
+  /// How many days the trip lasts.
+  @Column(name: 'trip_days')
+  int? tripDays;
+
   @Column(name: 'created_at', cast: TimestampText())
   String createdAtText = '';
 
@@ -26,6 +45,10 @@ class Group extends GroupGenerator {
     'name',
     'currency',
     'created_by_user_id',
+    'split_enabled',
+    'kind',
+    'trip_start',
+    'trip_days',
     'created_at',
     'updated_at',
   ];

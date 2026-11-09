@@ -19,6 +19,7 @@ class ExpenseSerializer extends Serializer<ExpenseWithCategory> {
       'id': expense.id,
       'groupId': expense.groupId,
       'createdByUserId': expense.createdByUserId,
+      'paidByUserId': expense.payerId,
       'categoryId': expense.categoryId,
       'amountCents': expense.amountCents,
       'occurredOn': expense.occurredOn,
