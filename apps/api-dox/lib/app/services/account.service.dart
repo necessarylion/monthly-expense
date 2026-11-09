@@ -5,6 +5,7 @@ import 'package:api_dox/app/repositories/account.repository.dart';
 import 'package:api_dox/app/repositories/account_entry.repository.dart';
 import 'package:api_dox/app/repositories/account_member.repository.dart';
 import 'package:api_dox/app/repositories/group_member.repository.dart';
+import 'package:api_dox/app/services/account_share.service.dart';
 import 'package:api_dox/app/services/live.service.dart';
 import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/constants/limits.dart';
@@ -76,6 +77,7 @@ class AccountService {
     this.entries,
     this.members,
     this.accountMembers,
+    this.shares,
     this.live,
   );
 
@@ -83,9 +85,13 @@ class AccountService {
   final AccountEntryRepository entries;
   final GroupMemberRepository members;
   final AccountMemberRepository accountMembers;
+  final AccountShareService shares;
   final LiveService live;
 
+  /// Pending wallet invites are claimed first: sign-in claims them only
+  /// once, so this fixes one it missed.
   Future<List<AccountWithBalance>> withBalances(User user) async {
+    await shares.claimPendingInvitations(user);
     List<Account> list = await accounts.listByUser(user.id!);
     if (list.isEmpty) return <AccountWithBalance>[];
     List<int> ids = <int>[for (Account account in list) account.id!];

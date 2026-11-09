@@ -1,4 +1,6 @@
 import 'package:api_dox/app/models/models.dart';
+import 'package:api_dox/app/repositories/account_member.repository.dart';
+import 'package:api_dox/app/repositories/group_member.repository.dart';
 import 'package:api_dox/app/services/firebase.service.dart';
 import 'package:api_dox/app/services/group.service.dart';
 import 'package:api_dox/app/services/user.service.dart';
@@ -60,5 +62,45 @@ void main() {
     List<dynamic> groups = after.json['data'] as List<dynamic>;
     expect(groups, hasLength(1));
     expect(groups[0]['id'], isNot(id));
+  });
+
+  test('the group and wallet lists claim an invite sign-in missed', () async {
+    // a known user (lowercase email), then old pending rows for that email
+    await app.call('/api/v1/me', user: 'late');
+    int groupId =
+        (await app.call('/api/v1/groups')).json['data'][0]['id'] as int;
+    TestResponse wallet = await app.call(
+      '/api/v1/accounts',
+      method: 'POST',
+      body: <String, dynamic>{
+        'name': 'Joint',
+        'currency': 'THB',
+        'color': '#3b82f6',
+      },
+    );
+    int walletId = wallet.json['data']['id'] as int;
+    await Dox().ioc.get<GroupMemberRepository>().create(
+      groupId: groupId,
+      userId: null,
+      email: 'late@gmail.com',
+      invitedByUserId: null,
+      joinedAt: null,
+    );
+    await Dox().ioc.get<AccountMemberRepository>().create(
+      accountId: walletId,
+      userId: null,
+      email: 'late@gmail.com',
+      invitedByUserId: null,
+      joinedAt: null,
+    );
+
+    List<dynamic> groups =
+        (await app.call('/api/v1/groups', user: 'late')).json['data']
+            as List<dynamic>;
+    expect(<dynamic>[for (dynamic g in groups) g['id']], contains(groupId));
+    List<dynamic> wallets =
+        (await app.call('/api/v1/accounts', user: 'late')).json['data']
+            as List<dynamic>;
+    expect(<dynamic>[for (dynamic w in wallets) w['id']], contains(walletId));
   });
 }

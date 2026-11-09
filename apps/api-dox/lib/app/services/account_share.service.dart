@@ -114,6 +114,11 @@ class AccountShareService {
       invitedByUserId: inviter.id,
       joinedAt: user == null ? null : DateUtil.nowSql(),
     );
+    // a first sign-in may have claimed just before this row was saved
+    if (user == null) {
+      User? joined = await users.findByEmail(normalized);
+      if (joined != null) await claimPendingInvitations(joined);
+    }
     await live.accountChanged(account.id!);
     return AccountMemberView.of(member);
   }
@@ -130,7 +135,7 @@ class AccountShareService {
   }
 
   /// Attach every pending wallet invite for this user's email. Runs on
-  /// sign-in.
+  /// first sign-in, on an email change and when the wallets are listed.
   Future<void> claimPendingInvitations(User user) async {
     String email = GroupService.normalizeEmail(user.email);
     if (email.isEmpty) return;

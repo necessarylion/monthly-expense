@@ -148,7 +148,10 @@ class GroupService {
   /// A user with no group (left the last one) gets a new personal group.
   /// It waits for a first sign-in that is still running, so an invited
   /// user does not get an extra group.
+  /// Pending invites are claimed here too: sign-in claims them only once,
+  /// so this fixes one it missed (a failed first sign-in, old rows).
   Future<List<Group>> listForUser(User user) async {
+    await claimPendingInvitations(user);
     List<Group> list = await members.joinedGroupsForUser(user.id!);
     if (list.isNotEmpty) return list;
     CacheLock lock = signInLock(user.firebaseUid);
@@ -195,6 +198,11 @@ class GroupService {
       invitedByUserId: inviter.id,
       joinedAt: user == null ? null : DateUtil.nowSql(),
     );
+    // a first sign-in may have claimed just before this row was saved
+    if (user == null) {
+      User? joined = await users.findByEmail(normalized);
+      if (joined != null) await claimPendingInvitations(joined);
+    }
     // the new member is told too: the group shows up in their list
     await live.groupChanged(group.id!, liveTopicGroup);
     return member;

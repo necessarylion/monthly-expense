@@ -484,6 +484,7 @@ void registerContainer(IocContainer c) {
       c.get<i22.AccountEntryRepository>(),
       c.get<i28.GroupMemberRepository>(),
       c.get<i23.AccountMemberRepository>(),
+      c.get<i35.AccountShareService>(),
       c.get<i47.LiveService>(),
     ),
   );
