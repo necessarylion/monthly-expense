@@ -1,39 +1,40 @@
-import { CheckIcon, ListChecksIcon, PlusIcon, XIcon } from 'lucide-react'
+import { ListChecksIcon, PlusIcon, XIcon } from 'lucide-react'
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TaskItem } from '@/components/ui/task-list'
 import { toast } from '@/components/ui/toast'
 import { errorMessage } from '@/lib/errors'
 import { useT } from '@/lib/i18n'
 import type { ShoppingItem } from '@/lib/types'
-import { cn } from '@/lib/utils'
 import { useExpenses } from '@/stores/expenses'
 import { useShopping } from '@/stores/shopping'
 import { useUi } from '@/stores/ui'
 import { Page, SectionTitle } from './page'
 
-function ItemRow({ item, onToggle, onRemove }: { item: ShoppingItem; onToggle(): void; onRemove(): void }) {
+function ItemRow({
+  item,
+  onToggle,
+  onRemove,
+  onSettled,
+}: {
+  item: ShoppingItem
+  onToggle(): void
+  onRemove(): void
+  onSettled?(): void
+}) {
   const t = useT()
   return (
     <li className="flex items-center gap-1 border-b border-border/70 pr-1 last:border-b-0">
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={item.done}
+      <TaskItem
+        label={item.name}
+        checked={item.done}
+        accent="var(--success)"
         aria-label={t(item.done ? 'shopping.untick' : 'shopping.tick', { name: item.name })}
-        onClick={onToggle}
-        className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 text-left transition-colors active:bg-muted"
-      >
-        <span
-          className={cn(
-            'flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-            item.done ? 'border-success bg-success text-white' : 'border-muted-foreground/40'
-          )}
-        >
-          {item.done && <CheckIcon className="size-3.5" strokeWidth={3.5} />}
-        </span>
-        <span className={cn('min-w-0 flex-1 truncate text-[15px]', item.done && 'text-muted-foreground line-through')}>{item.name}</span>
-      </button>
+        onCheckedChange={onToggle}
+        onSettled={onSettled}
+        className="w-full min-w-0 flex-1 items-center rounded-none bg-transparent px-3 py-3 focus-visible:ring-inset focus-visible:ring-offset-0"
+      />
       <Button
         variant="ghost"
         size="icon"
@@ -61,8 +62,11 @@ export function ShoppingScreen() {
     void useShopping.getState().load().catch(() => {})
   }, [])
 
-  const todo = items.filter((i) => !i.done)
-  const bought = items.filter((i) => i.done)
+  // Just-ticked items stay under "To buy" until their tick animation ends.
+  const [settling, setSettling] = useState<number[]>([])
+  // ponytail: id order matches the API's created_at order, so the row keeps its place while it animates.
+  const todo = items.filter((i) => !i.done || settling.includes(i.id)).sort((a, b) => a.id - b.id)
+  const bought = items.filter((i) => i.done && !settling.includes(i.id))
 
   async function add(e: FormEvent) {
     e.preventDefault()
@@ -81,17 +85,21 @@ export function ShoppingScreen() {
   }
 
   async function toggle(item: ShoppingItem) {
+    if (!item.done) setSettling((ids) => [...ids, item.id])
     try {
       await useShopping.getState().setDone(item.id, !item.done)
     } catch (err) {
+      setSettling((ids) => ids.filter((id) => id !== item.id))
       toast.error(errorMessage(err, t('shopping.failed')))
-      return
     }
-    // Just bought: open the expense sheet with the item as the note. Closing it skips.
-    if (!item.done) {
-      const categoryId = useExpenses.getState().categories[0]?.id ?? null
-      openExpense(null, { categoryId, amount: null, note: item.name })
-    }
+  }
+
+  // The tick animation ended: move the item to "Bought" and offer to log it. Closing the sheet skips.
+  function settled(item: ShoppingItem) {
+    if (!settling.includes(item.id)) return
+    setSettling((ids) => ids.filter((id) => id !== item.id))
+    const categoryId = useExpenses.getState().categories[0]?.id ?? null
+    openExpense(null, { categoryId, amount: null, note: item.name })
   }
 
   async function run(action: () => Promise<void>) {
@@ -137,7 +145,13 @@ export function ShoppingScreen() {
           </SectionTitle>
           <ul className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">
             {todo.map((item) => (
-              <ItemRow key={item.id} item={item} onToggle={() => void toggle(item)} onRemove={() => void run(() => useShopping.getState().remove(item.id))} />
+              <ItemRow
+                key={item.id}
+                item={item}
+                onToggle={() => void toggle(item)}
+                onSettled={() => settled(item)}
+                onRemove={() => void run(() => useShopping.getState().remove(item.id))}
+              />
             ))}
           </ul>
         </section>
