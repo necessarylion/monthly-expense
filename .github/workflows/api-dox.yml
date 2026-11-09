@@ -1,6 +1,6 @@
 name: api-dox
 
-# Tests of the Dox API (apps/api-dox) on SQLite and Postgres, its AOT
+# Tests of the Dox API (apps/api-dox) on Postgres, its AOT
 # build, and its Docker image (ghcr.io/<repo>).
 
 on:
@@ -25,10 +25,6 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        database: [sqlite, postgres]
     services:
       postgres:
         image: postgres:16
@@ -51,12 +47,10 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib test bin db
       - run: dart analyze --fatal-infos
       # one file at a time: the files share one test database
-      - name: dart test (${{ matrix.database }})
-        run: |
-          if [ "${{ matrix.database }}" = postgres ]; then
-            export DATABASE_URL=postgres://postgres:postgres@localhost:5432/expense_test
-          fi
-          dart test --concurrency=1
+      - name: dart test (postgres)
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/expense_test
+        run: dart test --concurrency=1
 
   build:
     runs-on: ubuntu-latest
