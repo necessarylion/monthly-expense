@@ -57,6 +57,7 @@ void main() {
         // the fixture is older than Bun's 0002, so Dox makes this table
         '2026_11_09_000000_shopping_items',
         '2026_11_09_081253_create_mcp_tokens_table',
+        '2026_11_09_130754_create_passkeys_table',
       ],
     );
     // the Bun migration table is left alone

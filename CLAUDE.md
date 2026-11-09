@@ -21,6 +21,11 @@ Read this before changing code. It captures the non-obvious bits.
 - The frontend signs in via Firebase Google popup and stores nothing locally.
 - Every API request carries the Firebase **ID token** as `Authorization: Bearer <token>`.
   `apps/web/src/lib/api.ts` attaches it from `getIdToken()` automatically.
+- Passkeys: a signed-in user adds one on Me. The login page signs in with
+  it: `PasskeyService` checks it (`webauthn.dart`, ES256 only) and returns a
+  Firebase **custom token**; the web app calls `signInWithCustomToken`.
+  After that it is a normal Firebase session. Accepted origins are
+  `APP_URL` and `FRONTEND_URLS`; the rpId is the page host.
 - `lib/app/http/middleware/auth.middleware.dart` checks the token and finds or
   makes the user. `group.middleware.dart` reads `X-Group-Id` and checks
   membership. Routes are in `lib/routes/api.dart`.

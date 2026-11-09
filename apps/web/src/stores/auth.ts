@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { api, getActiveGroupId } from '@/lib/api'
-import { onAuthChange, signInWithGoogle, signOut } from '@/lib/firebase'
+import { onAuthChange, signInWithGoogle, signInWithToken, signOut } from '@/lib/firebase'
+import { signInWithPasskeyToken } from '@/lib/passkey'
 import type { McpClient, User } from '@/lib/types'
 import { useAccounts } from './accounts'
 import { useGroups } from './groups'
@@ -19,6 +20,7 @@ interface AuthState {
   mcpClients: McpClient[]
   watch(): void
   login(): Promise<void>
+  loginWithPasskey(): Promise<void>
   logout(): Promise<void>
   refreshMe(): Promise<void>
   loadMcpUrl(): Promise<void>
@@ -118,6 +120,17 @@ export const useAuth = create<AuthState>((set, get) => ({
     try {
       await signInWithGoogle()
     } catch (e: any) {
+      set({ error: e?.message ?? 'Sign-in failed' })
+    }
+  },
+
+  async loginWithPasskey() {
+    set({ error: null })
+    try {
+      await signInWithToken(await signInWithPasskeyToken())
+    } catch (e: any) {
+      // The user closed the browser's passkey prompt: not an error.
+      if (e?.name === 'NotAllowedError' || e?.name === 'AbortError') return
       set({ error: e?.message ?? 'Sign-in failed' })
     }
   },

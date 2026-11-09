@@ -8,12 +8,14 @@ import 'package:api_dox/app/dtos/category/category.dto.dart';
 import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/dtos/group/group.dto.dart';
 import 'package:api_dox/app/dtos/oauth/oauth.dto.dart';
+import 'package:api_dox/app/dtos/passkey/passkey.dto.dart';
 import 'package:api_dox/app/dtos/shopping_item/shopping_item.dto.dart';
 
 /// Every DTO of the app. Use it in `AppConfig(dtos: dtos)`.
 const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $AccountMemberRefDto,
   $AccountRefDto,
+  $AddPasskeyDto,
   $AdjustBalanceDto,
   $ApproveOauthDto,
   $CreateAccountDto,
@@ -34,6 +36,7 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $NoInputDto,
   $OauthClientQueryDto,
   $PageQueryDto,
+  $PasskeyLoginDto,
   $SetBudgetDto,
   $SetDefaultAccountDto,
   $TotalQueryDto,

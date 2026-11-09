@@ -1,5 +1,7 @@
+import { KeyRoundIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/lib/i18n'
+import { passkeySupported } from '@/lib/passkey'
 import { useAuth } from '@/stores/auth'
 
 function GoogleMark() {
@@ -28,6 +30,7 @@ function GoogleMark() {
 export function LoginScreen() {
   const t = useT()
   const login = useAuth((s) => s.login)
+  const loginWithPasskey = useAuth((s) => s.loginWithPasskey)
   const error = useAuth((s) => s.error)
 
   return (
@@ -50,6 +53,12 @@ export function LoginScreen() {
             <GoogleMark />
             {t('app.signIn')}
           </Button>
+          {passkeySupported && (
+            <Button size="lg" variant="ghost" className="h-12 rounded-xl text-base" onClick={() => void loginWithPasskey()}>
+              <KeyRoundIcon />
+              {t('app.signInPasskey')}
+            </Button>
+          )}
           {error && (
             <p role="alert" className="text-sm text-destructive">
               {error}

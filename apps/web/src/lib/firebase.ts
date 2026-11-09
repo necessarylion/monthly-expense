@@ -3,6 +3,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithCustomToken,
   signOut as fbSignOut,
   onIdTokenChanged,
   type User as FirebaseUser,
@@ -22,6 +23,11 @@ const googleProvider = new GoogleAuthProvider()
 
 export async function signInWithGoogle() {
   await signInWithPopup(auth, googleProvider)
+}
+
+/** After a passkey sign-in: the API gives a custom token for the user. */
+export async function signInWithToken(token: string) {
+  await signInWithCustomToken(auth, token)
 }
 
 export async function signOut() {

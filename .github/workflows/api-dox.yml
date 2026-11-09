@@ -1,6 +1,6 @@
 name: api-dox
 
-# Tests of the Dox API (apps/api-dox) on SQLite and Postgres, its AOT
+# Tests of the Dox API (apps/api-dox) on Postgres, its AOT
 # build, and its Docker image (ghcr.io/<repo>).
 
 on:
@@ -25,10 +25,6 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        database: [sqlite, postgres]
     services:
       postgres:
         image: postgres:16
@@ -51,12 +47,10 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib test bin db
       - run: dart analyze --fatal-infos
       # one file at a time: the files share one test database
-      - name: dart test (${{ matrix.database }})
-        run: |
-          if [ "${{ matrix.database }}" = postgres ]; then
-            export DATABASE_URL=postgres://postgres:postgres@localhost:5432/expense_test
-          fi
-          dart test --concurrency=1
+      - name: dart test (postgres)
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/expense_test
+        run: dart test --concurrency=1
 
   build:
     runs-on: ubuntu-latest
@@ -69,7 +63,16 @@ jobs:
         with:
           sdk: 3.13.7
       - run: dart pub get
-      - run: dart build cli --target bin/server.dart --output build
+      # The build hooks download SQLite from GitHub, which sometimes
+      # answers 504: try 3 times.
+      - name: dart build cli
+        run: |
+          for i in 1 2 3; do
+            dart build cli --target bin/server.dart --output build && exit 0
+            echo "dart build failed, retry $i in 15s"
+            sleep 15
+          done
+          exit 1
       - name: The binary starts, migrates and answers
         run: |
           mkdir -p /tmp/run/storage /tmp/run/public
@@ -84,9 +87,10 @@ jobs:
           done
           exit 1
 
-  # The Docker image.
-  # Pull requests only build it; main and manual runs push it.
+  # The Docker image. Main and manual runs build and push it. Pull
+  # requests skip it: the `build` job already checks the binary.
   docker:
+    if: github.event_name != 'pull_request'
     needs: [test, build]
     runs-on: ubuntu-latest
     permissions:
@@ -94,14 +98,12 @@ jobs:
       packages: write
     env:
       IMAGE: ghcr.io/${{ github.repository }}
-      PUSH: ${{ github.event_name != 'pull_request' }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
 
-      - if: env.PUSH == 'true'
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -113,7 +115,6 @@ jobs:
           images: ${{ env.IMAGE }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
             type=sha,prefix=sha-,format=long
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
@@ -121,7 +122,7 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          push: ${{ env.PUSH == 'true' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=dox

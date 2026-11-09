@@ -5,6 +5,7 @@ import {
   ChevronRightIcon,
   CoinsIcon,
   CopyIcon,
+  KeyRoundIcon,
   LanguagesIcon,
   LayersIcon,
   LogOutIcon,
@@ -34,6 +35,9 @@ import { SelectField } from '@/components/app/select-field'
 import { DEFAULT_THEMES, ThemeSelector } from '@/components/ui/theme-selector'
 import { toast } from '@/components/ui/toast'
 import { errorMessage } from '@/lib/errors'
+import { addPasskey, passkeySupported } from '@/lib/passkey'
+import { api } from '@/lib/api'
+import type { Passkey } from '@/lib/types'
 import { currencySymbol, formatMoneyFromCents, monthLabel, relativeTime } from '@/lib/format'
 import { LOCALE_OPTIONS, setLocale, useLocale, useT } from '@/lib/i18n'
 import { setTheme, type ThemePref, useTheme } from '@/lib/theme'
@@ -695,6 +699,81 @@ function Mcp() {
   )
 }
 
+function Passkeys() {
+  const t = useT()
+  const [keys, setKeys] = useState<Passkey[] | null>(null)
+  const [adding, setAdding] = useState(false)
+
+  async function load() {
+    const { data } = await api.get<{ data: Passkey[] }>('/me/passkeys')
+    setKeys(data.data)
+  }
+
+  useEffect(() => {
+    void load().catch(() => setKeys([]))
+  }, [])
+
+  async function add() {
+    setAdding(true)
+    try {
+      await addPasskey()
+      await load()
+      toast.success(t('settings.passkeyAdded'))
+    } catch (e: any) {
+      // The user closed the browser's prompt: say nothing.
+      if (e?.name !== 'NotAllowedError' && e?.name !== 'AbortError') {
+        toast.error(errorMessage(e, t('settings.failedToSave')))
+      }
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  async function remove(id: number) {
+    try {
+      await api.delete(`/me/passkeys/${id}`)
+      setKeys((list) => list?.filter((k) => k.id !== id) ?? null)
+      toast.success(t('settings.passkeyRemoved'))
+    } catch (e) {
+      toast.error(errorMessage(e, t('settings.failedToSave')))
+    }
+  }
+
+  return (
+    <Section title={t('settings.passkeys')} description={t('settings.passkeysNote')}>
+      {keys === null ? (
+        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+      ) : keys.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('settings.passkeysNone')}</p>
+      ) : (
+        <ul className="flex flex-col divide-y divide-border/70">
+          {keys.map((key) => (
+            <li key={key.id} className="flex items-center gap-3 py-2.5">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{key.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {key.lastUsedAt
+                    ? t('settings.mcpLastUsed', { when: relativeTime(Date.parse(key.lastUsedAt)) })
+                    : t('settings.mcpNeverUsed')}
+                </p>
+              </div>
+              <DeleteButton onConfirm={() => void remove(key.id)} className="shrink-0" />
+            </li>
+          ))}
+        </ul>
+      )}
+      {passkeySupported ? (
+        <Button className="rounded-xl" disabled={adding} onClick={() => void add()}>
+          <PlusIcon />
+          {adding ? t('common.working') : t('settings.passkeyAdd')}
+        </Button>
+      ) : (
+        <p className="text-sm text-muted-foreground">{t('settings.passkeysUnsupported')}</p>
+      )}
+    </Section>
+  )
+}
+
 /* ---------- The settings list ---------- */
 
 function Row({
@@ -783,6 +862,7 @@ function SettingsRoot() {
         <Row icon={<LanguagesIcon />} tint="#0e8a8a" label={t('settings.language')} value={LOCALE_OPTIONS.find((o) => o.code === locale)?.label} onClick={() => go('language')} />
         <Row icon={<ArrowLeftRightIcon />} tint="#2f9e8f" label={t('rates.title')} onClick={() => go('rates')} />
         <Row icon={<SparklesIcon />} tint="#d97706" label={t('settings.mcp')} onClick={() => go('mcp')} />
+        <Row icon={<KeyRoundIcon />} tint="#5b6ee1" label={t('settings.passkeys')} onClick={() => go('passkeys')} />
       </RowGroup>
 
       <RowGroup>
@@ -819,6 +899,7 @@ export const SETTINGS_TITLES: Record<Exclude<SettingsTab, 'root'>, string> = {
   appearance: 'settings.appearance',
   language: 'settings.language',
   mcp: 'settings.mcp',
+  passkeys: 'settings.passkeys',
   rates: 'rates.title',
 }
 
@@ -832,6 +913,7 @@ function SettingsPage({ page }: { page: SettingsTab }) {
   if (page === 'appearance') return <Appearance />
   if (page === 'language') return <Language />
   if (page === 'mcp') return <Mcp />
+  if (page === 'passkeys') return <Passkeys />
   return <SettingsRoot />
 }
 

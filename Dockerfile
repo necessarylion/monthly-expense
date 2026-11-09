@@ -46,7 +46,12 @@ RUN dart pub get --offline \
   && dart run build_runner build --delete-conflicting-outputs \
   # `dart build cli` (not `dart compile exe`): it runs the build hooks
   # that bundle SQLite and the native HTTP and Postgres libraries.
-  && dart build cli --target bin/server.dart --output build
+  # They download from GitHub, which sometimes answers 504: try 3 times.
+  && for i in 1 2 3; do \
+       dart build cli --target bin/server.dart --output build && break; \
+       [ "$i" = 3 ] && exit 1; \
+       echo "dart build failed, retry $i in 15s"; sleep 15; \
+     done
 
 
 ############################

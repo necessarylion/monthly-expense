@@ -17,6 +17,7 @@ export default {
   app: {
     tagline: 'သင့်ငွေကြေး သုံးစွဲမှုများကို မှတ်တမ်းတင်ပါ',
     signIn: 'Google ဖြင့် ဆက်လက်လုပ်ဆောင်ရန်',
+    signInPasskey: 'Passkey ဖြင့် ဝင်ရန်',
   },
   tabs: {
     overview: 'အနှစ်ချုပ်',
@@ -111,6 +112,13 @@ export default {
     mcpNeverUsed: 'မသုံးရသေးပါ',
     mcpRemoveAll: 'app အားလုံးကို အကောင့်ထွက်ရန်',
     mcpClientRemoved: 'app ကို အကောင့်ထွက်ပြီးပါပြီ',
+    passkeys: 'Passkey များ',
+    passkeysNote: 'မျက်နှာ၊ လက်ဗွေ သို့မဟုတ် စက်၏ PIN ဖြင့် ဝင်နိုင်ပါသည်။ သင်သုံးသော စက်တိုင်းတွင် passkey တစ်ခု ထည့်ပါ။',
+    passkeysNone: 'Passkey မရှိသေးပါ။',
+    passkeysUnsupported: 'ဤ browser တွင် passkey သုံး၍ မရပါ။',
+    passkeyAdd: 'Passkey ထည့်ရန်',
+    passkeyAdded: 'Passkey ထည့်ပြီးပါပြီ',
+    passkeyRemoved: 'Passkey ဖယ်ရှားပြီးပါပြီ',
     mcpNote:
       'ဤ URL ကို Claude တွင် custom connector အဖြစ် ထည့်ပါ (claude.ai → Customize → Connectors → Add custom connector)။ ထို့နောက် Claude က ဤနေရာတွင် အကောင့်ဝင်ပြီး ခွင့်ပြုရန် တောင်းဆိုပါမည်။ URL တွင် လျှို့ဝှက်ချက် မပါဝင်ပါ။',
     failedToSave: 'သိမ်းဆည်း၍ မရပါ',

@@ -36,3 +36,9 @@ const String mcpTokenPrefix = 'mex_';
 
 /// `mcp_tokens.last_used_at` is written at most this often.
 const Duration mcpTouchEvery = Duration(minutes: 1);
+
+/// Passkeys one user may have at once.
+const int passkeysMax = 20;
+
+/// A passkey challenge works once, for this long.
+const Duration passkeyChallengeTtl = Duration(minutes: 5);

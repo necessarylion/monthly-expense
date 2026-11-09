@@ -6,6 +6,7 @@ import '2026_11_08_000000_baseline.dart' as m1;
 import '2026_11_08_000001_account_members.dart' as m2;
 import '2026_11_09_000000_shopping_items.dart' as m3;
 import '2026_11_09_081253_create_mcp_tokens_table.dart' as m4;
+import '2026_11_09_130754_create_passkeys_table.dart' as m5;
 
 /// all Dart migrations of db/migration, sorted by name
 final List<MigrationEntry> migrations = <MigrationEntry>[
@@ -15,5 +16,9 @@ final List<MigrationEntry> migrations = <MigrationEntry>[
   MigrationEntry(
     '2026_11_09_081253_create_mcp_tokens_table',
     m4.CreateMcpTokensTable(),
+  ),
+  MigrationEntry(
+    '2026_11_09_130754_create_passkeys_table',
+    m5.CreatePasskeysTable(),
   ),
 ];
