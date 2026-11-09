@@ -3,6 +3,8 @@ import 'package:api_dox/app/repositories/category.repository.dart';
 import 'package:api_dox/app/repositories/group.repository.dart';
 import 'package:api_dox/app/repositories/group_member.repository.dart';
 import 'package:api_dox/app/repositories/user.repository.dart';
+import 'package:api_dox/app/services/live.service.dart';
+import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/constants/categories.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/http_error.dart';
@@ -11,12 +13,19 @@ import 'package:dox_core/dox_core.dart';
 
 @Inject()
 class GroupService {
-  GroupService(this.groups, this.members, this.categories, this.users);
+  GroupService(
+    this.groups,
+    this.members,
+    this.categories,
+    this.users,
+    this.live,
+  );
 
   final GroupRepository groups;
   final GroupMemberRepository members;
   final CategoryRepository categories;
   final UserRepository users;
+  final LiveService live;
 
   static String normalizeEmail(String email) => email.trim().toLowerCase();
 
@@ -82,7 +91,9 @@ class GroupService {
       changes['trip_start'] = DateUtil.today();
     }
     if (changes.isEmpty) return group;
-    return groups.update(group.id!, changes);
+    Group updated = await groups.update(group.id!, changes);
+    await live.groupChanged(group.id!, liveTopicGroup);
+    return updated;
   }
 
   /// True when the user has joined at least one group.
@@ -152,13 +163,16 @@ class GroupService {
     if (existing != null) return existing;
 
     User? user = await users.findByEmail(normalized);
-    return members.create(
+    GroupMember member = await members.create(
       groupId: group.id!,
       userId: user?.id,
       email: normalized,
       invitedByUserId: inviter.id,
       joinedAt: user == null ? null : DateUtil.nowSql(),
     );
+    // the new member is told too: the group shows up in their list
+    await live.groupChanged(group.id!, liveTopicGroup);
+    return member;
   }
 
   /// Removes a member. The group is deleted when no joined member is left.
@@ -167,10 +181,13 @@ class GroupService {
         ? null
         : await members.findByGroupAndId(group.id!, memberId);
     if (member == null) throw HttpError.notFound('Member not found');
+    // found first: the removed member must hear it too
+    Set<int> users = await live.usersOfGroup(group.id!);
     await members.delete(member.id!);
     if (!await members.hasJoinedMembers(group.id!)) {
       await groups.delete(group.id!);
     }
+    await live.notify(users, liveTopicGroup, groupId: group.id!);
   }
 
   Future<void> leave(Group group, User user) async {

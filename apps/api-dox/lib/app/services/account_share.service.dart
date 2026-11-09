@@ -126,7 +126,7 @@ class AccountShareService {
     if (member == null) throw HttpError.notFound('Member not found');
     Set<int> users = await live.usersOfAccount(account.id!);
     await members.delete(member.id!);
-    await live.usersChanged(users, liveTopicAccounts);
+    await live.notify(users, liveTopicAccounts);
   }
 
   /// Attach every pending wallet invite for this user's email. Runs on

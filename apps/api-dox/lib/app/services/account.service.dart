@@ -195,7 +195,7 @@ class AccountService {
     Account account = await find(user, id);
     Set<int> users = await live.usersOfAccount(account.id!);
     await accounts.delete(account.id!);
-    await live.usersChanged(users, liveTopicAccounts);
+    await live.notify(users, liveTopicAccounts);
   }
 
   /// This member's pay-from account in the group.

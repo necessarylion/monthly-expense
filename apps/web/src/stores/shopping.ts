@@ -20,17 +20,23 @@ function sorted(items: ShoppingItem[]): ShoppingItem[] {
   return [...todo, ...done]
 }
 
+/** Only the newest load may write, and only while its group is active. */
+let loadRequest = 0
+
 /** The active group's shared shopping list. Changes show at once and roll back on failure. */
 export const useShopping = create<ShoppingState>((set, get) => ({
   items: [],
   loaded: false,
 
   async load() {
-    if (!useGroups.getState().activeId) {
+    const groupId = useGroups.getState().activeId
+    const request = ++loadRequest
+    if (!groupId) {
       set({ items: [], loaded: true })
       return
     }
     const { data } = await api.get<{ data: ShoppingItem[] }>('/shopping-items')
+    if (request !== loadRequest || groupId !== useGroups.getState().activeId) return
     set({ items: data.data, loaded: true })
   },
 

@@ -81,6 +81,17 @@ void main() {
     expect(error.toString(), contains('Unauthorized'));
   });
 
+  test(
+    'a Firebase outage is not Unauthorized, so the app tries again',
+    () async {
+      sio.Socket socket = open('down');
+      Completer<Object?> refused = Completer<Object?>();
+      socket.onConnectError(refused.complete);
+      Object? error = await refused.future.timeout(const Duration(seconds: 5));
+      expect(error.toString(), contains(liveUnavailable));
+    },
+  );
+
   test('a new expense reaches the group members only', () async {
     List<Object?> alice = await listen('alice');
     List<Object?> bob = await listen('bob');
@@ -133,5 +144,66 @@ void main() {
       <String, Object?>{'topic': liveTopicAccounts},
     ]);
     expect(bob, isEmpty);
+  });
+
+  test('deleting a booked expense reaches the shared wallet users', () async {
+    TestResponse created = await app.call(
+      '/api/v1/accounts',
+      method: 'POST',
+      body: <String, dynamic>{
+        'name': 'Joint',
+        'currency': 'THB',
+        'color': '#3b82f6',
+      },
+    );
+    int walletId = created.json['data']['id'] as int;
+    (await app.call(
+      '/api/v1/accounts/$walletId/members',
+      method: 'POST',
+      body: <String, dynamic>{'email': 'carol@gmail.com'},
+    )).expectStatus(201);
+    TestResponse expense = await app.call(
+      '/api/v1/expenses',
+      method: 'POST',
+      group: groupId,
+      body: <String, dynamic>{
+        'categoryId': foodId,
+        'amount': 5,
+        'occurredOn': dayFromToday(0),
+        'accountId': walletId,
+      },
+    );
+    expense.expectStatus(201);
+    int expenseId = expense.json['data']['id'] as int;
+
+    // carol shares the wallet but is not in the group
+    List<Object?> carol = await listen('carol');
+    (await app.call(
+      '/api/v1/expenses/$expenseId',
+      method: 'DELETE',
+      group: groupId,
+    )).expectStatus(204);
+    await settle();
+    expect(carol, <Object?>[
+      <String, Object?>{'topic': liveTopicAccounts},
+    ]);
+  });
+
+  test('a removed member hears that the group changed', () async {
+    TestResponse members = await app.call('/api/v1/groups/$groupId/members');
+    int bobMember =
+        (members.json['data'] as List<dynamic>).firstWhere(
+              (dynamic m) => m['email'] == 'bob@gmail.com',
+            )['id']
+            as int;
+    List<Object?> bob = await listen('bob');
+    (await app.call(
+      '/api/v1/groups/$groupId/members/$bobMember',
+      method: 'DELETE',
+    )).expectStatus(204);
+    await settle();
+    expect(bob, <Object?>[
+      <String, Object?>{'topic': liveTopicGroup, 'groupId': groupId},
+    ]);
   });
 }

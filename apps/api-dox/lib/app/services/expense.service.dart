@@ -5,7 +5,6 @@ import 'package:api_dox/app/services/account.service.dart';
 import 'package:api_dox/app/services/budget.service.dart';
 import 'package:api_dox/app/services/category.service.dart';
 import 'package:api_dox/app/services/live.service.dart';
-import 'package:api_dox/constants/live.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:api_dox/utils/date_util.dart';
@@ -254,24 +253,20 @@ class ExpenseService {
     ];
   }
 
-  /// The booked account entry goes with it (the foreign key cascades).
+  /// The booked account entry goes with it (the foreign key cascades), so
+  /// its wallet is found first.
   Future<void> delete(Expense expense) async {
-    AccountEntry? entry = await accounts.entries.findByExpenseId(expense.id!);
+    int? accountId = await live.accountOfExpense(expense.id!);
     await expenses.delete(expense.id!);
-    await _notify(expense.groupId, entry);
+    await live.expenseChanged(expense.groupId, accountId);
   }
 
   /// Tell the group, and the wallet the expense is booked in.
   Future<void> _changed(Expense expense) async {
-    await _notify(
+    await live.expenseChanged(
       expense.groupId,
-      await accounts.entries.findByExpenseId(expense.id!),
+      await live.accountOfExpense(expense.id!),
     );
-  }
-
-  Future<void> _notify(int groupId, AccountEntry? entry) async {
-    await live.groupChanged(groupId, liveTopicExpenses);
-    if (entry != null) await live.accountChanged(entry.accountId);
   }
 
   /// Insertion sort: stable, and the lists are short (one row per category).

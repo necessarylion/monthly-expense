@@ -495,12 +495,16 @@ void registerContainer(IocContainer c) {
     ),
   );
   c.singleton<i36.BudgetService>(
-    (IocContainer c) => i36.BudgetService(c.get<i24.BudgetRepository>()),
+    (IocContainer c) => i36.BudgetService(
+      c.get<i24.BudgetRepository>(),
+      c.get<i47.LiveService>(),
+    ),
   );
   c.singleton<i37.CategoryService>(
     (IocContainer c) => i37.CategoryService(
       c.get<i25.CategoryRepository>(),
       c.get<i26.ExpenseRepository>(),
+      c.get<i47.LiveService>(),
     ),
   );
   c.singleton<i38.ExpenseService>(
@@ -546,6 +550,7 @@ void registerContainer(IocContainer c) {
       c.get<i28.GroupMemberRepository>(),
       c.get<i25.CategoryRepository>(),
       c.get<i33.UserRepository>(),
+      c.get<i47.LiveService>(),
     ),
   );
   c.singleton<i47.LiveService>(
@@ -553,6 +558,7 @@ void registerContainer(IocContainer c) {
       c.get<i28.GroupMemberRepository>(),
       c.get<i21.AccountRepository>(),
       c.get<i23.AccountMemberRepository>(),
+      c.get<i22.AccountEntryRepository>(),
     ),
   );
   c.singleton<i48.McpOAuthService>(
