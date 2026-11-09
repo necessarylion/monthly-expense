@@ -1,5 +1,6 @@
 import { EqualIcon, MinusIcon, PlusIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { ChipRail } from '@/components/app/chip-rail'
 import { DatePicker } from '@/components/app/date-picker'
 import { NumberPad } from '@/components/app/number-pad'
 import { Sheet } from '@/components/app/sheet'
@@ -179,15 +180,11 @@ export function EntrySheet({
           )}
         </div>
 
-        <div
+        <ChipRail
           ref={chips}
           role="group"
           aria-label={t('accounts.account')}
-          className={cn(
-            'no-scrollbar -mx-5 grid auto-cols-max grid-flow-col gap-2 overflow-x-auto px-5',
-            accounts.length > 4 ? 'grid-rows-2' : 'grid-rows-1'
-          )}
-          data-vaul-no-drag=""
+          className={cn('grid auto-cols-max grid-flow-col gap-2', accounts.length > 4 ? 'grid-rows-2' : 'grid-rows-1')}
         >
           {accounts.map((a) => {
             const active = accountId === a.id
@@ -208,7 +205,7 @@ export function EntrySheet({
               </button>
             )
           })}
-        </div>
+        </ChipRail>
 
         <DatePicker value={date} onChange={setDate} />
 

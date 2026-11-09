@@ -1,5 +1,6 @@
 import { ArrowDownIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { ChipRail } from '@/components/app/chip-rail'
 import { DatePicker } from '@/components/app/date-picker'
 import { Sheet } from '@/components/app/sheet'
 import { Button } from '@/components/ui/button'
@@ -27,7 +28,7 @@ function AccountChips({
   onChange(id: number): void
 }) {
   return (
-    <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5" data-vaul-no-drag="">
+    <ChipRail className="flex gap-2">
       {accounts.map((a) => {
         const active = value === a.id
         return (
@@ -49,7 +50,7 @@ function AccountChips({
           </button>
         )
       })}
-    </div>
+    </ChipRail>
   )
 }
 

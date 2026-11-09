@@ -1,5 +1,6 @@
 import { WalletIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { ChipRail } from '@/components/app/chip-rail'
 import { CategoryIcon } from '@/components/app/category-icon'
 import { DatePicker } from '@/components/app/date-picker'
 import { NumberPad } from '@/components/app/number-pad'
@@ -166,12 +167,11 @@ export function ExpenseSheet() {
           dim={!input.amount || input.replaceOnType}
         />
 
-        <div
+        <ChipRail
           ref={chips}
           role="group"
           aria-label={t('expenseModal.category')}
-          className="no-scrollbar -mx-5 grid auto-cols-max grid-flow-col grid-rows-2 gap-2 overflow-x-auto px-5"
-          data-vaul-no-drag=""
+          className="grid auto-cols-max grid-flow-col grid-rows-2 gap-2"
         >
           {categories.map((c) => {
             const active = categoryId === c.id
@@ -192,7 +192,7 @@ export function ExpenseSheet() {
               </button>
             )
           })}
-        </div>
+        </ChipRail>
 
         <DatePicker value={date} onChange={setDate} />
 
