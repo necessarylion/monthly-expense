@@ -30,6 +30,23 @@ void main() {
       });
     });
 
+    test('config.js sends the Firebase web config, no token', () async {
+      TestResponse res = await app.call('/config.js', user: '');
+      res
+          .expectStatus(200)
+          .expectHeader('content-type', contains('application/javascript'));
+      const String prefix = 'window.__APP_CONFIG__ = ';
+      expect(res.body, startsWith(prefix));
+      String json = res.body.substring(prefix.length).trim();
+      Map<String, dynamic> config = jsonDecode(
+        json.substring(0, json.length - 1),
+      ) as Map<String, dynamic>;
+      expect(
+        config.keys,
+        containsAll(<String>['apiKey', 'authDomain', 'projectId', 'appId']),
+      );
+    });
+
     test('missing and bad tokens are 401 with a message', () async {
       (await app.call('/api/v1/me', user: '')).expectStatus(401).expectJson(
         <String, dynamic>{'message': 'Missing bearer token'},

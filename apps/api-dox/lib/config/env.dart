@@ -54,6 +54,15 @@ abstract class AppEnv {
 
   String? get firebasePrivateKey;
 
+  /// Firebase Web SDK config. `/config.js` sends it to the browser at run
+  /// time, so one image works with any Firebase project. Not secret.
+  String? get firebaseApiKey;
+
+  /// Empty: `<FIREBASE_PROJECT_ID>.firebaseapp.com`.
+  String? get firebaseAuthDomain;
+
+  String? get firebaseAppId;
+
   String get logLevel => 'info';
 }
 

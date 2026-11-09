@@ -2,7 +2,7 @@
 #
 # The app image: the React SPA and the Dox API (apps/api-dox) in one.
 # CI (.github/workflows/api-dox.yml) builds it and pushes it from main as
-# ghcr.io/<repo>-dox. To try it:
+# ghcr.io/<repo>. To try it:
 #
 #   docker build -t expense .
 #
@@ -11,6 +11,8 @@
 #   OAuth client ids, so keep it the same across deploys.
 # - APP_URL (the public https URL). MCP OAuth sign-in uses it as the issuer,
 #   so it must be the address clients see. Without it, it is localhost.
+# - FIREBASE_* (Admin and Web SDK). The SPA gets its Firebase config from
+#   `/config.js` at run time, so the image has no Firebase project baked in.
 
 ARG BUN_VERSION=1.4.4
 ARG DART_VERSION=3.13.7
@@ -26,17 +28,6 @@ RUN bun install --frozen-lockfile
 
 COPY apps/web/ ./
 
-# These env vars are baked into the bundle at build time
-ARG VITE_API_URL
-ARG VITE_FIREBASE_API_KEY
-ARG VITE_FIREBASE_AUTH_DOMAIN
-ARG VITE_FIREBASE_PROJECT_ID
-ARG VITE_FIREBASE_APP_ID
-ENV VITE_API_URL=$VITE_API_URL \
-    VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
-    VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN \
-    VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID \
-    VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID
 
 RUN bun run build
 

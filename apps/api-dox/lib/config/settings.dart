@@ -27,6 +27,11 @@ class AppSettings {
   final String? firebaseClientEmail;
   final String? firebasePrivateKey;
 
+  /// Firebase Web SDK config for the browser (`/config.js`).
+  final String? firebaseApiKey;
+  final String? firebaseAuthDomain;
+  final String? firebaseAppId;
+
   /// The settings from the env of this process.
   factory AppSettings() => AppSettings.fromEnv(env);
 
@@ -43,6 +48,9 @@ class AppSettings {
     this.firebaseProjectId,
     this.firebaseClientEmail,
     this.firebasePrivateKey,
+    this.firebaseApiKey,
+    this.firebaseAuthDomain,
+    this.firebaseAppId,
   });
 
   factory AppSettings.fromEnv(AppEnv env) {
@@ -62,6 +70,14 @@ class AppSettings {
       firebaseProjectId: env.firebaseProjectId,
       firebaseClientEmail: env.firebaseClientEmail,
       firebasePrivateKey: env.firebasePrivateKey,
+      firebaseApiKey: env.firebaseApiKey,
+      firebaseAuthDomain: env.firebaseProjectId == null
+          ? env.firebaseAuthDomain
+          : _orDefault(
+              env.firebaseAuthDomain,
+              '${env.firebaseProjectId}.firebaseapp.com',
+            ),
+      firebaseAppId: env.firebaseAppId,
     );
   }
 
@@ -85,6 +101,9 @@ class AppSettings {
       firebaseProjectId: firebaseProjectId,
       firebaseClientEmail: firebaseClientEmail,
       firebasePrivateKey: firebasePrivateKey,
+      firebaseApiKey: firebaseApiKey,
+      firebaseAuthDomain: firebaseAuthDomain,
+      firebaseAppId: firebaseAppId,
     );
   }
 

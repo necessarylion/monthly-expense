@@ -8,12 +8,14 @@ import {
   type User as FirebaseUser,
 } from 'firebase/auth'
 
-const app = initializeApp({
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-})
+declare global {
+  interface Window {
+    // Set by `/config.js`, which the API makes from its env (see index.html).
+    __APP_CONFIG__?: { apiKey: string; authDomain: string; projectId: string; appId: string }
+  }
+}
+
+const app = initializeApp(window.__APP_CONFIG__ ?? {})
 
 export const auth = getAuth(app)
 const googleProvider = new GoogleAuthProvider()

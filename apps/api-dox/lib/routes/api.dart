@@ -1,5 +1,6 @@
 import 'package:api_dox/app/http/controllers/account.controller.dart';
 import 'package:api_dox/app/http/controllers/category.controller.dart';
+import 'package:api_dox/app/http/controllers/config.controller.dart';
 import 'package:api_dox/app/http/controllers/expense.controller.dart';
 import 'package:api_dox/app/http/controllers/group.controller.dart';
 import 'package:api_dox/app/http/controllers/health.controller.dart';
@@ -22,6 +23,7 @@ class ApiRouter extends Router {
     List<dynamic> member = <dynamic>[...user, ioc.get<GroupMiddleware>()];
 
     Route.get('/healthz', (HealthController c) => c.show);
+    Route.get('/config.js', (ConfigController c) => c.script);
 
     Route.group('/api/v1', () {
       Route.middleware(user, () {

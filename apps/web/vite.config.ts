@@ -8,7 +8,7 @@ const API_PROXY = process.env.API_PROXY || 'http://localhost:3334'
 // The API paths. `/oauth/authorize` is not here: it is the SPA's consent page.
 // Set APP_URL of the API to this dev server, so MCP sign-in works in dev too.
 const proxy = Object.fromEntries(
-  ['/api', '/mcp', '/.well-known', '/oauth/register', '/oauth/token'].map((path) => [path, API_PROXY])
+  ['/api', '/config.js', '/mcp', '/.well-known', '/oauth/register', '/oauth/token'].map((path) => [path, API_PROXY])
 )
 
 export default defineConfig({

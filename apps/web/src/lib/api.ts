@@ -15,7 +15,7 @@ export function setActiveGroupId(id: number | null) {
   else localStorage.setItem(ACTIVE_GROUP_KEY, String(id))
 }
 
-const BASE_URL: string = import.meta.env.VITE_API_URL ?? ''
+const BASE_URL: string = import.meta.env.VITE_API_URL || '/api/v1'
 
 export interface RequestConfig {
   params?: Record<string, unknown>

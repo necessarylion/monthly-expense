@@ -20,6 +20,10 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+      # Firebase Web SDK config, sent to the browser by /config.js.
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY}
+      FIREBASE_AUTH_DOMAIN: ${FIREBASE_AUTH_DOMAIN:-}
+      FIREBASE_APP_ID: ${FIREBASE_APP_ID}
     volumes:
       - expense-data:/app/storage
     # Migrations run inside the binary on start. The healthcheck is in the Dockerfile.

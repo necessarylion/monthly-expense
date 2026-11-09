@@ -24,6 +24,15 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       },
     ),
     OpenApiOperation(
+      controller: 'ConfigController',
+      method: 'script',
+      argumentTypes: <String>['DoxRequest'],
+      tags: <String>['Config'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(description: 'Successful response'),
+      },
+    ),
+    OpenApiOperation(
       controller: 'MeController',
       method: 'show',
       argumentTypes: <String>['DoxRequest'],
@@ -705,6 +714,7 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
   ],
   routes: <OpenApiRouteBinding>[
     OpenApiRouteBinding('GET', '/healthz', 'HealthController.show'),
+    OpenApiRouteBinding('GET', '/config.js', 'ConfigController.script'),
     OpenApiRouteBinding('GET', '/api/v1/me', 'MeController.show'),
     OpenApiRouteBinding('GET', '/api/v1/me/mcp', 'MeController.mcp'),
     OpenApiRouteBinding(

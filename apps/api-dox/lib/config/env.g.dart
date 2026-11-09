@@ -23,6 +23,9 @@ class _$AppEnv extends AppEnv {
     required this.firebaseProjectId,
     required this.firebaseClientEmail,
     required this.firebasePrivateKey,
+    required this.firebaseApiKey,
+    required this.firebaseAuthDomain,
+    required this.firebaseAppId,
     required this.logLevel,
   });
 
@@ -57,6 +60,12 @@ class _$AppEnv extends AppEnv {
   @override
   final String? firebasePrivateKey;
   @override
+  final String? firebaseApiKey;
+  @override
+  final String? firebaseAuthDomain;
+  @override
+  final String? firebaseAppId;
+  @override
   final String logLevel;
 
   /// reads and checks every key once. Throws `EnvException` with all
@@ -79,6 +88,9 @@ class _$AppEnv extends AppEnv {
     String? firebaseProjectId = r.string('FIREBASE_PROJECT_ID');
     String? firebaseClientEmail = r.string('FIREBASE_CLIENT_EMAIL');
     String? firebasePrivateKey = r.string('FIREBASE_PRIVATE_KEY');
+    String? firebaseApiKey = r.string('FIREBASE_API_KEY');
+    String? firebaseAuthDomain = r.string('FIREBASE_AUTH_DOMAIN');
+    String? firebaseAppId = r.string('FIREBASE_APP_ID');
     String logLevel = r.string('LOG_LEVEL') ?? d.logLevel;
 
     r.check();
@@ -98,6 +110,9 @@ class _$AppEnv extends AppEnv {
       firebaseProjectId: firebaseProjectId,
       firebaseClientEmail: firebaseClientEmail,
       firebasePrivateKey: firebasePrivateKey,
+      firebaseApiKey: firebaseApiKey,
+      firebaseAuthDomain: firebaseAuthDomain,
+      firebaseAppId: firebaseAppId,
       logLevel: logLevel,
     );
   }
@@ -119,4 +134,13 @@ class _$AppEnvDefaults extends AppEnv {
   @override
   String? get firebasePrivateKey =>
       throw StateError('FIREBASE_PRIVATE_KEY has no default');
+  @override
+  String? get firebaseApiKey =>
+      throw StateError('FIREBASE_API_KEY has no default');
+  @override
+  String? get firebaseAuthDomain =>
+      throw StateError('FIREBASE_AUTH_DOMAIN has no default');
+  @override
+  String? get firebaseAppId =>
+      throw StateError('FIREBASE_APP_ID has no default');
 }

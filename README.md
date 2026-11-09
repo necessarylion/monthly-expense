@@ -42,7 +42,6 @@ dart run bin/server.dart   # http://localhost:3334 (runs migrations on start)
 
 # 2. Frontend (in a second terminal)
 cd apps/web
-cp .env.example .env       # fill in VITE_FIREBASE_*
 bun install
 bun pm trust --all
 bun run dev                # http://localhost:5173
@@ -57,15 +56,20 @@ Or run both at once from the repo root: `./dev.sh`.
 
 See `apps/api-dox/.env.example` and `apps/api-dox/README.md`.
 
-### Frontend env vars (`apps/web/.env`)
+### Firebase config
+
+The web app has no Firebase config of its own. It loads `/config.js`
+from the API, which makes it from these API env vars. So one image works
+with any Firebase project, and a self-hoster only sets env vars.
 
 | Variable | Purpose |
 |---|---|
-| `VITE_API_URL` | API base — `http://localhost:3333/api/v1` in dev, `/api/v1` in prod |
-| `VITE_FIREBASE_API_KEY` | Firebase Web SDK config |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Web SDK config |
-| `VITE_FIREBASE_PROJECT_ID` | Firebase Web SDK config |
-| `VITE_FIREBASE_APP_ID` | Firebase Web SDK config |
+| `FIREBASE_PROJECT_ID` | Firebase project (Admin and Web SDK) |
+| `FIREBASE_API_KEY` | Web SDK API key |
+| `FIREBASE_AUTH_DOMAIN` | Optional. Default: `<project id>.firebaseapp.com` |
+| `FIREBASE_APP_ID` | Web SDK app id |
+
+The web app needs no `.env`. `VITE_API_URL` is optional (default `/api/v1`).
 
 ## REST API
 
@@ -125,7 +129,7 @@ native libraries and the SPA. The API serves the SPA from `public/` and runs mig
 on start.
 
 ```bash
-cp .env.example .env       # fill in everything
+cp apps/api-dox/.env.example .env   # fill in APP_KEY, APP_URL, FIREBASE_*
 docker compose up -d --build
 # → http://localhost:3333
 ```
@@ -135,13 +139,8 @@ SQLite is persisted in the named volume `expense-data`.
 ## CI: publishing the image
 
 `.github/workflows/api-dox.yml` runs the tests, then builds and pushes
-`ghcr.io/<owner>/<repo>` on every push to `main`. Set these in the repo:
-
-- **Secrets**: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_APP_ID`
-- **Variables**: `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`,
-  `VITE_API_URL` (optional, defaults to `/api/v1`)
-
-Firebase **Admin** secrets stay out of the image — they're set at runtime
+`ghcr.io/<owner>/<repo>` on every push to `main`. The build needs no
+secrets. All Firebase settings (Admin and Web SDK) are set at run time
 via the compose env file.
 
 After the image is pushed on `main`, CI calls the Coolify deploy webhook

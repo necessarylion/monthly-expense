@@ -96,6 +96,7 @@ Read this before changing code. It captures the non-obvious bits.
   → small Debian runtime with the binary, its `lib/*.so` and `public/`.
 - The binary runs migrations on start. No separate migrate command in compose.
 - After the image is pushed on `main`, CI calls the Coolify deploy webhook.
-- SPA Firebase config is **baked into the bundle at build time** (Vite envs).
-  Set them as GH Actions secrets/vars. Backend Firebase Admin secrets are
-  injected at run time, never baked in.
+- Nothing Firebase is baked into the image. The SPA loads `/config.js`
+  (`ConfigController`) before it starts, which the API makes from
+  `FIREBASE_PROJECT_ID`, `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`,
+  `FIREBASE_APP_ID`. Admin secrets are also set at run time.
