@@ -1,10 +1,12 @@
 import {
   ArrowLeftRightIcon,
+  CalendarDaysIcon,
+  EllipsisIcon,
+  PlaneIcon,
   ChartColumnIcon,
   RepeatIcon,
   SearchIcon,
   CheckIcon,
-  ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
   KeyRoundIcon,
@@ -24,13 +26,13 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { ChoiceSheet } from '@/components/app/choice-sheet'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
 import { DateField } from '@/components/app/date-picker'
 import { ErrorText, Section } from '@/components/app/section'
+import { Sheet } from '@/components/app/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { DeleteButton } from '@/components/ui/delete-button'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
@@ -42,7 +44,7 @@ import { toast } from '@/components/ui/toast'
 import { errorMessage } from '@/lib/errors'
 import { addPasskey, passkeySupported } from '@/lib/passkey'
 import { api } from '@/lib/api'
-import type { Category, GroupKind, Passkey } from '@/lib/types'
+import type { Category, Group, GroupKind, Passkey } from '@/lib/types'
 import { CategoryIcon } from '@/components/app/category-icon'
 import { currencySymbol, formatMoneyFromCents, monthLabel, relativeTime, todayIso } from '@/lib/format'
 import { LOCALE_OPTIONS, setLocale, useLocale, useT } from '@/lib/i18n'
@@ -642,12 +644,50 @@ function GroupSettings() {
   )
 }
 
-function GroupsList() {
+/** Monthly or trip, as two big buttons (used when creating a group). */
+function GroupKindToggle({ value, onChange }: { value: GroupKind; onChange(kind: GroupKind): void }) {
   const t = useT()
-  const view = useUi((s) => s.groupsView)
-  const setView = useUi((s) => s.setGroupsView)
-  const groups = useGroups((s) => s.groups)
-  const activeId = useGroups((s) => s.activeId)
+  const options = [
+    { value: 'monthly' as const, label: t('reports.kindMonthly'), hint: t('reports.kindMonthlyHint'), Icon: CalendarDaysIcon },
+    { value: 'trip' as const, label: t('reports.kindTrip'), hint: t('reports.kindTripHint'), Icon: PlaneIcon },
+  ]
+  return (
+    <div role="radiogroup" aria-label={t('reports.groupKind')} className="grid grid-cols-2 gap-2">
+      {options.map(({ value: v, label, hint, Icon }) => {
+        const on = v === value
+        return (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            onClick={() => onChange(v)}
+            className={cn(
+              'flex flex-col items-start gap-2 rounded-2xl border p-3 text-left transition-colors',
+              on ? 'border-primary bg-primary/10' : 'bg-background active:bg-muted'
+            )}
+          >
+            <span
+              className={cn(
+                'flex size-8 items-center justify-center rounded-full [&_svg]:size-4',
+                on ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+              )}
+            >
+              <Icon />
+            </span>
+            <span className="flex flex-col">
+              <span className="text-[15px] font-semibold">{label}</span>
+              <span className="text-xs text-muted-foreground">{hint}</span>
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function NewGroupSheet({ open, onClose }: { open: boolean; onClose(): void }) {
+  const t = useT()
   const [name, setName] = useState('')
   const [currency, setCurrency] = useState('USD')
   const [kind, setKind] = useState<GroupKind>('monthly')
@@ -655,36 +695,32 @@ function GroupsList() {
   const [tripDays, setTripDays] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [renaming, setRenaming] = useState<{ id: number; value: string } | null>(null)
-  const [pendingLeave, setPendingLeave] = useState<number | null>(null)
-  const [leaving, setLeaving] = useState(false)
 
   useEffect(() => {
+    if (!open) return
     setError(null)
-    if (view === 'create') {
-      setName('')
-      setKind('monthly')
-      setTripStart(todayIso())
-      setTripDays('')
-      const s = useGroups.getState()
-      setCurrency(s.groups.find((g) => g.id === s.activeId)?.currency ?? 'USD')
-    } else {
-      setRenaming(null)
-    }
-  }, [view])
+    setName('')
+    setKind('monthly')
+    setTripStart(todayIso())
+    setTripDays('')
+    const s = useGroups.getState()
+    setCurrency(s.groups.find((g) => g.id === s.activeId)?.currency ?? 'USD')
+  }, [open])
+
+  const days = tripDaysValue(tripDays)
+  const valid = !!name.trim() && (kind !== 'trip' || days !== null)
 
   async function create() {
-    const value = name.trim()
-    const days = tripDaysValue(tripDays)
-    if (!value || busy || (kind === 'trip' && days === null)) return
+    if (!valid || busy) return
     setBusy(true)
     setError(null)
     try {
+      const value = name.trim()
       await useGroups
         .getState()
         .create(kind === 'trip' ? { name: value, currency, kind, tripStart, tripDays: days ?? undefined } : { name: value, currency, kind })
       toast.success(t('toast.groupCreated'))
-      setView('list')
+      onClose()
     } catch (e) {
       setError(errorMessage(e, t('groups.failedToCreate')))
     } finally {
@@ -692,19 +728,71 @@ function GroupsList() {
     }
   }
 
-  async function rename() {
-    if (!renaming) return
-    const g = groups.find((x) => x.id === renaming.id)
-    const value = renaming.value.trim()
-    if (!g || !value || value === g.name) {
-      setRenaming(null)
-      return
-    }
+  return (
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={t('groups.titleCreate')}
+      centerOnDesktop
+      footer={
+        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!valid || busy} onClick={() => void create()}>
+          {busy ? t('groups.creating') : t('groups.create')}
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="group-name" className="px-1 text-muted-foreground">
+            {t('groups.name')}
+          </Label>
+          <Input
+            id="group-name"
+            value={name}
+            maxLength={80}
+            autoComplete="off"
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && void create()}
+            placeholder={t('groups.namePlaceholder')}
+            className="h-12 rounded-2xl px-4 text-base"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label className="px-1 text-muted-foreground">{t('groups.currency')}</Label>
+          <CurrencySelect value={currency} onChange={setCurrency} label={t('groups.currency')} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label className="px-1 text-muted-foreground">{t('reports.groupKind')}</Label>
+          <GroupKindToggle value={kind} onChange={setKind} />
+        </div>
+        {kind === 'trip' && <TripDatesInputs start={tripStart} days={tripDays} onStart={setTripStart} onDays={setTripDays} />}
+        <ErrorText>{error}</ErrorText>
+      </div>
+    </Sheet>
+  )
+}
+
+function RenameGroupSheet({ group, onClose }: { group: Group | null; onClose(): void }) {
+  const t = useT()
+  const [value, setValue] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!group) return
+    setValue(group.name)
+    setError(null)
+  }, [group])
+
+  async function save() {
+    if (!group || busy) return
+    const name = value.trim()
+    if (!name || name === group.name) return onClose()
     setBusy(true)
     setError(null)
     try {
-      await useGroups.getState().update(g.id, { name: value })
-      setRenaming(null)
+      await useGroups.getState().update(group.id, { name })
+      toast.success(t('toast.saved'))
+      onClose()
     } catch (e) {
       setError(errorMessage(e, t('groups.failedToRename')))
     } finally {
@@ -712,128 +800,134 @@ function GroupsList() {
     }
   }
 
-  if (view === 'create') {
-    return (
-      <>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="-ml-2 rounded-full" aria-label={t('common.back')} onClick={() => setView('list')}>
-            <ChevronLeftIcon />
-          </Button>
-          <h2 className="text-lg font-semibold">{t('groups.titleCreate')}</h2>
-        </div>
-        <Card>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="group-name">{t('groups.name')}</Label>
-              <Input
-                id="group-name"
-                autoFocus
-                value={name}
-                maxLength={80}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && void create()}
-                placeholder={t('groups.namePlaceholder')}
-                className="h-11 rounded-xl text-base"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>{t('groups.currency')}</Label>
-              <CurrencySelect value={currency} onChange={setCurrency} label={t('groups.currency')} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>{t('reports.groupKind')}</Label>
-              <GroupKindSelect value={kind} onChange={setKind} />
-            </div>
-            {kind === 'trip' && <TripDatesInputs start={tripStart} days={tripDays} onStart={setTripStart} onDays={setTripDays} />}
-            <ErrorText>{error}</ErrorText>
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" className="rounded-xl" onClick={() => setView('list')}>
-                {t('common.cancel')}
-              </Button>
-              <Button className="rounded-xl" disabled={busy || !name.trim() || (kind === 'trip' && tripDaysValue(tripDays) === null)} onClick={() => void create()}>
-                {busy ? t('groups.creating') : t('groups.create')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </>
-    )
+  return (
+    <Sheet
+      open={!!group}
+      onClose={onClose}
+      title={t('groups.renameTitle')}
+      centerOnDesktop
+      footer={
+        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!value.trim() || busy} onClick={() => void save()}>
+          {busy ? t('common.saving') : t('common.save')}
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-2">
+        <Input
+          aria-label={t('groups.name')}
+          value={value}
+          maxLength={80}
+          autoComplete="off"
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && void save()}
+          className="h-12 rounded-2xl px-4 text-base"
+        />
+        <ErrorText>{error}</ErrorText>
+      </div>
+    </Sheet>
+  )
+}
+
+function GroupsList() {
+  const t = useT()
+  const view = useUi((s) => s.groupsView)
+  const setView = useUi((s) => s.setGroupsView)
+  const groups = useGroups((s) => s.groups)
+  const activeId = useGroups((s) => s.activeId)
+  const [menuFor, setMenuFor] = useState<Group | null>(null)
+  const [renaming, setRenaming] = useState<Group | null>(null)
+  const [pendingLeave, setPendingLeave] = useState<number | null>(null)
+  const [leaving, setLeaving] = useState(false)
+
+  function switchTo(g: Group) {
+    if (g.id === activeId) return
+    useGroups.getState().setActive(g.id)
+    void useGroups.getState().loadMembers(g.id).catch(() => {})
+    toast.success(t('groups.switchedTo', { name: g.name }))
   }
 
   return (
     <>
-      <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-semibold">{t('groups.titleManage')}</h2>
-        <Button size="sm" variant="outline" className="rounded-full" onClick={() => setView('create')}>
-          <PlusIcon />
-          {t('groups.newGroupShort')}
-        </Button>
-      </div>
-      <ErrorText>{error}</ErrorText>
-      <ul className="flex flex-col gap-2">
-        {groups.map((g) => {
-          const isActive = g.id === activeId
-          const isRenaming = renaming?.id === g.id
-          return (
-            <li key={g.id} className={cn('flex flex-col gap-3 rounded-2xl border bg-card p-4', isActive && 'ring-2 ring-primary')}>
-              {isRenaming ? (
-                <div className="flex gap-2">
-                  <Input
-                    autoFocus
-                    value={renaming.value}
-                    maxLength={80}
-                    onChange={(e) => setRenaming({ id: g.id, value: e.target.value })}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') void rename()
-                      if (e.key === 'Escape') setRenaming(null)
-                    }}
-                    className="h-10 rounded-xl text-base"
-                  />
-                  <Button variant="ghost" size="icon-lg" className="rounded-xl" aria-label={t('common.cancel')} onClick={() => setRenaming(null)}>
-                    <XIcon />
-                  </Button>
-                  <Button size="icon-lg" className="rounded-xl" aria-label={t('common.save')} disabled={busy} onClick={() => void rename()}>
-                    <CheckIcon />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="min-w-0 flex-1 truncate font-semibold">{g.name}</span>
-                  <Badge variant="secondary">{g.currency}</Badge>
-                  {isActive && <Badge>{t('groups.active')}</Badge>}
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="rounded-full text-muted-foreground"
-                    aria-label={t('common.rename')}
-                    onClick={() => setRenaming({ id: g.id, value: g.name })}
+      <section className="flex flex-col gap-1.5">
+        <h2 className="px-3 text-sm font-medium text-muted-foreground">{t('groups.yourGroups')}</h2>
+        <ul className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+          {groups.map((g) => {
+            const isActive = g.id === activeId
+            return (
+              <li key={g.id} className="flex items-center border-b border-border/70 last:border-b-0">
+                <button
+                  type="button"
+                  aria-current={isActive || undefined}
+                  onClick={() => switchTo(g)}
+                  className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-3 text-left transition-colors active:bg-muted"
+                >
+                  <span
+                    className={cn(
+                      'flex size-10 shrink-0 items-center justify-center rounded-full text-base font-semibold',
+                      isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    )}
                   >
-                    <PencilIcon />
-                  </Button>
-                </div>
-              )}
-              <div className="flex gap-2">
-                {!isActive && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="flex-1 rounded-lg"
-                    onClick={() => {
-                      useGroups.getState().setActive(g.id)
-                      void useGroups.getState().loadMembers(g.id).catch(() => {})
-                    }}
-                  >
-                    {t('groups.switch')}
-                  </Button>
-                )}
-                <Button size="sm" variant="ghost" className="flex-1 rounded-lg text-destructive hover:text-destructive" onClick={() => setPendingLeave(g.id)}>
-                  {t('groups.leaveGroup')}
-                </Button>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+                    {g.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-[15px] font-semibold">{g.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {g.currency} · {g.kind === 'trip' ? t('reports.kindTrip') : t('reports.kindMonthly')}
+                    </span>
+                  </span>
+                  {isActive && (
+                    <span className="flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+                      <CheckIcon className="size-3.5" />
+                      {t('groups.active')}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  aria-label={t('groups.optionsFor', { name: g.name })}
+                  onClick={() => setMenuFor(g)}
+                  className="flex size-12 shrink-0 items-center justify-center text-muted-foreground transition-colors active:bg-muted"
+                >
+                  <EllipsisIcon className="size-5" />
+                </button>
+              </li>
+            )
+          })}
+          <li>
+            <button
+              type="button"
+              onClick={() => setView('create')}
+              className="flex w-full items-center gap-3 px-3 py-3 text-left text-primary transition-colors active:bg-muted"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-primary/40">
+                <PlusIcon className="size-5" />
+              </span>
+              <span className="text-[15px] font-semibold">{t('groups.newGroupShort')}</span>
+            </button>
+          </li>
+        </ul>
+        <p className="px-3 text-xs text-muted-foreground">{t('groups.switchHint')}</p>
+      </section>
+
+      <NewGroupSheet open={view === 'create'} onClose={() => setView('list')} />
+      <RenameGroupSheet group={renaming} onClose={() => setRenaming(null)} />
+      <ChoiceSheet
+        open={menuFor !== null}
+        onClose={() => setMenuFor(null)}
+        title={menuFor?.name ?? ''}
+        items={[
+          ...(menuFor && menuFor.id !== activeId ? [{ value: 'switch', label: t('groups.switch'), icon: <ArrowLeftRightIcon /> }] : []),
+          { value: 'rename', label: t('common.rename'), icon: <PencilIcon /> },
+          { value: 'leave', label: t('groups.leaveGroup'), icon: <LogOutIcon />, destructive: true, divider: true },
+        ]}
+        onSelect={(v) => {
+          const g = menuFor
+          if (!g) return
+          if (v === 'switch') switchTo(g)
+          if (v === 'rename') setRenaming(g)
+          if (v === 'leave') setPendingLeave(g.id)
+        }}
+      />
       <ConfirmDialog
         open={pendingLeave !== null}
         danger

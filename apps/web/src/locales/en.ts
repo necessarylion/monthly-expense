@@ -164,6 +164,10 @@ export default {
     newGroupShort: 'New group',
     manageMembers: 'Manage members',
     noGroup: 'No group',
+    renameTitle: 'Rename group',
+    optionsFor: 'Options for {name}',
+    switchedTo: 'Switched to {name}',
+    switchHint: 'Tap a group to switch to it.',
   },
   categories: {
     title: 'Categories',

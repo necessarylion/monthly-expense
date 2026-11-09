@@ -165,6 +165,10 @@ export default {
     newGroupShort: 'Group အသစ်',
     manageMembers: 'အဖွဲ့ဝင်များကို စီမံရန်',
     noGroup: 'Group မရှိပါ',
+    renameTitle: 'အဖွဲ့အမည် ပြောင်းရန်',
+    optionsFor: '{name} အတွက် ရွေးချယ်စရာများ',
+    switchedTo: '{name} သို့ ပြောင်းပြီးပါပြီ',
+    switchHint: 'ပြောင်းလိုသော အဖွဲ့ကို နှိပ်ပါ။',
   },
   categories: {
     title: 'အမျိုးအစားများ',
