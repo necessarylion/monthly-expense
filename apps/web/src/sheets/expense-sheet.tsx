@@ -1,0 +1,241 @@
+import { WalletIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { CategoryIcon } from '@/components/app/category-icon'
+import { DatePicker } from '@/components/app/date-picker'
+import { NumberPad } from '@/components/app/number-pad'
+import { Sheet } from '@/components/app/sheet'
+import { Button } from '@/components/ui/button'
+import { DeleteButton } from '@/components/ui/delete-button'
+import { Input } from '@/components/ui/input'
+import { SelectField } from '@/components/app/select-field'
+import { toast } from '@/components/ui/toast'
+import { useAmountInput } from '@/hooks/use-amount-input'
+import { errorMessage } from '@/lib/errors'
+import { currencySymbol, todayIso } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import { tintBg } from '@/lib/overview'
+import { centerPressedChip } from '@/lib/scroll'
+import { cn } from '@/lib/utils'
+import { useAccounts } from '@/stores/accounts'
+import { useExpenses } from '@/stores/expenses'
+import { useActiveGroup } from '@/stores/groups'
+import { useUi } from '@/stores/ui'
+
+const NONE = 'none'
+
+export function AmountDisplay({
+  symbol,
+  display,
+  sizeClass,
+  dim,
+  sign,
+}: {
+  symbol: string
+  display: string
+  sizeClass: string
+  dim: boolean
+  sign?: { text: string; className: string }
+}) {
+  return (
+    <output aria-live="polite" className="flex h-20 items-center justify-center gap-1.5 overflow-hidden">
+      {sign && <span className={cn('text-4xl font-semibold', sign.className)}>{sign.text}</span>}
+      <span className="text-3xl font-medium text-muted-foreground">{symbol}</span>
+      <span
+        className={cn(
+          'truncate font-semibold tracking-tighter tabular-nums transition-colors',
+          sizeClass,
+          dim ? 'text-muted-foreground/60' : 'text-foreground'
+        )}
+      >
+        {display}
+      </span>
+    </output>
+  )
+}
+
+export function ExpenseSheet() {
+  const t = useT()
+  const expense = useUi((s) => s.expenseSheet)
+  const close = useUi((s) => s.closeExpense)
+  const categories = useExpenses((s) => s.categories)
+  const accounts = useAccounts((s) => s.accounts)
+  const defaultAccountId = useAccounts((s) => s.defaultAccountId)
+  const currency = useActiveGroup()?.currency ?? 'USD'
+  const input = useAmountInput()
+  const [categoryId, setCategoryId] = useState<number | null>(null)
+  const [date, setDate] = useState(todayIso())
+  const [note, setNote] = useState('')
+  /** Account the money-out entry books to; null = none. New expenses only. */
+  const [payFromId, setPayFromId] = useState<number | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const chips = useRef<HTMLDivElement>(null)
+
+  const open = expense !== undefined
+  const isEdit = !!expense
+
+  // Reset the form each time the sheet opens.
+  useEffect(() => {
+    if (expense === undefined) return
+    setError(null)
+    if (expense) {
+      setCategoryId(expense.categoryId)
+      input.set((expense.amountCents / 100).toString(), true) // the first key replaces it
+      setDate(expense.occurredOn)
+      setNote(expense.note ?? '')
+    } else {
+      const draft = useUi.getState().expenseDraft
+      setCategoryId(draft ? draft.categoryId : (useExpenses.getState().categories[0]?.id ?? null))
+      const amount = draft?.amount ?? null
+      input.set(amount === null ? '' : String(amount), amount !== null) // a draft amount is replaced by the first key
+      setDate(todayIso())
+      setNote(draft?.note ?? '')
+      const acc = useAccounts.getState()
+      if (!acc.loaded) acc.load().catch(() => {})
+      setPayFromId(acc.defaultAccountId)
+      acc
+        .loadDefaultAccount()
+        .then(() => setPayFromId(useAccounts.getState().defaultAccountId))
+        .catch(() => {})
+    }
+    requestAnimationFrame(() => centerPressedChip(chips.current))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open
+  }, [expense])
+
+  // Default account first, the rest keep their order.
+  const payFrom = [...accounts].sort(
+    (a, b) => Number(b.id === defaultAccountId) - Number(a.id === defaultAccountId)
+  )
+
+  const amount = Number(input.amount)
+  const valid = categoryId !== null && Number.isFinite(amount) && amount > 0 && !!date
+
+  async function submit() {
+    if (!valid || categoryId === null || submitting) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      const store = useExpenses.getState()
+      if (expense) {
+        await store.updateExpense(expense.id, { categoryId, amount, occurredOn: date, note: note || null })
+        toast.success(t('toast.expenseSaved'))
+      } else {
+        await store.addExpense({ categoryId, amount, occurredOn: date, note: note || undefined, accountId: payFromId })
+        toast.success(t('toast.expenseAdded'))
+      }
+      close()
+    } catch (e) {
+      setError(errorMessage(e, t('expenseModal.failedToSave')))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function remove() {
+    if (!expense) return
+    try {
+      await useExpenses.getState().deleteExpense(expense.id)
+      toast.success(t('toast.expenseDeleted'))
+      close()
+    } catch (e) {
+      setError(errorMessage(e, t('common.delete')))
+    }
+  }
+
+  return (
+    <Sheet
+      docked
+      open={open}
+      onClose={close}
+      title={isEdit ? t('expenseModal.titleEdit') : t('expenseModal.titleNew')}
+      hideTitle
+      footer={
+        <div className="flex items-center gap-2">
+          {isEdit && <DeleteButton onConfirm={() => void remove()} className="shrink-0" />}
+          <Button size="lg" className="h-12 flex-1 rounded-2xl text-base" disabled={!valid || submitting} onClick={() => void submit()}>
+            {submitting ? t('common.saving') : isEdit ? t('expenseModal.saveEdit') : t('expenseModal.saveNew')}
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <AmountDisplay
+          symbol={currencySymbol(currency)}
+          display={input.display}
+          sizeClass={input.sizeClass}
+          dim={!input.amount || input.replaceOnType}
+        />
+
+        <div
+          ref={chips}
+          role="group"
+          aria-label={t('expenseModal.category')}
+          className="no-scrollbar -mx-5 grid auto-cols-max grid-flow-col grid-rows-2 gap-2 overflow-x-auto px-5"
+          data-vaul-no-drag=""
+        >
+          {categories.map((c) => {
+            const active = categoryId === c.id
+            return (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setCategoryId(c.id)}
+                className={cn(
+                  'flex items-center gap-2 rounded-full border py-1 pr-3.5 pl-1 text-sm transition-colors',
+                  active ? 'font-semibold' : 'bg-background'
+                )}
+                style={active ? { background: tintBg(c.color, 14), borderColor: c.color } : undefined}
+              >
+                <CategoryIcon iconKey={c.iconKey} color={c.color} size={28} className="rounded-full" />
+                <span className="max-w-28 truncate">{c.name}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <DatePicker value={date} onChange={setDate} />
+
+        <div className="flex gap-2">
+          {!isEdit && accounts.length > 0 && (
+            <SelectField
+              size="lg"
+              aria-label={t('expenseModal.payFrom')}
+              className="max-w-[45%] rounded-full px-3.5"
+              icon={<WalletIcon className="text-muted-foreground" />}
+              value={payFromId === null ? NONE : String(payFromId)}
+              onChange={(v) => setPayFromId(v === NONE ? null : Number(v))}
+              options={[{ value: NONE, label: t('accounts.none') }, ...payFrom.map((a) => ({ value: String(a.id), label: a.name }))]}
+            />
+          )}
+          <Input
+            value={note}
+            maxLength={500}
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && void submit()}
+            aria-label={t('expenseModal.note')}
+            placeholder={t('expenseModal.notePlaceholder')}
+            className="h-11 flex-1 rounded-full px-4 text-base sm:text-sm"
+          />
+        </div>
+
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+
+        {open && (
+          <NumberPad
+            onKey={(k) => {
+              setError(null)
+              input.press(k)
+            }}
+            onEnter={() => void submit()}
+            onEscape={close}
+          />
+        )}
+      </div>
+    </Sheet>
+  )
+}

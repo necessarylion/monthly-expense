@@ -1,0 +1,247 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/onest";
+@import "@fontsource-variable/bricolage-grotesque/wdth.css";
+@import "@fontsource-variable/noto-sans-myanmar";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-display);
+    --font-sans: 'Onest Variable', 'Noto Sans Myanmar Variable', system-ui, sans-serif;
+    --font-display: 'Bricolage Grotesque Variable', 'Noto Sans Myanmar Variable', system-ui, sans-serif;
+    --color-ink: var(--ink);
+    --color-ink-foreground: var(--ink-foreground);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* Warm market: soft paper, saffron for actions, leaf for money in, brick when over. */
+    --background: #fcfbf8;
+    --foreground: #2b2118;
+    --card: #ffffff;
+    --card-foreground: #2b2118;
+    --popover: #ffffff;
+    --popover-foreground: #2b2118;
+    --primary: #f29f05;
+    --primary-foreground: #2b2118;
+    --secondary: #f4f1eb;
+    --secondary-foreground: #2b2118;
+    --muted: #f4f1eb;
+    --muted-foreground: #7a6e62;
+    --accent: #efe9df;
+    --accent-foreground: #2b2118;
+    --destructive: #c8442f;
+    --success: #3a9d5d;
+    --warning: #e08a00;
+    --ink: #2b2118;
+    --ink-foreground: #fcfbf8;
+    --border: #ebe5da;
+    --input: #e3dccf;
+    --ring: #f29f05;
+    --chart-1: #f29f05;
+    --chart-2: #3a9d5d;
+    --chart-3: #c8442f;
+    --chart-4: #7a6e62;
+    --chart-5: #2b2118;
+    --radius: 0.5rem;
+    --sidebar: #f4f1eb;
+    --sidebar-foreground: #2b2118;
+    --sidebar-primary: #f29f05;
+    --sidebar-primary-foreground: #2b2118;
+    --sidebar-accent: #efe9df;
+    --sidebar-accent-foreground: #2b2118;
+    --sidebar-border: #ebe5da;
+    --sidebar-ring: #f29f05;
+}
+
+.dark {
+    --background: #1a1714;
+    --foreground: #f3ede4;
+    --card: #24201c;
+    --card-foreground: #f3ede4;
+    --popover: #24201c;
+    --popover-foreground: #f3ede4;
+    --primary: #ffb627;
+    --primary-foreground: #1a1714;
+    --secondary: #2e2924;
+    --secondary-foreground: #f3ede4;
+    --muted: #2e2924;
+    --muted-foreground: #a89c8e;
+    --accent: #36302a;
+    --accent-foreground: #f3ede4;
+    --destructive: #f0654d;
+    --success: #5cc27f;
+    --warning: #ffb627;
+    --ink: #f3ede4;
+    --ink-foreground: #1a1714;
+    --border: #36302a;
+    --input: #443c34;
+    --ring: #ffb627;
+    --chart-1: #ffb627;
+    --chart-2: #5cc27f;
+    --chart-3: #f0654d;
+    --chart-4: #a89c8e;
+    --chart-5: #f3ede4;
+    --sidebar: #24201c;
+    --sidebar-foreground: #f3ede4;
+    --sidebar-primary: #ffb627;
+    --sidebar-primary-foreground: #1a1714;
+    --sidebar-accent: #36302a;
+    --sidebar-accent-foreground: #f3ede4;
+    --sidebar-border: #36302a;
+    --sidebar-ring: #ffb627;
+}
+
+/* Lady pink: blush paper, rose for actions. A light theme, so `dark:` styles never apply. */
+.pink {
+    --background: #fff5f8;
+    --foreground: #3d1f2c;
+    --card: #ffffff;
+    --card-foreground: #3d1f2c;
+    --popover: #ffffff;
+    --popover-foreground: #3d1f2c;
+    --primary: #ec6a9c;
+    --primary-foreground: #ffffff;
+    --secondary: #fde6ee;
+    --secondary-foreground: #3d1f2c;
+    --muted: #fde6ee;
+    --muted-foreground: #9b6a7e;
+    --accent: #fbd9e5;
+    --accent-foreground: #3d1f2c;
+    --destructive: #c73a3a;
+    --success: #3a9d5d;
+    --warning: #e08a00;
+    --ink: #3d1f2c;
+    --ink-foreground: #fff5f8;
+    --border: #f7d7e3;
+    --input: #f1c6d6;
+    --ring: #ec6a9c;
+    --chart-1: #ec6a9c;
+    --chart-2: #3a9d5d;
+    --chart-3: #c73a3a;
+    --chart-4: #9b6a7e;
+    --chart-5: #3d1f2c;
+    --sidebar: #fde6ee;
+    --sidebar-foreground: #3d1f2c;
+    --sidebar-primary: #ec6a9c;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #fbd9e5;
+    --sidebar-accent-foreground: #3d1f2c;
+    --sidebar-border: #f7d7e3;
+    --sidebar-ring: #ec6a9c;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+html {
+  color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
+}
+html.dark {
+  color-scheme: dark;
+}
+/* App feel: taps never select text or show the iOS callout; text fields still can. */
+button,
+[role='button'],
+nav,
+header {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+button {
+  touch-action: manipulation;
+}
+body {
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Money and headline numbers: the display face, a little narrow, digits that line up. */
+@utility num {
+  font-family: var(--font-display);
+  font-stretch: 85%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Splash loader: each dot swells and brightens in turn. */
+@keyframes splash-dot {
+  0%, 60%, 100% { opacity: 0.25; transform: scale(0.8); }
+  30% { opacity: 1; transform: scale(1.15); }
+}
+.splash-dot {
+  animation: splash-dot 1.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-dot { animation: none; opacity: 0.6; }
+}

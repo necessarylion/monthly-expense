@@ -1,0 +1,144 @@
+name: api-dox
+
+# Tests of the Dox API (apps/api-dox) on SQLite and Postgres, its AOT
+# build, and its Docker image (ghcr.io/<repo>).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api-dox/**'
+      - 'apps/web/**'
+      - 'Dockerfile'
+      - '.github/workflows/api-dox.yml'
+  pull_request:
+    paths:
+      - 'apps/api-dox/**'
+      - 'apps/web/**'
+      - 'Dockerfile'
+      - '.github/workflows/api-dox.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: expense_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    defaults:
+      run:
+        working-directory: apps/api-dox
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.13.7
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed lib test bin db
+      - run: dart analyze --fatal-infos
+      # one file at a time: the files share one test database
+      - name: dart test (${{ matrix.database }})
+        run: |
+          if [ "${{ matrix.database }}" = postgres ]; then
+            export DATABASE_URL=postgres://postgres:postgres@localhost:5432/expense_test
+          fi
+          dart test --concurrency=1
+
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api-dox
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.13.7
+      - run: dart pub get
+      - run: dart build cli --target bin/server.dart --output build
+      - name: The binary starts, migrates and answers
+        run: |
+          mkdir -p /tmp/run/storage /tmp/run/public
+          echo '<!doctype html>spa' > /tmp/run/public/index.html
+          cd /tmp/run
+          APP_ENV=production APP_KEY=ci-only-key-0123456789abcdef!!!! PORT=3399 \
+            DB_PATH=storage/db.sqlite3 APP_TOTAL_ISOLATE=2 \
+            "$GITHUB_WORKSPACE/apps/api-dox/build/bundle/bin/server" &
+          for i in $(seq 1 30); do
+            curl -fsS localhost:3399/healthz && exit 0
+            sleep 1
+          done
+          exit 1
+
+  # The Docker image.
+  # Pull requests only build it; main and manual runs push it.
+  docker:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+      PUSH: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - if: env.PUSH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=sha-,format=long
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: ${{ env.PUSH == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=dox
+          cache-to: type=gha,mode=max,scope=dox
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL || '/api/v1' }}
+            VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}
+            VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+            VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+            VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}
+
+      # Tell Coolify to pull the new :latest image and redeploy. main only.
+      # The Coolify app must use this image (env.IMAGE).
+      - name: Deploy on Coolify
+        if: github.ref == 'refs/heads/main' && vars.COOLIFY_DEPLOY_URL != ''
+        env:
+          DEPLOY_URL: ${{ vars.COOLIFY_DEPLOY_URL }}
+          DEPLOY_TOKEN: ${{ secrets.COOLIFY_DEPLOY_TOKEN }}
+        run: |
+          curl -fsS --max-time 60 -X POST "$DEPLOY_URL" -H "Authorization: Bearer $DEPLOY_TOKEN"

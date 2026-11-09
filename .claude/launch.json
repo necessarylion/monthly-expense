@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd apps/api-dox && dart run bin/server.dart"],
+      "port": 3334
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--cwd", "apps/web", "dev"],
+      "port": 5173
+    }
+  ]
+}

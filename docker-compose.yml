@@ -1,0 +1,28 @@
+services:
+  api:
+    image: ghcr.io/necessarylion/monthly-expense:latest
+    container_name: monthly-expense
+    # Coolify's deploy webhook only runs `compose up` for a Service. Without
+    # this, it keeps the old local :latest image and never deploys new code.
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - '3333'
+    environment:
+      APP_ENV: production
+      # exactly 32 characters. Signs MCP sessions; keep it the same across deploys.
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL:-http://localhost:3333}
+      DB_PATH: /app/storage/db.sqlite3
+      # Set to a postgres:// URL to use Postgres instead of SQLite.
+      DATABASE_URL: ${DATABASE_URL:-}
+      FRONTEND_URLS: ${FRONTEND_URLS:-http://localhost:3333}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY}
+    volumes:
+      - expense-data:/app/storage
+    # Migrations run inside the binary on start. The healthcheck is in the Dockerfile.
+
+volumes:
+  expense-data:

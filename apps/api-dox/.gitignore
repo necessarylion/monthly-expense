@@ -1,0 +1,17 @@
+.dart_tool/
+.DS_Store
+.env
+bin/server
+storage/cache
+build/
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite.lock
+pubspec_overrides.yaml
+# local data, logs, and the SPA copy for local runs
+storage/
+/public/
+*.sqlite3
+!test/fixtures/*.sqlite3

@@ -1,0 +1,17 @@
+**/node_modules
+**/build
+**/dist
+**/tmp
+**/.env
+**/.env.local
+**/.env.*.local
+**/storage/*.sqlite3
+**/storage/*.sqlite3-journal
+**/storage/*.sqlite3-wal
+**/storage/*.sqlite3-shm
+**/storage/*.backup-*
+.git
+.github
+*.log
+**/.dart_tool
+**/pubspec_overrides.yaml

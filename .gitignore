@@ -1,0 +1,22 @@
+# deps
+node_modules/
+
+# build outputs
+apps/web/dist/
+apps/web/dev-dist/
+
+# logs
+*.log
+
+# environment / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+.mcp.json
+
+# editor
+.DS_Store
+.vscode/
+.idea/
+
