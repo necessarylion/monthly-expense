@@ -14,7 +14,7 @@ const String balanceAdjustmentNote = 'Balance adjustment';
 
 /// Quick-add suggestions: look this many days back, need this many
 /// repeats, return at most this many.
-const int frequentExpenseDays = 90;
+const int frequentExpenseDays = 30;
 const int frequentExpenseMinUses = 2;
 const int frequentExpenseLimit = 8;
 
