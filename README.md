@@ -110,7 +110,20 @@ expenses, summary, shopping list) also need an `X-Group-Id` header.
 - Exchange rates (`/fx`) and the shopping list
 
 The full list is in [apps/api-dox/lib/routes/api.dart](apps/api-dox/lib/routes/api.dart).
-With `APP_ENV=development`, the API also serves OpenAPI docs at `/docs`.
+
+### OpenAPI docs
+
+The API serves OpenAPI docs when `APP_ENV=development`. They are off in
+production. With the local API on port 3334:
+
+| URL | What it is |
+|---|---|
+| <http://localhost:3334/docs> | Docs page (Scalar): every route, grouped by tag |
+| <http://localhost:3334/openapi.json> | OpenAPI spec as JSON |
+| <http://localhost:3334/openapi.yaml> | OpenAPI spec as YAML |
+
+The titles and texts come from `@Summary`, `@Description` and `@Tags` on
+the controller methods. Run `dart run build_runner build` after you change them.
 
 Money is sent as decimals (`12.50`) and stored as integer cents.
 

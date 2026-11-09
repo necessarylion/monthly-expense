@@ -11,17 +11,23 @@ import 'package:dox_core/dox_core.dart';
 
 /// Group routes take the group from the URL, not from X-Group-Id.
 @Inject()
+@Tags(<String>['Groups'])
 class GroupController {
   GroupController(this.groups, this.budgets);
 
   final GroupService groups;
   final BudgetService budgets;
 
+  @Summary('List groups')
+  @Description('The groups the user is a member of.')
   Future<Map<String, dynamic>> index(DoxRequest req) async {
     List<Group> list = await groups.listForUser(req.authUser);
     return JsonResponse.ok(GroupSerializer(list).toJson());
   }
 
+  @Summary('Create a group')
+  @Description('The user owns it. It starts with the default categories.')
+  @Response(201, null, description: 'Created')
   Future<DoxResponse> store(DoxRequest req, CreateGroup body) async {
     Group group = await groups.createForUser(
       req.authUser,
@@ -31,6 +37,8 @@ class GroupController {
     return JsonResponse.created(GroupSerializer(group).toJson());
   }
 
+  @Summary('Update a group')
+  @Description('Change the name or the currency.')
   Future<Map<String, dynamic>> update(
     DoxRequest req,
     int id,
@@ -45,6 +53,8 @@ class GroupController {
     return JsonResponse.ok(GroupSerializer(updated).toJson());
   }
 
+  @Summary('Set the monthly budget')
+  @Description('Set or clear the budget of one month.')
   Future<Map<String, dynamic>> setBudget(
     DoxRequest req,
     int id,
@@ -60,24 +70,32 @@ class GroupController {
     });
   }
 
+  @Summary('List group members')
   Future<Map<String, dynamic>> members(DoxRequest req, int id) async {
     Group group = await _group(req, id);
     List<GroupMember> list = await groups.listMembers(group);
     return JsonResponse.ok(GroupMemberSerializer(list).toJson());
   }
 
+  @Summary('Invite a group member')
+  @Description('Add someone to the group by email.')
+  @Response(201, null, description: 'Created')
   Future<DoxResponse> invite(DoxRequest req, int id, Invite body) async {
     Group group = await _group(req, id);
     GroupMember member = await groups.invite(group, req.authUser, body.email);
     return JsonResponse.created(GroupMemberSerializer(member).toJson());
   }
 
+  @Summary('Remove a group member')
+  @Response(204, null, description: 'Done, no body')
   Future<DoxResponse> removeMember(DoxRequest req, int id, int memberId) async {
     Group group = await _group(req, id);
     await groups.removeMember(group, memberId);
     return JsonResponse.noContent();
   }
 
+  @Summary('Leave a group')
+  @Response(204, null, description: 'Done, no body')
   Future<DoxResponse> leave(DoxRequest req, int id) async {
     Group group = await _group(req, id);
     await groups.leave(group, req.authUser);

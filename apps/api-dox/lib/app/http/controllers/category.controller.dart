@@ -7,21 +7,27 @@ import 'package:api_dox/http/request_context.dart';
 import 'package:dox_core/dox_core.dart';
 
 @Inject()
+@Tags(<String>['Categories'])
 class CategoryController {
   CategoryController(this.categories);
 
   final CategoryService categories;
 
+  @Summary('List categories')
+  @Description('The active group\'s categories.')
   Future<Map<String, dynamic>> index(DoxRequest req) async {
     List<Category> list = await categories.list(req.activeGroup);
     return JsonResponse.ok(CategorySerializer(list).toJson());
   }
 
+  @Summary('Create a category')
+  @Response(201, null, description: 'Created')
   Future<DoxResponse> store(DoxRequest req, CreateCategory body) async {
     Category category = await categories.create(req.activeGroup, body);
     return JsonResponse.created(CategorySerializer(category).toJson());
   }
 
+  @Summary('Update a category')
   Future<Map<String, dynamic>> update(
     DoxRequest req,
     int id,
@@ -33,6 +39,8 @@ class CategoryController {
     );
   }
 
+  @Summary('Delete a category')
+  @Response(204, null, description: 'Done, no body')
   Future<DoxResponse> destroy(DoxRequest req, int id) async {
     Category category = await categories.assertInGroup(req.activeGroup, id);
     await categories.delete(category);

@@ -7,11 +7,16 @@ import 'package:dox_core/dox_core.dart';
 /// `index.html` loads it before the app, so a self-hosted image uses its
 /// own Firebase project without a rebuild.
 @Inject()
+@Tags(<String>['System'])
 class ConfigController {
   ConfigController(this.settings);
 
   final AppSettings settings;
 
+  @Summary('Web app config')
+  @Description(
+    'A script that sets `window.__APP_CONFIG__` (the Firebase web config). No token needed.',
+  )
   DoxResponse script(DoxRequest req) {
     String config = jsonEncode(<String, String?>{
       'apiKey': settings.firebaseApiKey,

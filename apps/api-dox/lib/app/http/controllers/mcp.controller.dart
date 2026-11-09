@@ -10,6 +10,7 @@ import 'package:dox_mcp/dox_mcp.dart';
 /// Sessions are signed ids (`dox_mcp`), tied to the user. Every isolate
 /// can check them, and they survive a restart.
 @Inject()
+@Tags(<String>['MCP'])
 class McpController {
   McpController(this.auth, McpToolRegistry registry)
     : server = McpServer(
@@ -24,6 +25,8 @@ class McpController {
   final McpOAuthService auth;
   final McpServer server;
 
+  @Summary('MCP endpoint')
+  @Description('One MCP request. The client signs in with an OAuth token.')
   Future<DoxResponse> handle(DoxRequest req) async {
     Object? user = await auth.oauth.authenticate(req);
     if (user is! User) return auth.oauth.unauthorized();

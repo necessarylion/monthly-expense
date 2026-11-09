@@ -9,16 +9,17 @@ import 'package:dox_mcp/dox_mcp.dart';
 /// The API behind the web app's consent page (`/oauth/authorize`). The
 /// person is signed in (Firebase), so these routes know who says yes.
 @Inject()
+@Tags(<String>['OAuth'])
 class OauthController {
   OauthController(this.oauth, this.tokens);
 
   final McpOAuthService oauth;
   final McpTokenService tokens;
 
-  /// The client asking to connect
-  ///
-  /// Its name and the host the code goes to, for the consent page. 422 when
-  /// the client or the redirect address is wrong.
+  @Summary('Get the OAuth client')
+  @Description(
+    'Its name and the host the code goes to, for the consent page. 422 when the client or the redirect address is wrong.',
+  )
   Future<Map<String, dynamic>> client(
     DoxRequest req,
     OauthClientQuery query,
@@ -31,9 +32,10 @@ class OauthController {
     });
   }
 
-  /// Allow the client
-  ///
-  /// Gives the address to send the browser to, with a one-time code.
+  @Summary('Allow the OAuth client')
+  @Description(
+    'Gives the address to send the browser to, with a one-time code.',
+  )
   Future<Map<String, dynamic>> approve(
     DoxRequest req,
     ApproveOauth body,
@@ -50,9 +52,10 @@ class OauthController {
     return JsonResponse.ok(<String, String>{'url': url});
   }
 
-  /// Say no to the client
-  ///
-  /// Gives the address to send the browser back to, with `access_denied`.
+  @Summary('Deny the OAuth client')
+  @Description(
+    'Gives the address to send the browser back to, with `access_denied`.',
+  )
   Map<String, dynamic> deny(DenyOauth body) {
     String url = oauth.deny(
       clientId: body.clientId,

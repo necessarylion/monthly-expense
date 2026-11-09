@@ -12,7 +12,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'HealthController',
       method: 'show',
       argumentTypes: <String>['DoxRequest'],
-      tags: <String>['Health'],
+      summary: 'Health check',
+      description: 'For Docker and uptime monitors. No token needed.',
+      tags: <String>['System'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',
@@ -27,7 +29,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'ConfigController',
       method: 'script',
       argumentTypes: <String>['DoxRequest'],
-      tags: <String>['Config'],
+      summary: 'Web app config',
+      description: 'A script that sets `window.__APP_CONFIG__` (the Firebase web config). No token needed.',
+      tags: <String>['System'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(description: 'Successful response'),
       },
@@ -36,6 +40,7 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'MeController',
       method: 'show',
       argumentTypes: <String>['DoxRequest'],
+      summary: 'Get the signed-in user',
       tags: <String>['Me'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
@@ -48,8 +53,8 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'MeController',
       method: 'mcp',
       argumentTypes: <String>['DoxRequest'],
-      summary: 'The MCP address and the clients that signed in',
-      description: 'The address has no token: a client signs in with OAuth by itself.\n`url` keeps the shape older clients read.',
+      summary: 'MCP address and clients',
+      description: 'The address has no token: a client signs in with OAuth by itself. `url` keeps the shape older clients read.',
       tags: <String>['Me'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
@@ -83,16 +88,16 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'OauthController',
       method: 'client',
       argumentTypes: <String>['DoxRequest', 'OauthClientQuery'],
-      summary: 'The client asking to connect',
-      description: 'Its name and the host the code goes to, for the consent page. 422 when\nthe client or the redirect address is wrong.',
-      tags: <String>['Oauth'],
+      summary: 'Get the OAuth client',
+      description: 'Its name and the host the code goes to, for the consent page. 422 when the client or the redirect address is wrong.',
+      tags: <String>['OAuth'],
       schema: <String, dynamic>{
         '\$ref': '#/components/schemas/OauthClientQuery',
       },
@@ -108,10 +113,10 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'OauthController',
       method: 'approve',
       argumentTypes: <String>['DoxRequest', 'ApproveOauth'],
-      summary: 'Allow the client',
+      summary: 'Allow the OAuth client',
       description:
           'Gives the address to send the browser to, with a one-time code.',
-      tags: <String>['Oauth'],
+      tags: <String>['OAuth'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/ApproveOauth'},
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
@@ -124,9 +129,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'OauthController',
       method: 'deny',
       argumentTypes: <String>['DenyOauth'],
-      summary: 'Say no to the client',
+      summary: 'Deny the OAuth client',
       description: 'Gives the address to send the browser back to, with `access_denied`.',
-      tags: <String>['Oauth'],
+      tags: <String>['OAuth'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/DenyOauth'},
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
@@ -139,7 +144,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'GroupController',
       method: 'index',
       argumentTypes: <String>['DoxRequest'],
-      tags: <String>['Group'],
+      summary: 'List groups',
+      description: 'The groups the user is a member of.',
+      tags: <String>['Groups'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',
@@ -151,17 +158,19 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'GroupController',
       method: 'store',
       argumentTypes: <String>['DoxRequest', 'CreateGroup'],
-      tags: <String>['Group'],
+      summary: 'Create a group',
+      description: 'The user owns it. It starts with the default categories.',
+      tags: <String>['Groups'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/CreateGroup'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'GroupController',
       method: 'update',
       argumentTypes: <String>['DoxRequest', 'int', 'UpdateGroup'],
-      tags: <String>['Group'],
+      summary: 'Update a group',
+      description: 'Change the name or the currency.',
+      tags: <String>['Groups'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -177,7 +186,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'GroupController',
       method: 'setBudget',
       argumentTypes: <String>['DoxRequest', 'int', 'SetBudget'],
-      tags: <String>['Group'],
+      summary: 'Set the monthly budget',
+      description: 'Set or clear the budget of one month.',
+      tags: <String>['Groups'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -193,7 +204,8 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'GroupController',
       method: 'members',
       argumentTypes: <String>['DoxRequest', 'int'],
-      tags: <String>['Group'],
+      summary: 'List group members',
+      tags: <String>['Groups'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -208,45 +220,50 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'GroupController',
       method: 'invite',
       argumentTypes: <String>['DoxRequest', 'int', 'Invite'],
-      tags: <String>['Group'],
+      summary: 'Invite a group member',
+      description: 'Add someone to the group by email.',
+      tags: <String>['Groups'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/Invite'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'GroupController',
       method: 'removeMember',
       argumentTypes: <String>['DoxRequest', 'int', 'int'],
-      tags: <String>['Group'],
+      summary: 'Remove a group member',
+      tags: <String>['Groups'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'GroupController',
       method: 'leave',
       argumentTypes: <String>['DoxRequest', 'int'],
-      tags: <String>['Group'],
+      summary: 'Leave a group',
+      tags: <String>['Groups'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'index',
       argumentTypes: <String>['DoxRequest'],
-      tags: <String>['Account'],
+      summary: 'List wallets',
+      description:
+          'The user\'s wallets (own and shared), each with its balance.',
+      tags: <String>['Wallets'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',
@@ -258,17 +275,17 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'store',
       argumentTypes: <String>['DoxRequest', 'CreateAccount'],
-      tags: <String>['Account'],
+      summary: 'Create a wallet',
+      tags: <String>['Wallets'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/CreateAccount'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'update',
       argumentTypes: <String>['DoxRequest', 'int', 'UpdateAccount'],
-      tags: <String>['Account'],
+      summary: 'Update a wallet',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -284,19 +301,23 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'destroy',
       argumentTypes: <String>['DoxRequest', 'int'],
-      tags: <String>['Account'],
+      summary: 'Delete a wallet',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'defaultAccount',
       argumentTypes: <String>['DoxRequest'],
-      tags: <String>['Account'],
+      summary: 'Get the default wallet',
+      description:
+          'The wallet that expenses in this group pay from by default.',
+      tags: <String>['Wallets'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',
@@ -308,7 +329,10 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'setDefaultAccount',
       argumentTypes: <String>['DoxRequest', 'SetDefaultAccount'],
-      tags: <String>['Account'],
+      summary: 'Set the default wallet',
+      description:
+          'Set or clear the wallet that expenses in this group pay from.',
+      tags: <String>['Wallets'],
       schema: <String, dynamic>{
         '\$ref': '#/components/schemas/SetDefaultAccount',
       },
@@ -323,9 +347,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'fx',
       argumentTypes: <String>['FxQuery'],
-      summary: 'Rates table plus the gold ornament quote, for the rates page.',
-      description: '`?base=THB`',
-      tags: <String>['Account'],
+      summary: 'Exchange rates',
+      description: 'Rates table plus the gold ornament quote, for the rates page. `?base=THB`',
+      tags: <String>['Wallets'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/FxQuery'},
       requestIn: 'query',
       responses: <int, ResponseDoc>{
@@ -339,8 +363,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'history',
       argumentTypes: <String>['DoxRequest', 'HistoryQuery'],
-      summary: 'End-of-day balances per account. `?days=30` (1 to 365).',
-      tags: <String>['Account'],
+      summary: 'Balance history',
+      description: 'End-of-day balances per wallet. `?days=30` (1 to 365).',
+      tags: <String>['Wallets'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/HistoryQuery'},
       requestIn: 'query',
       responses: <int, ResponseDoc>{
@@ -354,8 +379,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'total',
       argumentTypes: <String>['DoxRequest', 'TotalQuery'],
-      summary: '`?currency=THB`',
-      tags: <String>['Account'],
+      summary: 'Total of all wallets',
+      description: 'The sum of the wallets marked "include in total", in one currency. `?currency=THB`',
+      tags: <String>['Wallets'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/TotalQuery'},
       requestIn: 'query',
       responses: <int, ResponseDoc>{
@@ -369,19 +395,19 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'transfer',
       argumentTypes: <String>['DoxRequest', 'Transfer'],
-      tags: <String>['Account'],
+      summary: 'Transfer between wallets',
+      description: 'Makes one entry out of the first wallet and one entry into the second.',
+      tags: <String>['Wallets'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/Transfer'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'recent',
       argumentTypes: <String>['DoxRequest', 'PageQuery'],
-      summary: 'Optional `?limit` and `?offset`. The defaults keep old callers',
-      description: 'working.',
-      tags: <String>['Account'],
+      summary: 'Recent entries',
+      description: 'The latest entries across all wallets. Optional `?limit` and `?offset`.',
+      tags: <String>['Wallets'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/PageQuery'},
       requestIn: 'query',
       responses: <int, ResponseDoc>{
@@ -395,7 +421,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'entries',
       argumentTypes: <String>['DoxRequest', 'int', 'PageQuery'],
-      tags: <String>['Account'],
+      summary: 'List wallet entries',
+      description: 'One wallet\'s entries, newest first. Optional `?limit` and `?offset`.',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -412,36 +440,34 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'storeEntry',
       argumentTypes: <String>['DoxRequest', 'int', 'CreateEntry'],
-      tags: <String>['Account'],
+      summary: 'Add a wallet entry',
+      description: 'Money in or out of one wallet.',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/CreateEntry'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'adjustBalance',
       argumentTypes: <String>['DoxRequest', 'int', 'AdjustBalance'],
-      summary:
-          'Set the balance to an exact value; returns the entry that makes up',
-      description: 'the difference.',
-      tags: <String>['Account'],
+      summary: 'Set the balance',
+      description: 'Set the balance to an exact value. Returns the entry that makes up the difference.',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/AdjustBalance'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'updateEntry',
       argumentTypes: <String>['DoxRequest', 'int', 'int', 'UpdateEntry'],
-      tags: <String>['Account'],
+      summary: 'Update a wallet entry',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
         <String, dynamic>{'type': 'integer'},
@@ -458,21 +484,23 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'destroyEntry',
       argumentTypes: <String>['DoxRequest', 'int', 'int'],
-      tags: <String>['Account'],
+      summary: 'Delete a wallet entry',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'members',
       argumentTypes: <String>['DoxRequest', 'int'],
-      summary: 'The owner and everyone the wallet is shared with.',
-      tags: <String>['Account'],
+      summary: 'List wallet members',
+      description: 'The owner and everyone the wallet is shared with.',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -487,33 +515,37 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'AccountController',
       method: 'invite',
       argumentTypes: <String>['DoxRequest', 'int', 'Invite'],
-      tags: <String>['Account'],
+      summary: 'Share a wallet',
+      description: 'Share the wallet with someone by email.',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/Invite'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'AccountController',
       method: 'removeMember',
       argumentTypes: <String>['DoxRequest', 'int', 'int'],
-      tags: <String>['Account'],
+      summary: 'Remove a wallet member',
+      description: 'Stop sharing the wallet with one member.',
+      tags: <String>['Wallets'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'CategoryController',
       method: 'index',
       argumentTypes: <String>['DoxRequest'],
-      tags: <String>['Category'],
+      summary: 'List categories',
+      description: 'The active group\'s categories.',
+      tags: <String>['Categories'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',
@@ -525,17 +557,17 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'CategoryController',
       method: 'store',
       argumentTypes: <String>['DoxRequest', 'CreateCategory'],
-      tags: <String>['Category'],
+      summary: 'Create a category',
+      tags: <String>['Categories'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/CreateCategory'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'CategoryController',
       method: 'update',
       argumentTypes: <String>['DoxRequest', 'int', 'UpdateCategory'],
-      tags: <String>['Category'],
+      summary: 'Update a category',
+      tags: <String>['Categories'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -551,19 +583,22 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'CategoryController',
       method: 'destroy',
       argumentTypes: <String>['DoxRequest', 'int'],
-      tags: <String>['Category'],
+      summary: 'Delete a category',
+      tags: <String>['Categories'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'ExpenseController',
       method: 'index',
       argumentTypes: <String>['DoxRequest', 'MonthQuery'],
-      tags: <String>['Expense'],
+      summary: 'List expenses',
+      description: 'The active group\'s expenses for `?month=YYYY-MM` (default: this month).',
+      tags: <String>['Expenses'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/MonthQuery'},
       requestIn: 'query',
       responses: <int, ResponseDoc>{
@@ -577,8 +612,10 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'ExpenseController',
       method: 'frequent',
       argumentTypes: <String>['DoxRequest'],
-      summary: 'Expenses this group logs again and again (for one-tap adds).',
-      tags: <String>['Expense'],
+      summary: 'Frequent expenses',
+      description:
+          'Expenses this group logs again and again, for one-tap adds.',
+      tags: <String>['Expenses'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',
@@ -590,7 +627,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'ExpenseController',
       method: 'summary',
       argumentTypes: <String>['DoxRequest', 'MonthQuery'],
-      tags: <String>['Expense'],
+      summary: 'Monthly summary',
+      description: 'Totals for a month, overall and per category.',
+      tags: <String>['Expenses'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/MonthQuery'},
       requestIn: 'query',
       responses: <int, ResponseDoc>{
@@ -604,17 +643,18 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'ExpenseController',
       method: 'store',
       argumentTypes: <String>['DoxRequest', 'CreateExpense'],
-      tags: <String>['Expense'],
+      summary: 'Create an expense',
+      description: 'The money also leaves a wallet: the default one, unless `accountId` is given.',
+      tags: <String>['Expenses'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/CreateExpense'},
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'ExpenseController',
       method: 'update',
       argumentTypes: <String>['DoxRequest', 'int', 'UpdateExpense'],
-      tags: <String>['Expense'],
+      summary: 'Update an expense',
+      tags: <String>['Expenses'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -630,22 +670,23 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'ExpenseController',
       method: 'destroy',
       argumentTypes: <String>['DoxRequest', 'int'],
-      tags: <String>['Expense'],
+      summary: 'Delete an expense',
+      tags: <String>['Expenses'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'ShoppingItemController',
       method: 'index',
       argumentTypes: <String>['DoxRequest'],
-      summary: 'The group\'s shopping list',
+      summary: 'List shopping items',
       description:
           'Still to buy first (oldest first), then bought (latest first).',
-      tags: <String>['ShoppingItem'],
+      tags: <String>['Shopping list'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',
@@ -657,21 +698,20 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'ShoppingItemController',
       method: 'store',
       argumentTypes: <String>['DoxRequest', 'CreateShoppingItem'],
-      summary: 'Add an item',
-      tags: <String>['ShoppingItem'],
+      summary: 'Add a shopping item',
+      tags: <String>['Shopping list'],
       schema: <String, dynamic>{
         '\$ref': '#/components/schemas/CreateShoppingItem',
       },
-      responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
-      },
+      responses: <int, ResponseDoc>{201: ResponseDoc(description: 'Created')},
     ),
     OpenApiOperation(
       controller: 'ShoppingItemController',
       method: 'update',
       argumentTypes: <String>['DoxRequest', 'int', 'UpdateShoppingItem'],
-      summary: 'Rename an item, or tick / untick it',
-      tags: <String>['ShoppingItem'],
+      summary: 'Update a shopping item',
+      description: 'Rename an item, or tick / untick it.',
+      tags: <String>['Shopping list'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
@@ -689,21 +729,21 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       controller: 'ShoppingItemController',
       method: 'destroy',
       argumentTypes: <String>['DoxRequest', 'int'],
-      summary: 'Delete an item',
-      tags: <String>['ShoppingItem'],
+      summary: 'Delete a shopping item',
+      tags: <String>['Shopping list'],
       params: <Map<String, dynamic>>[
         <String, dynamic>{'type': 'integer'},
       ],
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(description: 'Successful response'),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
       controller: 'ShoppingItemController',
       method: 'clearDone',
       argumentTypes: <String>['DoxRequest'],
-      summary: 'Clear the bought items',
-      tags: <String>['ShoppingItem'],
+      summary: 'Clear bought items',
+      tags: <String>['Shopping list'],
       responses: <int, ResponseDoc>{
         200: ResponseDoc(
           description: 'Successful response',

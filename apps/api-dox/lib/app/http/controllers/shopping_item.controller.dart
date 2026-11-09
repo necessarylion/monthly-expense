@@ -7,20 +7,21 @@ import 'package:api_dox/http/request_context.dart';
 import 'package:dox_core/dox_core.dart';
 
 @Inject()
+@Tags(<String>['Shopping list'])
 class ShoppingItemController {
   ShoppingItemController(this.list);
 
   final ShoppingListService list;
 
-  /// The group's shopping list
-  ///
-  /// Still to buy first (oldest first), then bought (latest first).
+  @Summary('List shopping items')
+  @Description('Still to buy first (oldest first), then bought (latest first).')
   Future<Map<String, dynamic>> index(DoxRequest req) async {
     List<ShoppingItem> items = await list.list(req.activeGroup);
     return JsonResponse.ok(ShoppingItemSerializer(items).toJson());
   }
 
-  /// Add an item
+  @Summary('Add a shopping item')
+  @Response(201, null, description: 'Created')
   Future<DoxResponse> store(DoxRequest req, CreateShoppingItem body) async {
     ShoppingItem item = await list.create(
       req.activeGroup,
@@ -30,7 +31,8 @@ class ShoppingItemController {
     return JsonResponse.created(ShoppingItemSerializer(item).toJson());
   }
 
-  /// Rename an item, or tick / untick it
+  @Summary('Update a shopping item')
+  @Description('Rename an item, or tick / untick it.')
   Future<Map<String, dynamic>> update(
     DoxRequest req,
     int id,
@@ -42,14 +44,15 @@ class ShoppingItemController {
     );
   }
 
-  /// Delete an item
+  @Summary('Delete a shopping item')
+  @Response(204, null, description: 'Done, no body')
   Future<DoxResponse> destroy(DoxRequest req, int id) async {
     ShoppingItem item = await list.assertInGroup(req.activeGroup, id);
     await list.delete(item);
     return JsonResponse.noContent();
   }
 
-  /// Clear the bought items
+  @Summary('Clear bought items')
   Future<Map<String, dynamic>> clearDone(DoxRequest req) async {
     int deleted = await list.clearDone(req.activeGroup);
     return JsonResponse.ok(<String, dynamic>{'deleted': deleted});
