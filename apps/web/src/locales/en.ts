@@ -121,6 +121,11 @@ export default {
     theme_dark: 'Dark',
     theme_system: 'System',
     theme_pink: 'Lady pink',
+    theme_mint: 'Mint',
+    theme_ocean: 'Ocean',
+    theme_lavender: 'Lavender',
+    theme_midnight: 'Midnight',
+    theme_forest: 'Forest',
   },
   groups: {
     titleManage: 'Groups',

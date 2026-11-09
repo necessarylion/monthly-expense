@@ -172,6 +172,201 @@
     --sidebar-ring: #ec6a9c;
 }
 
+/* Mint: fresh green paper. A light theme. */
+.mint {
+    --background: #f3fbf6;
+    --foreground: #16302a;
+    --card: #ffffff;
+    --card-foreground: #16302a;
+    --popover: #ffffff;
+    --popover-foreground: #16302a;
+    --primary: #2fa673;
+    --primary-foreground: #ffffff;
+    --secondary: #e2f4e9;
+    --secondary-foreground: #16302a;
+    --muted: #e2f4e9;
+    --muted-foreground: #5f7f72;
+    --accent: #d3eedd;
+    --accent-foreground: #16302a;
+    --destructive: #c8442f;
+    --success: #2fa673;
+    --warning: #e08a00;
+    --ink: #16302a;
+    --ink-foreground: #f3fbf6;
+    --border: #d6ece0;
+    --input: #c3e2d0;
+    --ring: #2fa673;
+    --chart-1: #2fa673;
+    --chart-2: #2fa673;
+    --chart-3: #c8442f;
+    --chart-4: #5f7f72;
+    --chart-5: #16302a;
+    --sidebar: #e2f4e9;
+    --sidebar-foreground: #16302a;
+    --sidebar-primary: #2fa673;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #d3eedd;
+    --sidebar-accent-foreground: #16302a;
+    --sidebar-border: #d6ece0;
+    --sidebar-ring: #2fa673;
+}
+
+/* Ocean: cool blue paper. A light theme. */
+.ocean {
+    --background: #f4f8fc;
+    --foreground: #14283d;
+    --card: #ffffff;
+    --card-foreground: #14283d;
+    --popover: #ffffff;
+    --popover-foreground: #14283d;
+    --primary: #2f7fd6;
+    --primary-foreground: #ffffff;
+    --secondary: #e3edf8;
+    --secondary-foreground: #14283d;
+    --muted: #e3edf8;
+    --muted-foreground: #5c7590;
+    --accent: #d4e4f5;
+    --accent-foreground: #14283d;
+    --destructive: #c8442f;
+    --success: #3a9d5d;
+    --warning: #e08a00;
+    --ink: #14283d;
+    --ink-foreground: #f4f8fc;
+    --border: #d9e5f2;
+    --input: #c5d7ec;
+    --ring: #2f7fd6;
+    --chart-1: #2f7fd6;
+    --chart-2: #3a9d5d;
+    --chart-3: #c8442f;
+    --chart-4: #5c7590;
+    --chart-5: #14283d;
+    --sidebar: #e3edf8;
+    --sidebar-foreground: #14283d;
+    --sidebar-primary: #2f7fd6;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #d4e4f5;
+    --sidebar-accent-foreground: #14283d;
+    --sidebar-border: #d9e5f2;
+    --sidebar-ring: #2f7fd6;
+}
+
+/* Lavender: soft purple paper. A light theme. */
+.lavender {
+    --background: #f8f5fd;
+    --foreground: #2a2140;
+    --card: #ffffff;
+    --card-foreground: #2a2140;
+    --popover: #ffffff;
+    --popover-foreground: #2a2140;
+    --primary: #8b6cf0;
+    --primary-foreground: #ffffff;
+    --secondary: #ece6fa;
+    --secondary-foreground: #2a2140;
+    --muted: #ece6fa;
+    --muted-foreground: #776a94;
+    --accent: #e1d8f8;
+    --accent-foreground: #2a2140;
+    --destructive: #c8442f;
+    --success: #3a9d5d;
+    --warning: #e08a00;
+    --ink: #2a2140;
+    --ink-foreground: #f8f5fd;
+    --border: #e3dcf5;
+    --input: #d3c8f0;
+    --ring: #8b6cf0;
+    --chart-1: #8b6cf0;
+    --chart-2: #3a9d5d;
+    --chart-3: #c8442f;
+    --chart-4: #776a94;
+    --chart-5: #2a2140;
+    --sidebar: #ece6fa;
+    --sidebar-foreground: #2a2140;
+    --sidebar-primary: #8b6cf0;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e1d8f8;
+    --sidebar-accent-foreground: #2a2140;
+    --sidebar-border: #e3dcf5;
+    --sidebar-ring: #8b6cf0;
+}
+
+/* Midnight: deep navy, blue for actions. A dark theme: it also gets `.dark`, and comes after it so these values win. */
+.midnight {
+    --background: #0f1420;
+    --foreground: #e6ebf5;
+    --card: #171e2d;
+    --card-foreground: #e6ebf5;
+    --popover: #171e2d;
+    --popover-foreground: #e6ebf5;
+    --primary: #6ea8ff;
+    --primary-foreground: #0f1420;
+    --secondary: #1f2738;
+    --secondary-foreground: #e6ebf5;
+    --muted: #1f2738;
+    --muted-foreground: #8d9ab3;
+    --accent: #273145;
+    --accent-foreground: #e6ebf5;
+    --destructive: #f0654d;
+    --success: #5cc27f;
+    --warning: #ffb627;
+    --ink: #e6ebf5;
+    --ink-foreground: #0f1420;
+    --border: #273145;
+    --input: #334058;
+    --ring: #6ea8ff;
+    --chart-1: #6ea8ff;
+    --chart-2: #5cc27f;
+    --chart-3: #f0654d;
+    --chart-4: #8d9ab3;
+    --chart-5: #e6ebf5;
+    --sidebar: #1f2738;
+    --sidebar-foreground: #e6ebf5;
+    --sidebar-primary: #6ea8ff;
+    --sidebar-primary-foreground: #0f1420;
+    --sidebar-accent: #273145;
+    --sidebar-accent-foreground: #e6ebf5;
+    --sidebar-border: #273145;
+    --sidebar-ring: #6ea8ff;
+}
+
+/* Forest: dark green, leaf green for actions. A dark theme: it also gets `.dark`. */
+.forest {
+    --background: #121a15;
+    --foreground: #e5efe8;
+    --card: #1a241e;
+    --card-foreground: #e5efe8;
+    --popover: #1a241e;
+    --popover-foreground: #e5efe8;
+    --primary: #5fcf8c;
+    --primary-foreground: #121a15;
+    --secondary: #223029;
+    --secondary-foreground: #e5efe8;
+    --muted: #223029;
+    --muted-foreground: #8fa598;
+    --accent: #2a3a31;
+    --accent-foreground: #e5efe8;
+    --destructive: #f0654d;
+    --success: #5fcf8c;
+    --warning: #ffb627;
+    --ink: #e5efe8;
+    --ink-foreground: #121a15;
+    --border: #2a3a31;
+    --input: #36483d;
+    --ring: #5fcf8c;
+    --chart-1: #5fcf8c;
+    --chart-2: #5fcf8c;
+    --chart-3: #f0654d;
+    --chart-4: #8fa598;
+    --chart-5: #e5efe8;
+    --sidebar: #223029;
+    --sidebar-foreground: #e5efe8;
+    --sidebar-primary: #5fcf8c;
+    --sidebar-primary-foreground: #121a15;
+    --sidebar-accent: #2a3a31;
+    --sidebar-accent-foreground: #e5efe8;
+    --sidebar-border: #2a3a31;
+    --sidebar-ring: #5fcf8c;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

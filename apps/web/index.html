@@ -18,9 +18,10 @@
       // Set the theme before the first paint, so dark mode never flashes white.
       try {
         var pref = localStorage.getItem('app:theme') || 'system'
-        var dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        // Keep these lists in sync with src/lib/theme.ts.
+        var dark = pref === 'dark' || pref === 'midnight' || pref === 'forest' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
         if (dark) document.documentElement.classList.add('dark')
-        if (pref === 'pink') document.documentElement.classList.add('pink')
+        if (['pink', 'mint', 'ocean', 'lavender', 'midnight', 'forest'].indexOf(pref) >= 0) document.documentElement.classList.add(pref)
       } catch (e) {}
     </script>
   </head>

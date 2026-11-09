@@ -122,6 +122,11 @@ export default {
     theme_dark: 'အမှောင်',
     theme_system: 'စနစ်အတိုင်း',
     theme_pink: 'ပန်းရောင်',
+    theme_mint: 'ပုစိမ်းရောင်',
+    theme_ocean: 'သမုဒ္ဒရာ',
+    theme_lavender: 'ခရမ်းနု',
+    theme_midnight: 'သန်းခေါင်',
+    theme_forest: 'တောအုပ်',
   },
   groups: {
     titleManage: 'Group များ',

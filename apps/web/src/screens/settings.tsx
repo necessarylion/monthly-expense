@@ -48,18 +48,43 @@ import { Page } from './page'
 import { RatesScreen } from './rates'
 
 const THEMES = [
-  { ...DEFAULT_THEMES[1], value: 'light' },
-  { ...DEFAULT_THEMES[0], value: 'dark' },
   {
     value: 'system',
     label: 'System',
     // Half light, half dark, so it reads as "follows the phone".
     colors: { ...DEFAULT_THEMES[1].colors, sidebar: DEFAULT_THEMES[0].colors.sidebar, tile: DEFAULT_THEMES[0].colors.tile },
   },
+  { ...DEFAULT_THEMES[1], value: 'light' },
+  { ...DEFAULT_THEMES[0], value: 'dark' },
   {
     value: 'pink',
     label: 'Lady pink',
     colors: { sidebar: '#FDE6EE', panel: '#FFF5F8', border: 'rgba(236, 106, 156, 0.15)', strong: '#EC6A9C', muted: '#F7C6D8', tile: '#FBD9E5' },
+  },
+  {
+    value: 'mint',
+    label: 'Mint',
+    colors: { sidebar: '#E2F4E9', panel: '#F3FBF6', border: 'rgba(47, 166, 115, 0.15)', strong: '#2FA673', muted: '#BFE5CF', tile: '#D3EEDD' },
+  },
+  {
+    value: 'ocean',
+    label: 'Ocean',
+    colors: { sidebar: '#E3EDF8', panel: '#F4F8FC', border: 'rgba(47, 127, 214, 0.15)', strong: '#2F7FD6', muted: '#C2D8F0', tile: '#D4E4F5' },
+  },
+  {
+    value: 'lavender',
+    label: 'Lavender',
+    colors: { sidebar: '#ECE6FA', panel: '#F8F5FD', border: 'rgba(139, 108, 240, 0.15)', strong: '#8B6CF0', muted: '#D3C8F0', tile: '#E1D8F8' },
+  },
+  {
+    value: 'midnight',
+    label: 'Midnight',
+    colors: { sidebar: '#171E2D', panel: '#0F1420', border: 'transparent', strong: '#6EA8FF', muted: '#273145', tile: '#1F2738' },
+  },
+  {
+    value: 'forest',
+    label: 'Forest',
+    colors: { sidebar: '#1A241E', panel: '#121A15', border: 'transparent', strong: '#5FCF8C', muted: '#2A3A31', tile: '#223029' },
   },
 ]
 
