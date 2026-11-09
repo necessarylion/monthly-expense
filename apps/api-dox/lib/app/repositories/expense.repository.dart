@@ -50,7 +50,9 @@ class ExpenseRepository {
   }
 
   /// Sets [Expense.walletOwnerId] on each expense that was paid from a
-  /// wallet: the wallet's owner paid it.
+  /// wallet: the wallet's owner paid it. An owner who is not a joined
+  /// member of the expense's group (a wallet shared from outside) is left
+  /// out, so the person who added it counts as the payer.
   Future<void> attachWalletOwners(List<Expense> rows) async {
     List<int> ids = <int>[for (Expense e in rows) e.id!];
     if (ids.isEmpty) return;
@@ -60,12 +62,26 @@ class ExpenseRepository {
             .join('accounts', 'accounts.id', 'account_entries.account_id')
             .whereIn('account_entries.expense_id', ids)
             .get();
+    Set<int> groupIds = <int>{for (Expense e in rows) e.groupId};
+    List<Map<String, dynamic>> joined =
+        await QueryBuilder.table('group_members')
+            .select('group_id, user_id')
+            .whereIn('group_id', groupIds.toList())
+            .whereNotNull('user_id')
+            .whereNotNull('joined_at')
+            .get();
+    Set<String> isMember = <String>{
+      for (Map<String, dynamic> row in joined)
+        '${DbRow.toInt(row['group_id'])}:${DbRow.toInt(row['user_id'])}',
+    };
     Map<int, int> byExpense = <int, int>{
       for (Map<String, dynamic> row in owners)
         DbRow.toInt(row['expense_id'])!: DbRow.toInt(row['user_id'])!,
     };
     for (Expense e in rows) {
-      e.walletOwnerId = byExpense[e.id];
+      int? owner = byExpense[e.id];
+      bool member = owner != null && isMember.contains('${e.groupId}:$owner');
+      e.walletOwnerId = member ? owner : null;
     }
   }
 
@@ -86,8 +102,17 @@ class ExpenseRepository {
     if (from != null) q = q.where('occurred_on', '>=', from);
     if (to != null) q = q.where('occurred_on', '<=', to);
     if (text != null) {
+      // `!` escapes `%` and `_`, so they match themselves. ESCAPE works the
+      // same on SQLite and Postgres.
+      String escaped = text
+          .toLowerCase()
+          .replaceAll('!', '!!')
+          .replaceAll('%', '!%')
+          .replaceAll('_', '!_');
       q = q.whereGroup((QueryBuilder<Expense> g) {
-        g.whereLike('note', '%$text%');
+        g.whereRaw("lower(note) LIKE @text ESCAPE '!'", <String, dynamic>{
+          'text': '%$escaped%',
+        });
         if (textCategoryIds.isNotEmpty) {
           g.orWhereIn('category_id', textCategoryIds);
         }

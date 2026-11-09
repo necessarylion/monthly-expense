@@ -2,6 +2,7 @@ import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/dtos/recurring/recurring.dto.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/group.repository.dart';
+import 'package:api_dox/app/repositories/group_member.repository.dart';
 import 'package:api_dox/app/repositories/recurring_expense.repository.dart';
 import 'package:api_dox/app/repositories/user.repository.dart';
 import 'package:api_dox/app/services/account.service.dart';
@@ -24,6 +25,7 @@ class RecurringService {
     this.accounts,
     this.users,
     this.groups,
+    this.members,
   );
 
   final RecurringExpenseRepository recurring;
@@ -32,6 +34,7 @@ class RecurringService {
   final AccountService accounts;
   final UserRepository users;
   final GroupRepository groups;
+  final GroupMemberRepository members;
 
   Future<List<RecurringExpense>> list(Group group) {
     return recurring.listByGroup(group.id!);
@@ -103,13 +106,16 @@ class RecurringService {
   }
 
   /// False when it could not add one (the category, the user or the
-  /// group is gone, or the wallet can not be used). The month is skipped.
+  /// group is gone, the user left the group, the group is a trip, or the
+  /// wallet can not be used). The month is skipped.
   Future<bool> _addExpense(RecurringExpense row, String on) async {
     if (row.categoryId == null || row.createdByUserId == null) return false;
     User? user = await users.findById(row.createdByUserId!);
     Group? group = await groups.findById(row.groupId);
     // A trip has no months, so nothing repeats in it.
     if (user == null || group == null || group.isTrip) return false;
+    // The creator left the group: stop adding in their name.
+    if (await members.findJoined(group.id!, user.id!) == null) return false;
     try {
       await expenses.create(
         user,

@@ -12,6 +12,10 @@ class BudgetService {
   /// The budget for a month. A month without its own row uses the latest
   /// row before it. Null when no budget was ever set.
   Future<int?> getForMonth(Group group, String monthKey) async {
+    // A trip has one budget of its own; monthly budgets do not carry in.
+    if (group.isTrip) {
+      return (await budgets.findByMonth(group.id!, tripBudgetKey))?.budgetCents;
+    }
     GroupMonthlyBudget? row = await budgets.latestAtOrBefore(
       group.id!,
       _key(group, monthKey),
@@ -43,9 +47,7 @@ class BudgetService {
     return budgetCents;
   }
 
-  /// A trip has one budget, stored under [tripBudgetKey]. Until it is set,
-  /// the group's last monthly budget carries over ('trip' sorts after any
-  /// `YYYY-MM`).
+  /// A trip has one budget, stored under [tripBudgetKey].
   static String _key(Group group, String monthKey) {
     return group.isTrip ? tripBudgetKey : monthKey;
   }

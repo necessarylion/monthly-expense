@@ -113,7 +113,7 @@ class MonthQuery {
   static const DtoSchema<MonthQuery> schema = $MonthQueryDto;
 }
 
-/// Query of GET /expenses/search, and the search_expenses tool. Every
+/// Query of GET /expenses/search. Every
 /// filter is optional; together they must all match.
 @Dto(source: Source.query, keyCase: KeyCase.field, emptyStringsToNull: true)
 class SearchQuery {
@@ -150,7 +150,7 @@ class SearchQuery {
   static const DtoSchema<SearchQuery> schema = $SearchQueryDto;
 }
 
-/// Query of GET /summary/year, and the yearly_summary tool. No year: this
+/// Query of GET /summary/year. No year: this
 /// year.
 @Dto(source: Source.query, keyCase: KeyCase.field)
 class YearQuery {

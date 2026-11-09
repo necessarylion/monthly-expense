@@ -1,3 +1,4 @@
+import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/services/recurring.service.dart';
 import 'package:api_dox/app/services/report.service.dart';
 import 'package:api_dox/utils/date_util.dart';
@@ -331,6 +332,102 @@ void main() {
         body: <String, dynamic>{'kind': 'monthly'},
       );
       expect(monthly.json['data']['kind'], 'monthly');
+    });
+  });
+
+  group('review fixes', () {
+    test('search treats % and _ as plain text', () async {
+      await addExpense(1, '2024-06-01', note: 'Sale 50% off');
+      await addExpense(1, '2024-06-02', note: 'Sale 500 off');
+      TestResponse res = await app.call(
+        '/api/v1/expenses/search?q=${Uri.encodeQueryComponent('50%')}&from=2024-06-01&to=2024-06-30',
+        group: groupId,
+      );
+      expect(res.json['data'], hasLength(1));
+      expect(res.json['data'][0]['note'], 'Sale 50% off');
+    });
+
+    test('a wallet owner outside the group is not the payer', () async {
+      // Carol shares her wallet with Alice, but Carol is not in the group.
+      await app.call('/api/v1/me', user: 'carol');
+      TestResponse wallet = await app.call(
+        '/api/v1/accounts',
+        method: 'POST',
+        user: 'carol',
+        body: <String, dynamic>{
+          'name': 'Carol card',
+          'currency': 'THB',
+          'color': '#445566',
+        },
+      );
+      int walletId = wallet.json['data']['id'] as int;
+      (await app.call(
+        '/api/v1/accounts/$walletId/members',
+        method: 'POST',
+        user: 'carol',
+        body: <String, dynamic>{'email': 'alice@gmail.com'},
+      )).expectStatus(201);
+      TestResponse created = await post('/api/v1/expenses', <String, dynamic>{
+        'categoryId': foodId,
+        'amount': 7,
+        'occurredOn': '2024-07-01',
+        'accountId': walletId,
+      });
+      expect(created.json['data']['paidByUserId'], aliceId);
+    });
+
+    test('a trip ignores old monthly budgets, so clearing works', () async {
+      TestResponse created = await app.call(
+        '/api/v1/groups',
+        method: 'POST',
+        body: <String, dynamic>{'name': 'Was monthly'},
+      );
+      int id = created.json['data']['id'] as int;
+      await app.call(
+        '/api/v1/groups/$id/budget',
+        method: 'PUT',
+        body: <String, dynamic>{'month': '2026-01', 'budget': 1000},
+      );
+      await app.call(
+        '/api/v1/groups/$id',
+        method: 'PATCH',
+        body: <String, dynamic>{'kind': 'trip'},
+      );
+      TestResponse summary = await app.call('/api/v1/summary', group: id);
+      expect(summary.json['data']['monthlyBudgetCents'], isNull);
+    });
+
+    test('recurring stops when its creator leaves the group', () async {
+      String today = DateUtil.today();
+      TestResponse created = await app.call(
+        '/api/v1/recurring',
+        method: 'POST',
+        group: groupId,
+        user: 'bob',
+        body: <String, dynamic>{
+          'categoryId': foodId,
+          'amount': 3,
+          'dayOfMonth': 28,
+          'note': 'Bob gym',
+        },
+      );
+      created.expectStatus(201);
+      int id = created.json['data']['id'] as int;
+      (await app.call(
+        '/api/v1/groups/$groupId/membership',
+        method: 'DELETE',
+        user: 'bob',
+      )).expectStatus(204);
+      // Make it due now.
+      await RecurringExpense().where('id', id).update(<String, dynamic>{
+        'next_on': today,
+      });
+      await Dox().ioc.get<RecurringService>().runDue();
+      TestResponse found = await app.call(
+        '/api/v1/expenses/search?q=${Uri.encodeQueryComponent('Bob gym')}',
+        group: groupId,
+      );
+      expect(found.json['data'], isEmpty);
     });
   });
 

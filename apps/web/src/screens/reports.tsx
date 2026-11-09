@@ -225,7 +225,10 @@ export function RecurringPage() {
 /* ---------- Search and CSV export ---------- */
 
 function csvCell(value: string): string {
-  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
+  // A cell starting with = + - @ (or a tab / CR) runs as a formula in Excel.
+  // A leading ' keeps it as text.
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
+  return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe
 }
 
 function downloadCsv(name: string, rows: string[][]) {

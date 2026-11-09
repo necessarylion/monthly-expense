@@ -572,6 +572,7 @@ void registerContainer(IocContainer c) {
       c.get<i34.AccountService>(),
       c.get<i33.UserRepository>(),
       c.get<i27.GroupRepository>(),
+      c.get<i28.GroupMemberRepository>(),
     ),
   );
   c.singleton<i51.ReportService>(

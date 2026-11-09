@@ -3,7 +3,7 @@ import 'package:dox_core/dox_core.dart';
 
 part 'recurring.dto.g.dart';
 
-/// Body of POST /recurring, and the add_recurring_expense tool.
+/// Body of POST /recurring.
 @Dto(keyCase: KeyCase.field, emptyStringsToNull: true)
 class CreateRecurring {
   /// MCP only.
