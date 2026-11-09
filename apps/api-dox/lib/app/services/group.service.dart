@@ -29,6 +29,24 @@ class GroupService {
 
   static String normalizeEmail(String email) => email.trim().toLowerCase();
 
+  /// Held while a first sign-in creates the user, claims invites and makes
+  /// the personal group.
+  // ponytail: file lock, one host only. Several hosts need a DB lock.
+  static CacheLock signInLock(String firebaseUid) {
+    return Cache().lock('first-sign-in:$firebaseUid', firstSignInLockTtl);
+  }
+
+  /// Wait for [lock]. False when the cache does not work (read-only disk):
+  /// then the caller goes on without it.
+  static Future<bool> takeLock(CacheLock lock) async {
+    try {
+      return await lock.block(firstSignInLockTtl);
+    } catch (error) {
+      Logger.warn('[auth] sign-in lock failed: $error');
+      return false;
+    }
+  }
+
   /// A new group with the creator as its first member and the default
   /// categories.
   Future<Group> createForUser(
@@ -96,12 +114,7 @@ class GroupService {
     return updated;
   }
 
-  /// True when the user has joined at least one group.
-  Future<bool> hasGroup(User user) async {
-    return await members.firstJoinedForUser(user.id!) != null;
-  }
-
-  /// Called on every sign-in, so a user is never without a group.
+  /// Called on first sign-in and by [listForUser].
   Future<Group> ensurePersonalGroup(User user) async {
     GroupMember? existing = await members.firstJoinedForUser(user.id!);
     if (existing != null) {
@@ -132,12 +145,20 @@ class GroupService {
     return pending.length;
   }
 
-  /// A user who left their last group gets a new personal group here.
-  /// Sign-in does the same, but its result is cached for a short time.
+  /// A user with no group (left the last one) gets a new personal group.
+  /// It waits for a first sign-in that is still running, so an invited
+  /// user does not get an extra group.
   Future<List<Group>> listForUser(User user) async {
     List<Group> list = await members.joinedGroupsForUser(user.id!);
-    if (list.isEmpty) return <Group>[await ensurePersonalGroup(user)];
-    return list;
+    if (list.isNotEmpty) return list;
+    CacheLock lock = signInLock(user.firebaseUid);
+    bool locked = await takeLock(lock);
+    try {
+      await ensurePersonalGroup(user);
+    } finally {
+      if (locked) await lock.release();
+    }
+    return members.joinedGroupsForUser(user.id!);
   }
 
   /// 404, not 403, so outsiders do not learn that the group exists.
