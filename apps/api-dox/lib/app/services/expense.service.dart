@@ -76,11 +76,13 @@ class ExpenseService {
     Group group,
     MonthRange month,
   ) async {
+    month = MonthUtil.forGroup(group.isTrip, month);
     List<Expense> rows = await expenses.listInRange(
       group.id!,
       month.start,
       month.end,
     );
+    await expenses.attachWalletOwners(rows);
     Map<int, Category> byId = await categories.mapForGroup(group);
     return <ExpenseWithCategory>[
       for (Expense expense in rows)
@@ -104,6 +106,7 @@ class ExpenseService {
   }
 
   Future<MonthlySummary> summary(Group group, MonthRange month) async {
+    month = MonthUtil.forGroup(group.isTrip, month);
     List<Expense> rows = await expenses.listInRange(
       group.id!,
       month.start,
@@ -122,7 +125,7 @@ class ExpenseService {
     }
     // A stable sort, like JavaScript's: equal totals keep their order.
     List<CategoryTotal> sorted = byCategory.values.toList();
-    _stableSortByTotalDesc(sorted);
+    stableSortByTotalDesc(sorted);
     return MonthlySummary(
       month: month.key,
       totalCents: totalCents,
@@ -171,6 +174,7 @@ class ExpenseService {
       hasAccountId: input.accountId.isPresent,
       accountId: accountId,
     );
+    await expenses.attachWalletOwners(<Expense>[expense]);
     return ExpenseWithCategory(expense, category);
   }
 
@@ -199,14 +203,51 @@ class ExpenseService {
         ? null
         : await categories.findInGroup(group, updated.categoryId);
     await accounts.syncExpenseOutflow(updated, category);
+    await expenses.attachWalletOwners(<Expense>[updated]);
     return ExpenseWithCategory(updated, category);
+  }
+
+  /// Expenses that match the query, newest first. The text matches the
+  /// note or the category name.
+  Future<List<ExpenseWithCategory>> search(
+    Group group,
+    SearchQuery query,
+  ) async {
+    Map<int, Category> byId = await categories.mapForGroup(group);
+    String? text = query.q;
+    List<int> textCategoryIds = <int>[];
+    if (text != null) {
+      String lower = text.toLowerCase();
+      for (Category category in byId.values) {
+        if (category.name.toLowerCase().contains(lower)) {
+          textCategoryIds.add(category.id!);
+        }
+      }
+    }
+    List<Expense> rows = await expenses.search(
+      groupId: group.id!,
+      text: text,
+      textCategoryIds: textCategoryIds,
+      categoryId: query.categoryId,
+      from: query.from,
+      to: query.to,
+      limit: searchResultLimit,
+    );
+    await expenses.attachWalletOwners(rows);
+    return <ExpenseWithCategory>[
+      for (Expense expense in rows)
+        ExpenseWithCategory(
+          expense,
+          expense.categoryId == null ? null : byId[expense.categoryId],
+        ),
+    ];
   }
 
   /// The booked account entry goes with it (the foreign key cascades).
   Future<void> delete(Expense expense) => expenses.delete(expense.id!);
 
   /// Insertion sort: stable, and the lists are short (one row per category).
-  static void _stableSortByTotalDesc(List<CategoryTotal> rows) {
+  static void stableSortByTotalDesc(List<CategoryTotal> rows) {
     for (int i = 1; i < rows.length; i++) {
       CategoryTotal current = rows[i];
       int j = i - 1;

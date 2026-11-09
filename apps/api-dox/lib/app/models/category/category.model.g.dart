@@ -38,6 +38,7 @@ class CategoryGenerator extends Model<Category> {
     'slug',
     'icon_key',
     'color',
+    'budget_cents',
     'created_at',
   ];
 
@@ -61,6 +62,7 @@ class CategoryGenerator extends Model<Category> {
     ..slug = m['slug'] as String
     ..iconKey = m['icon_key'] as String
     ..color = m['color'] as String
+    ..budgetCents = m['budget_cents'] as int?
     ..createdAtText = _createdAtTextCast.get(m['created_at']) as String;
   @override
   Map<String, dynamic> columnsToMap() {
@@ -72,6 +74,7 @@ class CategoryGenerator extends Model<Category> {
       'slug': instance.slug,
       'icon_key': instance.iconKey,
       'color': instance.color,
+      'budget_cents': instance.budgetCents,
       'created_at': _createdAtTextCast.set(instance.createdAtText),
     };
 
@@ -113,6 +116,10 @@ class CategoryGenerator extends Model<Category> {
       case 'color':
         if (value is! String) return false;
         instance.color = value;
+        return true;
+      case 'budget_cents':
+        if (value is! int?) return false;
+        instance.budgetCents = value;
         return true;
       case 'created_at':
         if (value is! String) return false;

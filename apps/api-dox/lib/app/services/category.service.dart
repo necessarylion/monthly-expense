@@ -3,6 +3,7 @@ import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/category.repository.dart';
 import 'package:api_dox/app/repositories/expense.repository.dart';
 import 'package:api_dox/http/http_error.dart';
+import 'package:api_dox/utils/money_util.dart';
 import 'package:api_dox/utils/slug_util.dart';
 import 'package:dox_core/dox_core.dart';
 
@@ -62,6 +63,12 @@ class CategoryService {
     }
     if (fields.iconKey != null) changes['icon_key'] = fields.iconKey;
     if (fields.color != null) changes['color'] = fields.color;
+    if (fields.budget.isPresent) {
+      num? budget = fields.budget.value;
+      changes['budget_cents'] = budget == null
+          ? null
+          : MoneyUtil.toCents(budget);
+    }
     return _save(category, changes);
   }
 
@@ -71,6 +78,10 @@ class CategoryService {
       if (fields.name != null) 'name': fields.name,
       if (fields.iconKey != null) 'icon_key': fields.iconKey,
       if (fields.color != null) 'color': fields.color,
+      if (fields.budget.isPresent)
+        'budget_cents': fields.budget.value == null
+            ? null
+            : MoneyUtil.toCents(fields.budget.value!),
     });
   }
 

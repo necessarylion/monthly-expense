@@ -30,6 +30,15 @@ class Expense extends ExpenseGenerator {
   @Column(name: 'updated_at', cast: TimestampText())
   String updatedAtText = '';
 
+  /// Owner of the wallet it was paid from. Not a column: the repository
+  /// fills it (`attachWalletOwners`). The `paid_by_user_id` column is
+  /// retired and stays unused.
+  int? walletOwnerId;
+
+  /// Who paid: the owner of the wallet it was paid from, else the person
+  /// who added it.
+  int? get payerId => walletOwnerId ?? createdByUserId;
+
   /// Columns that `create(map)` and `update(map)` may set.
   @override
   List<String> get fillable => <String>[

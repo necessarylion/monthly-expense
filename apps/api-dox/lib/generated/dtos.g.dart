@@ -9,6 +9,7 @@ import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/dtos/group/group.dto.dart';
 import 'package:api_dox/app/dtos/oauth/oauth.dto.dart';
 import 'package:api_dox/app/dtos/passkey/passkey.dto.dart';
+import 'package:api_dox/app/dtos/recurring/recurring.dto.dart';
 import 'package:api_dox/app/dtos/shopping_item/shopping_item.dto.dart';
 
 /// Every DTO of the app. Use it in `AppConfig(dtos: dtos)`.
@@ -23,6 +24,7 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $CreateEntryDto,
   $CreateExpenseDto,
   $CreateGroupDto,
+  $CreateRecurringDto,
   $CreateShoppingItemDto,
   $DenyOauthDto,
   $EntryRefDto,
@@ -37,6 +39,7 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $OauthClientQueryDto,
   $PageQueryDto,
   $PasskeyLoginDto,
+  $SearchQueryDto,
   $SetBudgetDto,
   $SetDefaultAccountDto,
   $TotalQueryDto,
@@ -47,4 +50,5 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $UpdateExpenseDto,
   $UpdateGroupDto,
   $UpdateShoppingItemDto,
+  $YearQueryDto,
 ];

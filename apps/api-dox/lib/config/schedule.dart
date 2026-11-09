@@ -1,4 +1,5 @@
 import 'package:api_dox/app/services/fx/fx.service.dart';
+import 'package:api_dox/app/services/recurring.service.dart';
 import 'package:dox_core/dox_core.dart';
 import 'package:dox_scheduler/dox_scheduler.dart';
 
@@ -18,6 +19,18 @@ void schedule(Schedule s) {
       .everyFifteenMinutes()
       .onEveryServer()
       .withoutOverlapping();
+
+  // Adds due recurring expenses. Each row is claimed with a conditional
+  // update first, so a second server can not add the same expense twice.
+  s
+      .call('recurring-expenses', runRecurringExpenses)
+      .hourly()
+      .onEveryServer()
+      .withoutOverlapping();
+}
+
+Future<void> runRecurringExpenses() async {
+  await Dox().ioc.get<RecurringService>().runDue();
 }
 
 Future<void> refreshFxRates() {

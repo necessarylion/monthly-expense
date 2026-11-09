@@ -1,5 +1,5 @@
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CategoryIcon } from '@/components/app/category-icon'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
 import { Money } from '@/components/app/money'
@@ -10,14 +10,16 @@ import { type MonthCompare, useMonthCompare } from '@/hooks/use-month-compare'
 import { type QuickAdd, useQuickAdds } from '@/hooks/use-quick-adds'
 import { errorMessage } from '@/lib/errors'
 import { currentMonthKey, formatMoneyCompactFromCents, formatMoneyFromCents, formatShortDate, todayIso } from '@/lib/format'
-import { tm, useLocale, useT } from '@/lib/i18n'
+import { useLocale, useT } from '@/lib/i18n'
 import { buildRows, monthDayCount, monthTodayIndex, NO_CATEGORY_ID, tintFg } from '@/lib/overview'
-import type { Category, Expense } from '@/lib/types'
+import type { Category, Expense, Group } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useCategoryById, useExpenses } from '@/stores/expenses'
-import { useActiveGroup } from '@/stores/groups'
+import { useAuth } from '@/stores/auth'
+import { useActiveGroup, useGroups } from '@/stores/groups'
 import { useUi } from '@/stores/ui'
 import { Page } from './page'
+import { SettleCard } from './reports'
 
 /** Bucket an expense's category: unknown or missing ids all go to "no category". */
 function bucketOf(e: Expense, known: Map<number, Category>): number {
@@ -26,27 +28,38 @@ function bucketOf(e: Expense, known: Map<number, Category>): number {
 
 /* ---------- 1. How much can I spend? ---------- */
 
-function Allowance({ currency }: { currency: string }) {
+/** Days from `from` to `to` (both `YYYY-MM-DD`); same day is 0. */
+function daysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000)
+}
+
+function Allowance({ currency, group }: { currency: string; group: Group | null }) {
   const t = useT()
   const month = useExpenses((s) => s.month)
   const summary = useExpenses((s) => s.summary)
   const expenses = useExpenses((s) => s.expenses)
   const goToBudget = useUi((s) => s.goToBudget)
+  const openGroups = useUi((s) => s.openGroups)
+  const trip = group?.kind === 'trip'
 
   const spent = summary?.totalCents ?? 0
   const budget = summary?.monthlyBudgetCents ?? 0
-  const days = monthDayCount(month)
-  const today = monthTodayIndex(month)
-  const isPast = month < currentMonthKey()
   const remaining = budget - spent
+  // The days the budget is spread over: the month, or the trip (when its days are set).
+  const first = trip ? group?.tripStart : `${month}-01`
+  const days = trip ? (group?.tripDays ?? 0) : monthDayCount(month)
+  const hasSpan = !!first && days > 0
+  /** 1 on the first day; below 1 before it starts, above `days` after it ends. */
+  const todayIndex = hasSpan ? daysBetween(first, todayIso()) + 1 : 0
+  const today = todayIndex >= 1 && todayIndex <= days ? todayIndex : null
+  const isPast = hasSpan && todayIndex > days
   const trend = useMemo(() => {
-    // Through today (current month) or the whole month (past); nothing for a future month.
+    // Through today, or every day once it is over; nothing before it starts.
     const last = isPast ? days : today
-    if (!last) return []
+    if (!last || !first) return []
     const daily = new Array<number>(last).fill(0)
     for (const e of expenses) {
-      if (!e.occurredOn.startsWith(month)) continue
-      const d = Number(e.occurredOn.slice(8, 10))
+      const d = daysBetween(first, e.occurredOn) + 1
       if (d >= 1 && d <= last) daily[d - 1] += e.amountCents
     }
     // With a budget: what is left after each day, starting from the full budget. Without: spent so far.
@@ -57,8 +70,9 @@ function Allowance({ currency }: { currency: string }) {
       out.push(running)
     }
     return out
-  }, [expenses, month, budget, days, today, isPast])
+  }, [expenses, first, budget, days, today, isPast])
   const ratio = budget > 0 ? Math.min(1, spent / budget) : 0
+  const spentOf = t('home.spentOf', { spent: formatMoneyFromCents(spent, currency), budget: formatMoneyFromCents(budget, currency) })
 
   let label: string
   let cents: number
@@ -66,22 +80,26 @@ function Allowance({ currency }: { currency: string }) {
   let detail: string
 
   if (budget <= 0) {
-    label = t('home.spentThisMonth')
+    label = trip ? t('reports.tripSpent') : t('home.spentThisMonth')
     cents = spent
     detail = ''
   } else if (remaining < 0) {
     label = t('home.overBudget')
     cents = -remaining
     tone = 'text-destructive'
-    detail = t('home.spentOf', { spent: formatMoneyFromCents(spent, currency), budget: formatMoneyFromCents(budget, currency) })
+    detail = spentOf
+  } else if (!hasSpan) {
+    // A trip without its days: no daily budget yet.
+    label = t('reports.tripLeft')
+    cents = remaining
+    detail = spentOf
   } else if (isPast) {
     label = t('home.leftOver')
     cents = remaining
-    detail = t('home.spentOf', { spent: formatMoneyFromCents(spent, currency), budget: formatMoneyFromCents(budget, currency) })
+    detail = spentOf
   } else {
     // Spread what is left (before today's spending) over the days still to come, today included.
-    const todayIso = today ? `${month}-${String(today).padStart(2, '0')}` : null
-    const spentToday = todayIso ? expenses.filter((e) => e.occurredOn === todayIso).reduce((n, e) => n + e.amountCents, 0) : 0
+    const spentToday = today ? expenses.filter((e) => e.occurredOn === todayIso()).reduce((n, e) => n + e.amountCents, 0) : 0
     const daysLeft = today ? days - today + 1 : days
     const share = Math.floor((remaining + spentToday) / daysLeft)
     const leftToday = share - spentToday
@@ -115,10 +133,15 @@ function Allowance({ currency }: { currency: string }) {
             />
           </div>
           <p className="text-sm text-muted-foreground tabular-nums">{detail}</p>
+          {trip && !hasSpan && (
+            <button type="button" onClick={() => openGroups('manage')} className="self-start text-sm font-medium text-foreground underline decoration-primary decoration-2 underline-offset-4">
+              {t('reports.tripDaysHint')}
+            </button>
+          )}
         </>
       ) : (
         <button type="button" onClick={goToBudget} className="self-start text-sm font-medium text-foreground underline decoration-primary decoration-2 underline-offset-4">
-          {t('home.setBudgetHint')}
+          {trip ? t('reports.tripBudgetHint') : t('home.setBudgetHint')}
         </button>
       )}
     </section>
@@ -214,57 +237,68 @@ function CompareLine({ compare, currency }: { compare: MonthCompare | null; curr
   )
 }
 
-/** Monday of the week that holds `day` of `month`. */
-function mondayOf(month: string, day: number): Date {
-  const [y, m] = month.split('-').map(Number)
-  const date = new Date(y, m - 1, day)
+/** Local date -> `YYYY-MM-DD`. */
+function isoOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** Monday of the week that holds `iso`. */
+function mondayOf(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
   date.setDate(date.getDate() - ((date.getDay() + 6) % 7))
   return date
 }
 
-/** One week at a time; tap "Month" for the whole calendar. */
+/**
+ * One week at a time over the days `from`..`to` (a month, or a whole trip).
+ * A monthly group can open the month calendar.
+ */
 function WeekStrip({
+  from,
+  to,
   totals,
-  selectedDay,
+  selected,
   onSelect,
   currency,
+  calendarMonth,
 }: {
-  totals: number[]
-  selectedDay: number | null
-  onSelect(day: number | null): void
+  from: string
+  to: string
+  /** Spent per `YYYY-MM-DD`. */
+  totals: Map<string, number>
+  selected: string | null
+  onSelect(iso: string | null): void
   currency: string
+  /** `YYYY-MM` when the full month calendar is available. */
+  calendarMonth?: string
 }) {
   const t = useT()
-  const month = useExpenses((s) => s.month)
   const locale = useLocale((s) => s.locale)
-  const today = monthTodayIndex(month)
-  const isFuture = month > currentMonthKey()
-  const days = totals.length
-  // Start on the week with the picked day, else today, else the month's last (past) or first (future) week.
-  const anchor = selectedDay ?? today ?? (isFuture ? 1 : days)
-  const [week, setWeek] = useState(() => ({ month, start: mondayOf(month, anchor) }))
+  const today = todayIso()
+  // Start on the picked day, else today, else the nearest end of the range.
+  const anchor = selected ?? (today < from ? from : today > to ? to : today)
+  const range = `${from}|${to}`
+  const [week, setWeek] = useState(() => ({ range, start: mondayOf(anchor) }))
   const [expanded, setExpanded] = useState(false)
-  if (week.month !== month) setWeek({ month, start: mondayOf(month, anchor) })
+  if (week.range !== range) setWeek({ range, start: mondayOf(anchor) })
 
-  const [y, m] = month.split('-').map(Number)
-  const first = new Date(y, m - 1, 1)
-  const last = new Date(y, m - 1, days)
   const cells = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(week.start)
     d.setDate(d.getDate() + i)
     return d
   })
-  const peak = Math.max(0, ...totals)
+  const peak = Math.max(0, ...totals.values())
   const weekday = new Intl.DateTimeFormat(locale, { weekday: 'narrow' })
 
-  const canPrev = cells[0] > first
-  const canNext = cells[6] < last
+  const canPrev = isoOf(cells[0]) > from
+  const canNext = isoOf(cells[6]) < to
   const touch = useRef<{ x: number; y: number } | null>(null)
 
   function move(by: number) {
     const start = new Date(week.start)
     start.setDate(start.getDate() + by * 7)
-    setWeek({ month, start })
+    setWeek({ range, start })
   }
 
   function onTouchStart(e: React.TouchEvent) {
@@ -282,10 +316,18 @@ function WeekStrip({
     if (dx > 0 && canPrev) move(-1)
   }
 
-  if (expanded) {
+  if (expanded && calendarMonth) {
+    const days = monthDayCount(calendarMonth)
+    const monthTotals = Array.from({ length: days }, (_, i) => totals.get(`${calendarMonth}-${String(i + 1).padStart(2, '0')}`) ?? 0)
+    const selectedDay = selected?.startsWith(calendarMonth) ? Number(selected.slice(8, 10)) : null
     return (
       <div className="flex flex-col gap-2">
-        <MonthCalendar totals={totals} selectedDay={selectedDay} onSelect={onSelect} currency={currency} />
+        <MonthCalendar
+          totals={monthTotals}
+          selectedDay={selectedDay}
+          onSelect={(day) => onSelect(day === null ? null : `${calendarMonth}-${String(day).padStart(2, '0')}`)}
+          currency={currency}
+        />
         <Button variant="ghost" size="sm" className="self-center rounded-full" onClick={() => setExpanded(false)}>
           {t('home.showWeek')}
         </Button>
@@ -301,30 +343,32 @@ function WeekStrip({
       {/* touch-pan-y: the page still scrolls up and down; sideways is our swipe. */}
       <div className="grid flex-1 touch-pan-y grid-cols-7 gap-1" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {cells.map((date) => {
-          const inMonth = date.getMonth() === m - 1
+          const iso = isoOf(date)
+          const inRange = iso >= from && iso <= to
+          const value = inRange ? (totals.get(iso) ?? 0) : 0
+          // A future day is only worth a tap when something is booked on it.
+          const future = iso > today && value === 0
+          const isSelected = selected === iso
           const day = date.getDate()
-          const value = inMonth ? (totals[day - 1] ?? 0) : 0
-          const future = isFuture || (today !== null && inMonth && day > today)
-          const selected = inMonth && selectedDay === day
           return (
             <button
-              key={date.toISOString()}
+              key={iso}
               type="button"
-              disabled={!inMonth || future}
-              aria-pressed={selected}
-              aria-label={`${day}: ${formatMoneyFromCents(value, currency)}`}
-              onClick={() => onSelect(selected ? null : day)}
+              disabled={!inRange || future}
+              aria-pressed={isSelected}
+              aria-label={`${formatShortDate(iso)}: ${formatMoneyFromCents(value, currency)}`}
+              onClick={() => onSelect(isSelected ? null : iso)}
               className={cn(
                 'flex h-16 flex-col items-center justify-between rounded-2xl py-1.5 transition-colors disabled:opacity-30',
-                selected ? 'bg-ink text-ink-foreground' : 'active:bg-muted'
+                isSelected ? 'bg-ink text-ink-foreground' : 'active:bg-muted'
               )}
             >
-              <span className={cn('text-[11px]', selected ? 'opacity-70' : 'text-muted-foreground')}>{weekday.format(date)}</span>
-              <span className={cn('text-sm tabular-nums', today === day && inMonth && 'font-bold')}>{day}</span>
+              <span className={cn('text-[11px]', isSelected ? 'opacity-70' : 'text-muted-foreground')}>{weekday.format(date)}</span>
+              <span className={cn('text-sm tabular-nums', iso === today && 'font-bold')}>{day}</span>
               {/* Amount spent; stronger on bigger days. */}
               <span
-                className={cn('max-w-full truncate text-[10px] leading-none tabular-nums', selected ? 'text-ink-foreground' : 'text-primary')}
-                style={{ opacity: selected ? 0.85 : value > 0 && peak > 0 ? 0.6 + (value / peak) * 0.4 : 0 }}
+                className={cn('max-w-full truncate text-[10px] leading-none tabular-nums', isSelected ? 'text-ink-foreground' : 'text-primary')}
+                style={{ opacity: isSelected ? 0.85 : value > 0 && peak > 0 ? 0.6 + (value / peak) * 0.4 : 0 }}
               >
                 {value > 0 ? formatMoneyCompactFromCents(value) : ' '}
               </span>
@@ -336,9 +380,11 @@ function WeekStrip({
         <button type="button" aria-label={t('home.nextWeek')} disabled={!canNext} onClick={() => move(1)} className="flex h-8 w-6 items-center justify-center text-muted-foreground disabled:opacity-25">
           <ChevronRightIcon className="size-4" />
         </button>
-        <button type="button" aria-label={t('home.showMonth')} onClick={() => setExpanded(true)} className="flex h-8 w-6 items-center justify-center text-muted-foreground">
-          <CalendarDaysIcon className="size-4" />
-        </button>
+        {calendarMonth && (
+          <button type="button" aria-label={t('home.showMonth')} onClick={() => setExpanded(true)} className="flex h-8 w-6 items-center justify-center text-muted-foreground">
+            <CalendarDaysIcon className="size-4" />
+          </button>
+        )}
       </div>
     </section>
   )
@@ -502,6 +548,8 @@ function CategoryBar({
       <ul className="flex flex-col">
         {shown.map((r) => {
           const active = selected === r.id
+          const budget = categories.find((c) => c.id === r.id)?.budgetCents ?? null
+          const used = budget ? r.totalCents / budget : 0
           return (
             <li key={r.id}>
               <button
@@ -516,6 +564,11 @@ function CategoryBar({
                   <span className="flex items-center gap-2 text-xs text-muted-foreground tabular-nums">
                     {r.percent}%
                     <ChangeBadge change={compare?.byCategory.get(r.id)} />
+                    {budget !== null && budget > 0 && (
+                      <span className={cn('font-medium', used > 1 ? 'text-destructive' : used >= 0.8 ? 'text-amber-600 dark:text-amber-400' : '')}>
+                        {t('reports.ofBudget', { spent: formatMoneyFromCents(r.totalCents, currency), budget: formatMoneyFromCents(budget, currency) })}
+                      </span>
+                    )}
                   </span>
                 </span>
                 <span className="num w-24 text-right text-base font-semibold">{formatMoneyFromCents(r.totalCents, currency)}</span>
@@ -535,7 +588,18 @@ function CategoryBar({
 
 /* ---------- 5. Every expense, by day ---------- */
 
-function ExpenseList({ list, currency, filters }: { list: Expense[]; currency: string; filters: React.ReactNode }) {
+function ExpenseList({
+  list,
+  currency,
+  filters,
+  payerName,
+}: {
+  list: Expense[]
+  currency: string
+  filters: React.ReactNode
+  /** Set when the group splits costs: who paid each expense. */
+  payerName?: (e: Expense) => string | null
+}) {
   const t = useT()
   const categoryById = useCategoryById()
   const openExpense = useUi((s) => s.openExpense)
@@ -574,7 +638,11 @@ function ExpenseList({ list, currency, filters }: { list: Expense[]; currency: s
                     <CategoryIcon iconKey={category?.iconKey ?? null} color={category?.color ?? null} size={38} />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate text-[15px] font-medium">{e.note || category?.name || t('overview.noCategory')}</span>
-                      {e.note && <span className="truncate text-xs text-muted-foreground">{category?.name ?? t('overview.noCategory')}</span>}
+                      {(e.note || payerName) && (
+                        <span className="truncate text-xs text-muted-foreground">
+                          {[e.note ? (category?.name ?? t('overview.noCategory')) : null, payerName?.(e)].filter(Boolean).join(' · ')}
+                        </span>
+                      )}
                     </span>
                     <span className="num text-base font-semibold">{formatMoneyFromCents(e.amountCents, currency)}</span>
                   </button>
@@ -603,9 +671,15 @@ export function HomeScreen() {
   const expenses = useExpenses((s) => s.expenses)
   const lastError = useExpenses((s) => s.lastError)
   const categoryById = useCategoryById()
-  const currency = useActiveGroup()?.currency ?? 'USD'
+  const group = useActiveGroup()
+  const currency = group?.currency ?? 'USD'
+  const trip = group?.kind === 'trip'
+  const split = group?.splitEnabled ?? false
+  const members = useGroups((s) => s.members)
+  const me = useAuth((s) => s.user?.id)
   const compare = useMonthCompare()
-  const [day, setDay] = useState<number | null>(null)
+  /** The picked day, `YYYY-MM-DD`. */
+  const [day, setDay] = useState<string | null>(null)
   const [category, setCategory] = useState<number | null>(null)
 
   // Filters belong to one month; drop them when the month changes.
@@ -616,23 +690,35 @@ export function HomeScreen() {
     setCategory(null)
   }
 
+  // Who paid shows by name, so the members must be loaded.
+  const groupId = group?.id
+  useEffect(() => {
+    if (split && groupId) useGroups.getState().loadMembers(groupId).catch(() => {})
+  }, [split, groupId])
+
+  // The strip and the calendar show the picked month; a trip's totals still count every day.
+  const from = `${month}-01`
+  const to = `${month}-${String(monthDayCount(month)).padStart(2, '0')}`
+
   const totals = useMemo(() => {
-    const out = new Array<number>(monthDayCount(month)).fill(0)
+    const out = new Map<string, number>()
     for (const e of expenses) {
-      if (!e.occurredOn.startsWith(month)) continue
       if (category !== null && bucketOf(e, categoryById) !== category) continue
-      const d = Number(e.occurredOn.slice(8, 10))
-      if (d >= 1 && d <= out.length) out[d - 1] += e.amountCents
+      out.set(e.occurredOn, (out.get(e.occurredOn) ?? 0) + e.amountCents)
     }
     return out
-  }, [expenses, month, category, categoryById])
+  }, [expenses, category, categoryById])
 
-  const dayIso = day ? `${month}-${String(day).padStart(2, '0')}` : null
-  const list = expenses.filter(
-    (e) => (dayIso === null || e.occurredOn === dayIso) && (category === null || bucketOf(e, categoryById) === category)
-  )
+  const list = expenses.filter((e) => (day === null || e.occurredOn === day) && (category === null || bucketOf(e, categoryById) === category))
   const categoryName = category === null ? null : category === NO_CATEGORY_ID ? t('overview.noCategory') : categoryById.get(category)?.name
-  const months = tm<readonly string[]>('months.short')
+  const emailById = new Map(members.filter((m) => m.userId !== null).map((m) => [m.userId as number, m.email]))
+  const payerName = split
+    ? (e: Expense) => {
+        if (e.paidByUserId === null) return null
+        const who = e.paidByUserId === me ? t('common.you').replace(/[()]/g, '') : (emailById.get(e.paidByUserId) ?? '').split('@')[0]
+        return who ? t('reports.paidByName', { name: who }) : null
+      }
+    : undefined
 
   async function refresh() {
     const s = useExpenses.getState()
@@ -643,22 +729,24 @@ export function HomeScreen() {
     // Phone: one column. Desktop: summary on the left, the list on the right.
     <Page onRefresh={refresh} className="gap-6 lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10">
       <div className="flex min-w-0 flex-col gap-6 lg:flex-1">
-        <Allowance currency={currency} />
-        <CompareLine compare={compare} currency={currency} />
+        <Allowance currency={currency} group={group} />
+        {!trip && <CompareLine compare={compare} currency={currency} />}
         {lastError && <p className="text-sm text-destructive">{lastError}</p>}
         <QuickAdds currency={currency} />
         <CategoryBar selected={category} onSelect={setCategory} currency={currency} compare={compare} />
+        <SettleCard />
       </div>
       <div className="flex min-w-0 flex-col gap-6 lg:flex-1">
       {/* The day picker sits right above the list it filters. */}
-      <WeekStrip totals={totals} selectedDay={day} onSelect={setDay} currency={currency} />
+      <WeekStrip from={from} to={to} totals={totals} selected={day} onSelect={setDay} currency={currency} calendarMonth={month} />
       <ExpenseList
         list={list}
         currency={currency}
+        payerName={payerName}
         filters={
           (day !== null || category !== null) && (
             <div className="flex gap-1.5">
-              {day !== null && <FilterChip label={`${day} ${months[Number(month.slice(5)) - 1] ?? ''}`} onClear={() => setDay(null)} />}
+              {day !== null && <FilterChip label={formatShortDate(day)} onClear={() => setDay(null)} />}
               {categoryName && <FilterChip label={categoryName} onClear={() => setCategory(null)} />}
             </div>
           )

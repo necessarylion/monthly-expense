@@ -14,12 +14,20 @@ class GroupRepository {
     required String name,
     required String currency,
     required int? createdByUserId,
+    String? kind,
+    String? tripStart,
+    int? tripDays,
+    bool? splitEnabled,
   }) async {
     String now = DateUtil.nowSql();
     return _q().create(<String, dynamic>{
       'name': name,
       'currency': currency,
       'created_by_user_id': createdByUserId,
+      'kind': kind,
+      'trip_start': tripStart,
+      'trip_days': tripDays,
+      'split_enabled': splitEnabled,
       'created_at': now,
       'updated_at': now,
     });

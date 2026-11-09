@@ -6,8 +6,6 @@ export type SettingsTab =
   | 'root'
   | 'budget'
   | 'wallet'
-  | 'currency'
-  | 'members'
   | 'group'
   | 'groups'
   | 'appearance'
@@ -15,6 +13,9 @@ export type SettingsTab =
   | 'mcp'
   | 'passkeys'
   | 'rates'
+  | 'recurring'
+  | 'search'
+  | 'year'
 
 export const TABS: Tab[] = ['home', 'accounts', 'list', 'settings']
 
@@ -59,7 +60,7 @@ export const useUi = create<UiState>((set) => ({
   openGroups: (mode) =>
     set({
       tab: 'settings',
-      settingsTab: mode === 'create' ? 'groups' : 'members',
+      settingsTab: mode === 'create' ? 'groups' : 'group',
       groupsView: mode === 'create' ? 'create' : 'list',
     }),
   openExpense: (expense, draft) => set({ expenseSheet: expense, expenseDraft: draft ?? null }),

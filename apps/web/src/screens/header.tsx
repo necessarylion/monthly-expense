@@ -79,6 +79,8 @@ export function Header() {
   const settingsPage = useUi((s) => s.settingsTab)
   const setSettingsPage = useUi((s) => s.setSettingsTab)
   const subPage = tab === 'settings' && settingsPage !== 'root' ? settingsPage : null
+  // A trip has no months.
+  const trip = useActiveGroup()?.kind === 'trip'
 
   return (
     // iOS 26 Safari tints the status bar with a sticky/fixed top bar's solid color.
@@ -98,7 +100,7 @@ export function Header() {
             <Button variant="ghost" size="icon-lg" className="-ml-2 rounded-full" aria-label={t('common.back')} onClick={() => setSettingsPage('root')}>
               <ChevronLeftIcon className="size-6" />
             </Button>
-            <h1 className="truncate font-display text-xl font-semibold">{t(SETTINGS_TITLES[subPage])}</h1>
+            <h1 className="truncate font-display text-xl font-semibold">{t(trip && subPage === 'budget' ? 'reports.tripBudget' : SETTINGS_TITLES[subPage])}</h1>
           </div>
         ) : (
           // Large, left-aligned title, like a native app's top bar.

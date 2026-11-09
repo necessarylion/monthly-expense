@@ -18,7 +18,26 @@ class CreateGroup {
   @Describe('$currencyHint Defaults to THB.')
   final String? currency;
 
-  const CreateGroup({required this.name, this.currency});
+  @In(<Object>['monthly', 'trip'])
+  @Describe(groupKindHint)
+  final String? kind;
+
+  @DateFormatted('Y-m-d')
+  @Describe('Trip only: the first day, YYYY-MM-DD. Defaults to today.')
+  final String? tripStart;
+
+  @Min(1)
+  @Max(366)
+  @Describe('Trip only: how many days the trip lasts.')
+  final int? tripDays;
+
+  const CreateGroup({
+    required this.name,
+    this.currency,
+    this.kind,
+    this.tripStart,
+    this.tripDays,
+  });
 
   static const DtoSchema<CreateGroup> schema = $CreateGroupDto;
 }
@@ -43,7 +62,34 @@ class UpdateGroup {
   @Describe('New currency. $currencyHint')
   final String? currency;
 
-  const UpdateGroup({this.groupId, this.name, this.currency});
+  @Describe(
+    'Turn on to split costs: each expense has a payer, and the members '
+    'settle up each month.',
+  )
+  final bool? splitEnabled;
+
+  @In(<Object>['monthly', 'trip'])
+  @Describe(groupKindHint)
+  final String? kind;
+
+  @DateFormatted('Y-m-d')
+  @Describe('Trip only: the first day, YYYY-MM-DD. Defaults to today.')
+  final String? tripStart;
+
+  @Min(1)
+  @Max(366)
+  @Describe('Trip only: how many days the trip lasts.')
+  final int? tripDays;
+
+  const UpdateGroup({
+    this.groupId,
+    this.name,
+    this.currency,
+    this.splitEnabled,
+    this.kind,
+    this.tripStart,
+    this.tripDays,
+  });
 
   static const DtoSchema<UpdateGroup> schema = $UpdateGroupDto;
 }

@@ -1,5 +1,6 @@
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/budget.repository.dart';
+import 'package:api_dox/constants/limits.dart';
 import 'package:dox_core/dox_core.dart';
 
 @Inject()
@@ -13,7 +14,7 @@ class BudgetService {
   Future<int?> getForMonth(Group group, String monthKey) async {
     GroupMonthlyBudget? row = await budgets.latestAtOrBefore(
       group.id!,
-      monthKey,
+      _key(group, monthKey),
     );
     return row?.budgetCents;
   }
@@ -25,6 +26,7 @@ class BudgetService {
     String monthKey,
     int? budgetCents,
   ) async {
+    monthKey = _key(group, monthKey);
     GroupMonthlyBudget? existing = await budgets.findByMonth(
       group.id!,
       monthKey,
@@ -39,5 +41,12 @@ class BudgetService {
       await budgets.create(group.id!, monthKey, budgetCents);
     }
     return budgetCents;
+  }
+
+  /// A trip has one budget, stored under [tripBudgetKey]. Until it is set,
+  /// the group's last monthly budget carries over ('trip' sorts after any
+  /// `YYYY-MM`).
+  static String _key(Group group, String monthKey) {
+    return group.isTrip ? tripBudgetKey : monthKey;
   }
 }

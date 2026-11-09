@@ -26,11 +26,20 @@ class GroupService {
     User user, {
     required String name,
     String? currency,
+    String? kind,
+    String? tripStart,
+    int? tripDays,
   }) async {
+    bool trip = kind == groupKindTrip;
     Group group = await groups.create(
       name: name.trim(),
       currency: (currency ?? defaultGroupCurrency).toUpperCase(),
       createdByUserId: user.id,
+      kind: trip ? groupKindTrip : null,
+      tripStart: trip ? (tripStart ?? DateUtil.today()) : null,
+      tripDays: trip ? tripDays : null,
+      // Friends on a trip usually split the bills.
+      splitEnabled: trip ? true : null,
     );
     await members.create(
       groupId: group.id!,
@@ -52,11 +61,26 @@ class GroupService {
     return group;
   }
 
-  Future<Group> update(Group group, {String? name, String? currency}) async {
+  Future<Group> update(
+    Group group, {
+    String? name,
+    String? currency,
+    bool? splitEnabled,
+    String? kind,
+    String? tripStart,
+    int? tripDays,
+  }) async {
     Map<String, dynamic> changes = <String, dynamic>{
+      'trip_start': ?tripStart,
+      'trip_days': ?tripDays,
+      if (kind != null) 'kind': kind == groupKindTrip ? groupKindTrip : null,
       if (name != null && name.isNotEmpty) 'name': name,
       if (currency != null && currency.isNotEmpty) 'currency': currency,
+      'split_enabled': ?splitEnabled,
     };
+    if (kind == groupKindTrip && group.tripStart == null && tripStart == null) {
+      changes['trip_start'] = DateUtil.today();
+    }
     if (changes.isEmpty) return group;
     return groups.update(group.id!, changes);
   }

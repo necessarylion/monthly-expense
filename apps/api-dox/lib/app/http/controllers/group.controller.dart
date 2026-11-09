@@ -33,12 +33,15 @@ class GroupController {
       req.authUser,
       name: body.name,
       currency: body.currency,
+      kind: body.kind,
+      tripStart: body.tripStart,
+      tripDays: body.tripDays,
     );
     return JsonResponse.created(GroupSerializer(group).toJson());
   }
 
   @Summary('Update a group')
-  @Description('Change the name or the currency.')
+  @Description('Change the name, the currency, or turn cost splitting on.')
   Future<Map<String, dynamic>> update(
     DoxRequest req,
     int id,
@@ -49,6 +52,10 @@ class GroupController {
       group,
       name: body.name,
       currency: body.currency,
+      splitEnabled: body.splitEnabled,
+      kind: body.kind,
+      tripStart: body.tripStart,
+      tripDays: body.tripDays,
     );
     return JsonResponse.ok(GroupSerializer(updated).toJson());
   }

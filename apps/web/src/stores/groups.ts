@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { api, getActiveGroupId, setActiveGroupId } from '@/lib/api'
-import type { Group, GroupMember } from '@/lib/types'
+import type { Group, GroupMember, GroupKind } from '@/lib/types'
 
 interface GroupsState {
   groups: Group[]
@@ -10,8 +10,8 @@ interface GroupsState {
   lastError: string | null
   load(): Promise<void>
   setActive(id: number): void
-  create(payload: { name: string; currency?: string }): Promise<Group>
-  update(id: number, payload: { name?: string; currency?: string }): Promise<Group>
+  create(payload: { name: string; currency?: string; kind?: GroupKind; tripStart?: string; tripDays?: number }): Promise<Group>
+  update(id: number, payload: { name?: string; currency?: string; splitEnabled?: boolean; kind?: GroupKind; tripStart?: string; tripDays?: number }): Promise<Group>
   setBudget(
     id: number,
     month: string,

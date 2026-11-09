@@ -58,6 +58,11 @@ void main() {
         '2026_11_09_000000_shopping_items',
         '2026_11_09_081253_create_mcp_tokens_table',
         '2026_11_09_130754_create_passkeys_table',
+        '2026_11_09_134300_add_budgets_and_payers',
+        '2026_11_09_134301_create_recurring_expenses_table',
+        '2026_11_09_135608_add_split_to_groups',
+        '2026_11_09_140558_add_kind_to_groups',
+        '2026_11_09_141633_add_trip_dates_to_groups',
       ],
     );
     // the Bun migration table is left alone
@@ -85,6 +90,10 @@ void main() {
         'name': "Legacy's Group",
         'currency': 'THB',
         'createdByUserId': 1,
+        'splitEnabled': false,
+        'kind': 'monthly',
+        'tripStart': null,
+        'tripDays': null,
       },
     ]);
     TestResponse cats = await app.call(

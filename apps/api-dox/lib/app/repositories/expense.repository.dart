@@ -49,6 +49,57 @@ class ExpenseRepository {
         .get();
   }
 
+  /// Sets [Expense.walletOwnerId] on each expense that was paid from a
+  /// wallet: the wallet's owner paid it.
+  Future<void> attachWalletOwners(List<Expense> rows) async {
+    List<int> ids = <int>[for (Expense e in rows) e.id!];
+    if (ids.isEmpty) return;
+    List<Map<String, dynamic>> owners =
+        await QueryBuilder.table('account_entries')
+            .select('account_entries.expense_id, accounts.user_id')
+            .join('accounts', 'accounts.id', 'account_entries.account_id')
+            .whereIn('account_entries.expense_id', ids)
+            .get();
+    Map<int, int> byExpense = <int, int>{
+      for (Map<String, dynamic> row in owners)
+        DbRow.toInt(row['expense_id'])!: DbRow.toInt(row['user_id'])!,
+    };
+    for (Expense e in rows) {
+      e.walletOwnerId = byExpense[e.id];
+    }
+  }
+
+  /// Expenses that match every given filter, newest first, at most
+  /// [limit]. [text] matches the note; [textCategoryIds] are categories
+  /// whose name matched it, so those match too.
+  Future<List<Expense>> search({
+    required int groupId,
+    String? text,
+    List<int> textCategoryIds = const <int>[],
+    int? categoryId,
+    String? from,
+    String? to,
+    required int limit,
+  }) {
+    QueryBuilder<Expense> q = _q().where('group_id', groupId);
+    if (categoryId != null) q = q.where('category_id', categoryId);
+    if (from != null) q = q.where('occurred_on', '>=', from);
+    if (to != null) q = q.where('occurred_on', '<=', to);
+    if (text != null) {
+      q = q.whereGroup((QueryBuilder<Expense> g) {
+        g.whereLike('note', '%$text%');
+        if (textCategoryIds.isNotEmpty) {
+          g.orWhereIn('category_id', textCategoryIds);
+        }
+      });
+    }
+    return q
+        .orderBy('occurred_on', 'desc')
+        .orderBy('id', 'desc')
+        .limit(limit)
+        .get();
+  }
+
   /// Expenses logged again and again since [since]: same category, amount
   /// and note, at least [minUses] times. Most used first, then most recent.
   Future<List<FrequentExpense>> frequent(

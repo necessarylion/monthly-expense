@@ -13,6 +13,12 @@ class MonthRange {
 }
 
 class MonthUtil {
+  /// A trip has no months: every expense counts. Keeps [month]'s key.
+  static MonthRange forGroup(bool isTrip, MonthRange month) {
+    if (!isTrip) return month;
+    return MonthRange(month.key, '0001-01-01', '9999-12-31');
+  }
+
   /// `"2026-08"` -> first and last day of that month. No input = this month.
   static MonthRange parse([String? input]) {
     String key = (input == null || input.isEmpty)

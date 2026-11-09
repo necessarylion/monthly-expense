@@ -14,7 +14,7 @@ const String balanceAdjustmentNote = 'Balance adjustment';
 
 /// Quick-add suggestions: look this many days back, need this many
 /// repeats, return at most this many.
-const int frequentExpenseDays = 90;
+const int frequentExpenseDays = 30;
 const int frequentExpenseMinUses = 2;
 const int frequentExpenseLimit = 8;
 
@@ -42,3 +42,16 @@ const int passkeysMax = 20;
 
 /// A passkey challenge works once, for this long.
 const Duration passkeyChallengeTtl = Duration(minutes: 5);
+
+/// Search returns at most this many expenses, newest first.
+const int searchResultLimit = 2000;
+
+/// Recurring expenses one group may have.
+const int recurringPerGroupMax = 100;
+
+/// Group kinds. A trip has one budget and no months.
+const String groupKindMonthly = 'monthly';
+const String groupKindTrip = 'trip';
+
+/// A trip's budget row uses this in place of a `YYYY-MM` month key.
+const String tripBudgetKey = 'trip';

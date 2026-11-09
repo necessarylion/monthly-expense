@@ -65,12 +65,21 @@ class UpdateCategory {
   @Describe('New color. $colorHint')
   final String? color;
 
+  /// Monthly budget in dollars. `null` clears it.
+  @Min(0)
+  @Max(1000000000)
+  @Describe(
+    'Monthly budget for this category in dollars. Pass null to clear it.',
+  )
+  final Maybe<num?> budget;
+
   const UpdateCategory({
     this.groupId,
     this.id,
     this.name,
     this.iconKey,
     this.color,
+    this.budget = const Maybe<num?>.missing(),
   });
 
   static const DtoSchema<UpdateCategory> schema = $UpdateCategoryDto;

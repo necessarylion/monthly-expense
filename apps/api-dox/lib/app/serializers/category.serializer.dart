@@ -16,6 +16,7 @@ class CategorySerializer extends Serializer<Category> {
       'slug': m.slug,
       'iconKey': m.iconKey,
       'color': m.color,
+      'budgetCents': m.budgetCents,
       'createdAt': DateUtil.toIso(m.createdAtText),
     };
   }

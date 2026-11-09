@@ -31,7 +31,7 @@ void main() {
     test('group', () {
       expectJson(
         GroupSerializer(SerializerSamples.group).toJson(),
-        r'{"id":2,"name":"Home","currency":"THB","createdByUserId":null}',
+        r'{"id":2,"name":"Home","currency":"THB","createdByUserId":null,"splitEnabled":false,"kind":"monthly","tripStart":null,"tripDays":null}',
       );
     });
 
@@ -49,7 +49,7 @@ void main() {
     test('category', () {
       expectJson(
         CategorySerializer(SerializerSamples.category).toJson(),
-        r'{"id":5,"groupId":2,"name":"Food","slug":"food","iconKey":"utensils","color":"#ff0000","createdAt":"2026-01-02T03:04:05.000Z"}',
+        r'{"id":5,"groupId":2,"name":"Food","slug":"food","iconKey":"utensils","color":"#ff0000","budgetCents":null,"createdAt":"2026-01-02T03:04:05.000Z"}',
       );
     });
 
@@ -71,12 +71,12 @@ void main() {
             SerializerSamples.category,
           ),
         ).toJson(),
-        r'{"id":8,"groupId":2,"createdByUserId":1,"categoryId":5,"amountCents":1250,"occurredOn":"2026-01-02","note":"lunch","createdAt":"2026-01-02T03:04:05.000Z","updatedAt":"2026-01-02T03:04:06.000Z","category":{"id":5,"groupId":2,"name":"Food","slug":"food","iconKey":"utensils","color":"#ff0000","createdAt":"2026-01-02T03:04:05.000Z"}}',
+        r'{"id":8,"groupId":2,"createdByUserId":1,"paidByUserId":1,"categoryId":5,"amountCents":1250,"occurredOn":"2026-01-02","note":"lunch","createdAt":"2026-01-02T03:04:05.000Z","updatedAt":"2026-01-02T03:04:06.000Z","category":{"id":5,"groupId":2,"name":"Food","slug":"food","iconKey":"utensils","color":"#ff0000","budgetCents":null,"createdAt":"2026-01-02T03:04:05.000Z"}}',
       );
       expectJson(
         ExpenseSerializer(ExpenseWithCategory(SerializerSamples.bare, null))
             .toJson(),
-        r'{"id":9,"groupId":2,"createdByUserId":null,"categoryId":null,"amountCents":99,"occurredOn":"2026-01-03","note":null,"createdAt":"2026-01-02T03:04:05.000Z","updatedAt":"2026-01-02T03:04:05.000Z","category":null}',
+        r'{"id":9,"groupId":2,"createdByUserId":null,"paidByUserId":null,"categoryId":null,"amountCents":99,"occurredOn":"2026-01-03","note":null,"createdAt":"2026-01-02T03:04:05.000Z","updatedAt":"2026-01-02T03:04:05.000Z","category":null}',
       );
     });
 

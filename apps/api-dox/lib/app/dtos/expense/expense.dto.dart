@@ -112,3 +112,59 @@ class MonthQuery {
 
   static const DtoSchema<MonthQuery> schema = $MonthQueryDto;
 }
+
+/// Query of GET /expenses/search, and the search_expenses tool. Every
+/// filter is optional; together they must all match.
+@Dto(source: Source.query, keyCase: KeyCase.field, emptyStringsToNull: true)
+class SearchQuery {
+  /// MCP only.
+  @Positive()
+  @Describe(groupIdHint)
+  final int? groupId;
+
+  @Trim()
+  @MaxLength(100)
+  @Describe('Text to find in the note or the category name.')
+  final String? q;
+
+  @Positive()
+  @Describe('Only this category ID (see list_categories).')
+  final int? categoryId;
+
+  @DateFormatted('Y-m-d')
+  @Describe('First date, YYYY-MM-DD.')
+  final String? from;
+
+  @DateFormatted('Y-m-d')
+  @Describe('Last date, YYYY-MM-DD.')
+  final String? to;
+
+  const SearchQuery({
+    this.groupId,
+    this.q,
+    this.categoryId,
+    this.from,
+    this.to,
+  });
+
+  static const DtoSchema<SearchQuery> schema = $SearchQueryDto;
+}
+
+/// Query of GET /summary/year, and the yearly_summary tool. No year: this
+/// year.
+@Dto(source: Source.query, keyCase: KeyCase.field)
+class YearQuery {
+  /// MCP only.
+  @Positive()
+  @Describe(groupIdHint)
+  final int? groupId;
+
+  @Min(2000)
+  @Max(2100)
+  @Describe('Year, like 2026. Defaults to this year.')
+  final int? year;
+
+  const YearQuery({this.groupId, this.year});
+
+  static const DtoSchema<YearQuery> schema = $YearQueryDto;
+}
