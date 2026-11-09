@@ -75,9 +75,11 @@ Read this before changing code. It captures the non-obvious bits.
 - i18n is a tiny `t()` in `src/lib/i18n.ts` over `src/locales/{en,my}.ts`
   (vue-i18n syntax: `{name}` placeholders, `{'@'}` escapes). Components call
   `useT()` so they re-render when the language changes. Add every new key to both files.
-- Theme: `light | dark | system | pink`, stored in `localStorage['app:theme']`
-  (`lib/theme.ts`). `pink` is a light theme with its own `.pink` palette. A
-  script in `index.html` sets the class before first paint.
+- Theme: `light | dark | system` plus palette themes `pink | mint | ocean |
+  lavender | midnight | forest`, stored in `localStorage['app:theme']`
+  (`lib/theme.ts`). Each palette is a CSS class in `index.css`. `midnight`
+  and `forest` are dark, so they also get `.dark`. A script in `index.html`
+  sets the classes before first paint; keep its lists in sync with `theme.ts`.
 - Every add/edit form is a `Sheet` (`components/app/sheet.tsx`): a floating vaul
   drawer whose height animates between views. Deletes inside sheets use Rare
   UI's `DeleteButton` (confirm in place); success shows a `toast`.
