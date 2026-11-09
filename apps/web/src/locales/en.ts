@@ -17,6 +17,7 @@ export default {
   app: {
     tagline: 'Track where your money goes',
     signIn: 'Continue with Google',
+    signInPasskey: 'Sign in with a passkey',
   },
   tabs: {
     overview: 'Overview',
@@ -110,6 +111,13 @@ export default {
     mcpNeverUsed: 'Not used yet',
     mcpRemoveAll: 'Sign out all apps',
     mcpClientRemoved: 'App signed out',
+    passkeys: 'Passkeys',
+    passkeysNote: 'Sign in with your face, fingerprint or device PIN. Add a passkey on each device you use.',
+    passkeysNone: 'No passkey yet.',
+    passkeysUnsupported: 'This browser cannot use passkeys.',
+    passkeyAdd: 'Add a passkey',
+    passkeyAdded: 'Passkey added',
+    passkeyRemoved: 'Passkey removed',
     mcpNote:
       'Add this URL to Claude as a custom connector (claude.ai → Customize → Connectors → Add custom connector). Claude then asks you to sign in here and allow it. The URL holds no secret.',
     failedToSave: 'Failed to save',

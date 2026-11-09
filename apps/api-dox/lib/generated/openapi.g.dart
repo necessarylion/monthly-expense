@@ -37,6 +37,88 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       },
     ),
     OpenApiOperation(
+      controller: 'PasskeyController',
+      method: 'index',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'List my passkeys',
+      tags: <String>['Passkeys'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'PasskeyController',
+      method: 'registrationOptions',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'Start adding a passkey',
+      description:
+          'Options for `navigator.credentials.create()`. Bytes are base64url.',
+      tags: <String>['Passkeys'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'PasskeyController',
+      method: 'store',
+      argumentTypes: <String>['DoxRequest', 'AddPasskey'],
+      summary: 'Add a passkey',
+      tags: <String>['Passkeys'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/AddPasskey'},
+      responses: <int, ResponseDoc>{
+        204: ResponseDoc(description: 'Done, no body'),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'PasskeyController',
+      method: 'destroy',
+      argumentTypes: <String>['DoxRequest', 'int'],
+      summary: 'Remove a passkey',
+      tags: <String>['Passkeys'],
+      params: <Map<String, dynamic>>[
+        <String, dynamic>{'type': 'integer'},
+      ],
+      responses: <int, ResponseDoc>{
+        204: ResponseDoc(description: 'Done, no body'),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'PasskeyController',
+      method: 'loginOptions',
+      argumentTypes: <String>[],
+      summary: 'Start a passkey sign-in',
+      description:
+          'Options for `navigator.credentials.get()`. No token needed.',
+      tags: <String>['Passkeys'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'PasskeyController',
+      method: 'login',
+      argumentTypes: <String>['PasskeyLogin'],
+      summary: 'Sign in with a passkey',
+      description: 'Gives a Firebase custom token. The web app calls `signInWithCustomToken` with it. No token needed.',
+      tags: <String>['Passkeys'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/PasskeyLogin'},
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
       controller: 'MeController',
       method: 'show',
       argumentTypes: <String>['DoxRequest'],
@@ -755,6 +837,16 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
   routes: <OpenApiRouteBinding>[
     OpenApiRouteBinding('GET', '/healthz', 'HealthController.show'),
     OpenApiRouteBinding('GET', '/config.js', 'ConfigController.script'),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/passkeys/login/options',
+      'PasskeyController.loginOptions',
+    ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/passkeys/login',
+      'PasskeyController.login',
+    ),
     OpenApiRouteBinding('GET', '/api/v1/me', 'MeController.show'),
     OpenApiRouteBinding('GET', '/api/v1/me/mcp', 'MeController.mcp'),
     OpenApiRouteBinding(
@@ -766,6 +858,26 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       'DELETE',
       '/api/v1/me/mcp/clients/{id}',
       'MeController.revokeMcpClient',
+    ),
+    OpenApiRouteBinding(
+      'GET',
+      '/api/v1/me/passkeys',
+      'PasskeyController.index',
+    ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/me/passkeys/options',
+      'PasskeyController.registrationOptions',
+    ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/me/passkeys',
+      'PasskeyController.store',
+    ),
+    OpenApiRouteBinding(
+      'DELETE',
+      '/api/v1/me/passkeys/{id}',
+      'PasskeyController.destroy',
     ),
     OpenApiRouteBinding(
       'GET',
@@ -958,6 +1070,83 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
     ),
   ],
   schemas: <String, Map<String, dynamic>>{
+    'AddPasskey': <String, dynamic>{
+      'type': 'object',
+      'title': 'AddPasskey',
+      'properties': <String, dynamic>{
+        'credentialId': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 1400,
+        },
+        'clientDataJson': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 10000,
+        },
+        'authenticatorData': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 10000,
+        },
+        'publicKey': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 1000,
+          'description': '`response.getPublicKey()`: SubjectPublicKeyInfo DER.',
+        },
+        'publicKeyAlgorithm': <String, dynamic>{
+          'type': 'integer',
+          'description':
+              '`response.getPublicKeyAlgorithm()`, a COSE id like -7.',
+        },
+        'name': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 200,
+        },
+      },
+      'required': <dynamic>[
+        'credentialId',
+        'clientDataJson',
+        'authenticatorData',
+        'publicKey',
+        'publicKeyAlgorithm',
+        'name',
+      ],
+    },
+    'PasskeyLogin': <String, dynamic>{
+      'type': 'object',
+      'title': 'PasskeyLogin',
+      'properties': <String, dynamic>{
+        'credentialId': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 1400,
+        },
+        'clientDataJson': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 10000,
+        },
+        'authenticatorData': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 10000,
+        },
+        'signature': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 1000,
+        },
+      },
+      'required': <dynamic>[
+        'credentialId',
+        'clientDataJson',
+        'authenticatorData',
+        'signature',
+      ],
+    },
     'OauthClientQuery': <String, dynamic>{
       'type': 'object',
       'title': 'OauthClientQuery',

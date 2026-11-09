@@ -7,6 +7,7 @@ import 'package:api_dox/app/http/controllers/health.controller.dart';
 import 'package:api_dox/app/http/controllers/mcp.controller.dart';
 import 'package:api_dox/app/http/controllers/me.controller.dart';
 import 'package:api_dox/app/http/controllers/oauth.controller.dart';
+import 'package:api_dox/app/http/controllers/passkey.controller.dart';
 import 'package:api_dox/app/services/mcp_oauth.service.dart';
 import 'package:api_dox/app/http/controllers/shopping_item.controller.dart';
 import 'package:api_dox/app/http/middleware/auth.middleware.dart';
@@ -26,6 +27,13 @@ class ApiRouter extends Router {
     Route.get('/config.js', (ConfigController c) => c.script);
 
     Route.group('/api/v1', () {
+      // Passkey sign-in: no token yet.
+      Route.post(
+        '/passkeys/login/options',
+        (PasskeyController c) => c.loginOptions,
+      );
+      Route.post('/passkeys/login', (PasskeyController c) => c.login);
+
       Route.middleware(user, () {
         Route.get('/me', (MeController c) => c.show);
         Route.get('/me/mcp', (MeController c) => c.mcp);
@@ -34,6 +42,13 @@ class ApiRouter extends Router {
           '/me/mcp/clients/{id}',
           (MeController c) => c.revokeMcpClient,
         );
+        Route.get('/me/passkeys', (PasskeyController c) => c.index);
+        Route.post(
+          '/me/passkeys/options',
+          (PasskeyController c) => c.registrationOptions,
+        );
+        Route.post('/me/passkeys', (PasskeyController c) => c.store);
+        Route.delete('/me/passkeys/{id}', (PasskeyController c) => c.destroy);
 
         // the web app's consent page for an MCP client (OAuth)
         Route.get('/oauth/client', (OauthController c) => c.client);

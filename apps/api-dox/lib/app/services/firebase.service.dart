@@ -64,6 +64,13 @@ class FirebaseService {
     );
   }
 
+  /// A token the web app trades for a Firebase session with
+  /// `signInWithCustomToken`. Used after a passkey sign-in. The SDK signs
+  /// it with the service account key, so there is no network call.
+  Future<String> createCustomToken(String uid) {
+    return _getApp().auth().createCustomToken(uid);
+  }
+
   /// Starts the SDK at boot so a bad config shows up early. Never throws.
   void warmUp() {
     try {

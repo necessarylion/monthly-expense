@@ -30,6 +30,10 @@ class FakeFirebaseService extends FirebaseService {
     );
   }
 
+  /// `custom:<uid>`, so a test can see whose token it is.
+  @override
+  Future<String> createCustomToken(String uid) async => 'custom:$uid';
+
   @override
   void warmUp() {}
 }

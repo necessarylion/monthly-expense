@@ -13,6 +13,7 @@ export type SettingsTab =
   | 'appearance'
   | 'language'
   | 'mcp'
+  | 'passkeys'
   | 'rates'
 
 export const TABS: Tab[] = ['home', 'accounts', 'list', 'settings']

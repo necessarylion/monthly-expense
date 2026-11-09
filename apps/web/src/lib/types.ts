@@ -100,6 +100,15 @@ export interface ShoppingItem {
 }
 
 /** An MCP client (like Claude) that signed in with OAuth. */
+/** A passkey on the Me page. */
+export interface Passkey {
+  id: number
+  /** Device name the app guessed when it was added, like `iPhone`. */
+  name: string
+  lastUsedAt: string | null
+  createdAt: string
+}
+
 export interface McpClient {
   id: number
   /** `<client name> (<host>)`, like `Claude (claude.ai)`. */

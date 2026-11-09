@@ -27,6 +27,9 @@ monthly-expense/
   `Authorization: Bearer <token>`.
 - The API checks the token with `firebase_admin_sdk` on every request. It
   finds the user, or makes one on the first sign-in.
+- After the first Google sign-in, a user can add a **passkey** on the Me
+  page. Then they can sign in with it. The API checks the passkey and gives
+  a Firebase custom token, so the rest works the same.
 - The web app has no Firebase config built in. It loads `/config.js` from
   the API, which makes it from the API env. So one image works with any
   Firebase project.
