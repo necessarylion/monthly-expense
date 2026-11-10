@@ -16,7 +16,8 @@ class HttpFetch {
           .get(Uri.parse(url))
           .timeout(fxFetchTimeout);
       if (res.statusCode < 200 || res.statusCode >= 300) return null;
-      return jsonDecode(utf8.decode(res.bodyBytes));
+      // Parses the bytes directly, with no String copy in between.
+      return utf8.decoder.fuse(json.decoder).convert(res.bodyBytes);
     } catch (_) {
       return null;
     } finally {
