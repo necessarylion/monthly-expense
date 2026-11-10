@@ -13,7 +13,7 @@ const PENDING_ID = -1
 interface AuthState {
   user: User | null
   loading: boolean
-  /** True until the cold-start fetches (/me, /groups) have settled. Drives the splash. */
+  /** True until the cold-start /me has settled. Drives the splash. */
   booting: boolean
   error: string | null
   mcpUrl: string | null
@@ -106,15 +106,14 @@ export const useAuth = create<AuthState>((set, get) => ({
       startLive()
 
       const groups = useGroups.getState()
-      if (getActiveGroupId() !== null) {
-        // Returning user: already provisioned server-side, so /me and /groups can race.
-        void Promise.all([get().refreshMe(), groups.load()]).finally(() => set({ booting: false }))
-      } else {
-        // ponytail: first login stays serial; user provisioning on the server is not concurrency safe.
-        await get().refreshMe()
-        if (get().user) await groups.load()
-        set({ booting: false })
-      }
+      // Returning user: already provisioned server-side, so /me and /groups can race.
+      const returning = getActiveGroupId() !== null
+      if (returning) void groups.load()
+      await get().refreshMe()
+      // The splash only waits for /me. Groups and the month fill in after.
+      set({ booting: false })
+      // ponytail: first login stays serial; user provisioning on the server is not concurrency safe.
+      if (!returning && get().user) await groups.load()
     })
   },
 
