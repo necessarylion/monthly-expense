@@ -192,7 +192,7 @@ export function RatesScreen() {
                 <span className="flex-1 font-medium">{nameOf('GLD')}</span>
                 <span className="num font-semibold">{rateText('GLD') ?? '—'}</span>
               </div>
-              {gold && thb && gold.buyOrnament !== gold.sellOrnament && (
+              {gold && thb && (
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <span className="rounded-xl bg-background/70 px-3 py-2">
                     <span className="block text-xs text-muted-foreground">{t('rates.buy')}</span>
