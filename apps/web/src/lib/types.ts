@@ -4,6 +4,8 @@ export interface User {
   email: string
   displayName: string | null
   photoUrl: string | null
+  /** Two-step sign-in is on. Not set while /me is still loading. */
+  twoFactorEnabled?: boolean
 }
 
 export interface Group {

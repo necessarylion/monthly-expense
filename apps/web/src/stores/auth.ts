@@ -1,6 +1,14 @@
 import { create } from 'zustand'
 import { api, getActiveGroupId } from '@/lib/api'
-import { onAuthChange, resetPassword, signInWithEmail, signInWithGoogle, signInWithToken, signOut } from '@/lib/firebase'
+import {
+  onAuthChange,
+  resetPassword,
+  signInWithEmail,
+  signInWithGoogle,
+  signInWithToken,
+  signOut,
+} from '@/lib/firebase'
+import { errorMessage } from '@/lib/errors'
 import { t } from '@/lib/i18n'
 import { startLive, stopLive } from '@/lib/live'
 import { signInWithPasskeyToken } from '@/lib/passkey'
@@ -17,6 +25,8 @@ interface AuthState {
   /** True until the cold-start /me has settled. Drives the splash. */
   booting: boolean
   error: string | null
+  /** Signed in, but the API still wants the code from the authenticator app. */
+  mfaRequired: boolean
   mcpUrl: string | null
   /** MCP clients that signed in with OAuth. */
   mcpClients: McpClient[]
@@ -27,6 +37,8 @@ interface AuthState {
   loginWithEmail(email: string, password: string, create: boolean): Promise<'ok' | 'verify' | 'error'>
   /** Sends a password reset link. Returns false on an error. */
   sendPasswordReset(email: string): Promise<boolean>
+  /** Sends the two-step code. The page reloads when it is right. */
+  verifyMfa(code: string): Promise<void>
   logout(): Promise<void>
   refreshMe(): Promise<void>
   loadMcpUrl(): Promise<void>
@@ -52,6 +64,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   loading: true,
   booting: true,
   error: null,
+  mfaRequired: false,
   mcpUrl: null,
   mcpClients: [],
 
@@ -60,6 +73,8 @@ export const useAuth = create<AuthState>((set, get) => ({
       const { data } = await api.get<{ data: User }>('/me')
       set({ user: data.data })
     } catch (e: any) {
+      // Step one passed, but this user has two-step sign-in on: ask for the code.
+      if (e?.response?.data?.code === 'mfa_required') return set({ mfaRequired: true })
       // Keep `user` as is. Firebase decides "signed in"; a real 401 fires
       // `auth:unauthorized`, which App turns into a logout.
       set({ error: e?.message ?? 'Failed to load profile' })
@@ -94,7 +109,7 @@ export const useAuth = create<AuthState>((set, get) => ({
         hydratedUid = null
         stopLive()
         useGroups.getState().reset()
-        set({ user: null, loading: false, booting: false })
+        set({ user: null, mfaRequired: false, loading: false, booting: false })
         return
       }
 
@@ -134,7 +149,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     try {
       await signInWithGoogle()
     } catch (e: any) {
-      set({ error: e?.message ?? 'Sign-in failed' })
+      set({ error: authError(e) })
     }
   },
 
@@ -145,7 +160,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     } catch (e: any) {
       // The user closed the browser's passkey prompt: not an error.
       if (e?.name === 'NotAllowedError' || e?.name === 'AbortError') return
-      set({ error: e?.message ?? 'Sign-in failed' })
+      set({ error: authError(e) })
     }
   },
 
@@ -170,9 +185,22 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
+  async verifyMfa(code) {
+    set({ error: null })
+    try {
+      const { data } = await api.post<{ data: { token: string } }>('/me/totp/verify', { code })
+      await signInWithToken(data.data.token)
+      // ponytail: reload instead of restarting every store and the live socket by hand.
+      // Firebase keeps the new session, so the app starts clean with it.
+      window.location.reload()
+    } catch (e: any) {
+      set({ error: errorMessage(e, 'Sign-in failed') })
+    }
+  },
+
   async logout() {
     await signOut()
-    set({ user: null, mcpUrl: null, mcpClients: [] })
+    set({ user: null, mfaRequired: false, error: null, mcpUrl: null, mcpClients: [] })
     useGroups.getState().reset()
     // Accounts are user-owned; clear them so the next sign-in can't see old balances.
     useAccounts.getState().clear()

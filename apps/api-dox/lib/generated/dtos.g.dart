@@ -12,6 +12,7 @@ import 'package:api_dox/app/dtos/passkey/passkey.dto.dart';
 import 'package:api_dox/app/dtos/quick_add_pick/quick_add_pick.dto.dart';
 import 'package:api_dox/app/dtos/recurring/recurring.dto.dart';
 import 'package:api_dox/app/dtos/shopping_item/shopping_item.dto.dart';
+import 'package:api_dox/app/dtos/totp_code/totp_code.dto.dart';
 
 /// Every DTO of the app. Use it in `AppConfig(dtos: dtos)`.
 const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
@@ -45,6 +46,7 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $SetBudgetDto,
   $SetDefaultAccountDto,
   $TotalQueryDto,
+  $TotpCodeDto,
   $TransferDto,
   $UpdateAccountDto,
   $UpdateCategoryDto,

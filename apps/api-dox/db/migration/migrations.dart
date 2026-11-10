@@ -12,6 +12,7 @@ import '2026_11_09_134301_create_recurring_expenses_table.dart' as m7;
 import '2026_11_09_135608_add_split_to_groups.dart' as m8;
 import '2026_11_09_140558_add_kind_to_groups.dart' as m9;
 import '2026_11_09_141633_add_trip_dates_to_groups.dart' as m10;
+import '2026_11_10_210626_add_totp_to_users.dart' as m11;
 
 /// all Dart migrations of db/migration, sorted by name
 final List<MigrationEntry> migrations = <MigrationEntry>[
@@ -43,4 +44,5 @@ final List<MigrationEntry> migrations = <MigrationEntry>[
     '2026_11_09_141633_add_trip_dates_to_groups',
     m10.AddTripDatesToGroups(),
   ),
+  MigrationEntry('2026_11_10_210626_add_totp_to_users', m11.AddTotpToUsers()),
 ];

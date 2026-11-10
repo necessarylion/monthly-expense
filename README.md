@@ -102,6 +102,21 @@ SQLite data is kept in the `expense-data` volume.
 In the Firebase console, add your domain to **Authentication → Settings →
 Authorized domains**. If you don't, Google sign-in fails on your domain.
 
+### Two-step sign-in
+
+A user can turn on two-step sign-in on the Me tab. They scan a QR code with
+an authenticator app (Google Authenticator, Authy, 1Password). After that,
+each sign-in with Google or with email and password also asks for a 6-digit
+code. A passkey sign-in asks for no code.
+
+It needs no setup. The API does the check itself:
+
+- The secret is saved encrypted with `APP_KEY`. If you change `APP_KEY`,
+  every user must set up two-step sign-in again (see the next point).
+- A user who loses the authenticator app cannot sign in. There are no
+  backup codes. Turn it off for them in the database:
+  `UPDATE users SET totp_enabled = NULL, totp_secret = NULL WHERE email = '...'`.
+
 ## REST API
 
 The routes are under `/api/v1`. All of them need

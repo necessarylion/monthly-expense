@@ -63,6 +63,7 @@ void main() {
         '2026_11_09_135608_add_split_to_groups',
         '2026_11_09_140558_add_kind_to_groups',
         '2026_11_09_141633_add_trip_dates_to_groups',
+        '2026_11_10_210626_add_totp_to_users',
       ],
     );
     // the Bun migration table is left alone

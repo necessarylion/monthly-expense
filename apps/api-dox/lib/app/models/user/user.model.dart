@@ -17,6 +17,15 @@ class User extends UserGenerator {
   @Column(name: 'photo_url')
   String? photoUrl;
 
+  /// The authenticator app's secret, encrypted (see `TotpService`). Set
+  /// when the user starts the setup.
+  @Column(name: 'totp_secret')
+  String? totpSecret;
+
+  /// Two-step sign-in is on. Null is off.
+  @Column(name: 'totp_enabled')
+  bool? totpEnabled;
+
   @Column(name: 'created_at', cast: TimestampText())
   String createdAtText = '';
 
@@ -30,9 +39,14 @@ class User extends UserGenerator {
     'email',
     'display_name',
     'photo_url',
+    'totp_secret',
+    'totp_enabled',
     'created_at',
     'updated_at',
   ];
+
+  @override
+  List<String> get hidden => <String>['totp_secret'];
 
   // `users.mcp_token` (the old MCP link) is retired: not mapped here, but
   // the column stays, because a table rebuild would cascade.

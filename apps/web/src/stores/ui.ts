@@ -15,6 +15,7 @@ export type SettingsTab =
   | 'rates'
   | 'recurring'
   | 'search'
+  | 'twoFactor'
   | 'year'
 
 export const TABS: Tab[] = ['home', 'accounts', 'list', 'settings']

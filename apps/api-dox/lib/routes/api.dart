@@ -11,17 +11,29 @@ import 'package:api_dox/app/http/controllers/passkey.controller.dart';
 import 'package:api_dox/app/services/mcp_oauth.service.dart';
 import 'package:api_dox/app/http/controllers/recurring.controller.dart';
 import 'package:api_dox/app/http/controllers/shopping_item.controller.dart';
+import 'package:api_dox/app/http/controllers/totp.controller.dart';
 import 'package:api_dox/app/http/middleware/auth.middleware.dart';
 import 'package:api_dox/app/http/middleware/group.middleware.dart';
+import 'package:api_dox/app/http/middleware/two_factor.middleware.dart';
+import 'package:api_dox/constants/limits.dart';
+import 'package:api_dox/http/request_context.dart';
 import 'package:dox_core/dox_core.dart';
 
 /// Every route, with the same paths as the Bun API. `user` routes need a
-/// Firebase ID token; `member` routes also need `X-Group-Id`.
+/// Firebase ID token (and the two-step code, when the user has that on);
+/// `member` routes also need `X-Group-Id`.
 class ApiRouter extends Router {
   @override
   void register() {
     IocContainer ioc = Dox().ioc;
-    List<dynamic> user = <dynamic>[ioc.get<AuthMiddleware>()];
+    // `signedIn` is step one only. Use it for nothing but the code check.
+    List<dynamic> signedIn = <dynamic>[ioc.get<AuthMiddleware>()];
+    List<dynamic> user = <dynamic>[...signedIn, TwoFactorMiddleware()];
+    RateLimit codeTries = RateLimit(
+      max: totpTriesPerMinute,
+      name: 'totp',
+      key: (DoxRequest req) => '${req.authUser.id}',
+    );
     List<dynamic> member = <dynamic>[...user, ioc.get<GroupMiddleware>()];
 
     Route.get('/healthz', (HealthController c) => c.show);
@@ -35,7 +47,18 @@ class ApiRouter extends Router {
       );
       Route.post('/passkeys/login', (PasskeyController c) => c.login);
 
+      Route.middleware(<dynamic>[...signedIn, codeTries], () {
+        Route.post('/me/totp/verify', (TotpController c) => c.verify);
+      });
+
+      Route.middleware(<dynamic>[...user, codeTries], () {
+        Route.post('/me/totp/enable', (TotpController c) => c.enable);
+      });
+
       Route.middleware(user, () {
+        Route.post('/me/totp/setup', (TotpController c) => c.setup);
+        Route.delete('/me/totp', (TotpController c) => c.destroy);
+
         Route.get('/me', (MeController c) => c.show);
         Route.get('/me/mcp', (MeController c) => c.mcp);
         Route.post('/me/mcp/rotate', (MeController c) => c.rotateMcp);

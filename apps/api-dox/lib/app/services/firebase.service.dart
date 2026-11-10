@@ -13,11 +13,16 @@ class FirebaseIdentity {
   final String? name;
   final String? picture;
 
+  /// The token has our `mfa` claim: this sign-in gave a two-step code, or
+  /// used a passkey. Only a custom token of this API can set it.
+  final bool secondFactor;
+
   const FirebaseIdentity({
     required this.uid,
     this.email,
     this.name,
     this.picture,
+    this.secondFactor = false,
   });
 }
 
@@ -67,15 +72,25 @@ class FirebaseService {
       email: decoded.email,
       name: name is String ? name : null,
       picture: decoded.picture,
+      secondFactor: decoded.claims[_mfaClaim] == true,
     );
   }
 
   /// A token the web app trades for a Firebase session with
-  /// `signInWithCustomToken`. Used after a passkey sign-in. The SDK signs
-  /// it with the service account key, so there is no network call.
-  Future<String> createCustomToken(String uid) {
-    return _getApp().auth().createCustomToken(uid);
+  /// `signInWithCustomToken`. Used after a passkey sign-in or a two-step
+  /// code. The SDK signs it with the service account key, so there is no
+  /// network call.
+  ///
+  /// [secondFactor] adds the `mfa` claim. Firebase copies it into every ID
+  /// token of that session, so the API needs no session of its own.
+  Future<String> createCustomToken(String uid, {bool secondFactor = false}) {
+    return _getApp().auth().createCustomToken(
+      uid,
+      developerClaims: secondFactor ? <String, Object?>{_mfaClaim: true} : null,
+    );
   }
+
+  static const String _mfaClaim = 'mfa';
 
   /// Starts the SDK at boot so a bad config shows up early. Never throws.
   void warmUp() {

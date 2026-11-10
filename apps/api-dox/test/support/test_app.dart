@@ -17,7 +17,8 @@ import 'package:test/test.dart';
 import '../../db/migration/migrations.dart';
 
 /// Accepts `Bearer <uid>` and signs in `<uid>@gmail.com`. `bad` is a bad
-/// token; `down` acts like Firebase timing out.
+/// token; `down` acts like Firebase timing out. `mfa:<uid>` is `<uid>`
+/// after the two-step code (or a passkey).
 class FakeFirebaseService extends FirebaseService {
   FakeFirebaseService() : super(const AppSettings.of());
 
@@ -25,16 +26,24 @@ class FakeFirebaseService extends FirebaseService {
   Future<FirebaseIdentity> verifyIdToken(String token) async {
     if (token == 'bad') throw const InvalidIdTokenException('bad token');
     if (token == 'down') throw TimeoutException('no answer');
+    bool secondFactor = token.startsWith('mfa:');
+    String uid = secondFactor ? token.substring(4) : token;
     return FirebaseIdentity(
-      uid: token,
-      email: '$token@gmail.com',
-      name: 'Test $token',
+      uid: uid,
+      email: '$uid@gmail.com',
+      name: 'Test $uid',
+      secondFactor: secondFactor,
     );
   }
 
-  /// `custom:<uid>`, so a test can see whose token it is.
+  /// `custom:<uid>` (or `mfa:<uid>`), so a test can see whose token it is.
   @override
-  Future<String> createCustomToken(String uid) async => 'custom:$uid';
+  Future<String> createCustomToken(
+    String uid, {
+    bool secondFactor = false,
+  }) async {
+    return secondFactor ? 'mfa:$uid' : 'custom:$uid';
+  }
 
   @override
   void warmUp() {}

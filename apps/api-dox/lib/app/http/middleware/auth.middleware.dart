@@ -43,6 +43,7 @@ class AuthMiddleware implements IDoxMiddleware {
 
     try {
       req.authUser = await users.findOrCreate(identity);
+      req.secondFactorDone = identity.secondFactor;
     } catch (error, stack) {
       Logger.danger('[auth] findOrCreate failed: $error\n$stack');
       // the error text can hold SQL; it is in the log above

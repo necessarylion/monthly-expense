@@ -16,6 +16,7 @@ class UserSerializer extends Serializer<User> {
       'email': m.email,
       'displayName': m.displayName,
       'photoUrl': m.photoUrl,
+      'twoFactorEnabled': m.totpEnabled == true,
     };
   }
 }

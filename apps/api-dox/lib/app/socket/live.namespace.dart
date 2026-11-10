@@ -37,7 +37,10 @@ class LiveNamespace extends NamespaceHandler {
     UserService users = Dox().ioc.get<UserService>();
     if (!users.isEmailAllowed(identity.email)) return null;
     try {
-      return await users.findOrCreate(identity);
+      User user = await users.findOrCreate(identity);
+      // same rule as `TwoFactorMiddleware`
+      if (user.totpEnabled == true && !identity.secondFactor) return null;
+      return user;
     } catch (error) {
       Logger.warn('[live] user setup failed: $error');
       throw SocketIoException(liveUnavailable);
