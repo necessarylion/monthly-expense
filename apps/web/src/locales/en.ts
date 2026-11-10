@@ -248,7 +248,6 @@ export default {
     entryType: 'Type',
     deleteEntryTitle: 'Delete this transaction?',
     deleteEntryAria: 'Delete transaction',
-    goldQuote: 'Buy {buy} · Sell {sell}',
   },
   shopping: {
     title: 'Shopping list',
@@ -268,8 +267,6 @@ export default {
     title: 'Exchange rates',
     perUnit: 'Value of 1 unit in',
     failed: 'Could not load rates',
-    buy: 'Buy',
-    sell: 'Sell',
     lakh: '1 Lakh',
   },
   confirm: {

@@ -249,7 +249,6 @@ export default {
     entryType: 'အမျိုးအစား',
     deleteEntryTitle: 'ဒီစာရင်းကို ဖျက်မလား?',
     deleteEntryAria: 'စာရင်းဖျက်ရန်',
-    goldQuote: 'ဝယ်ဈေး {buy} · ရောင်းဈေး {sell}',
   },
   shopping: {
     title: 'ဈေးဝယ်စာရင်း',
@@ -269,8 +268,6 @@ export default {
     title: 'ငွေလဲနှုန်း',
     perUnit: '၁ ယူနစ်တန်ဖိုး',
     failed: 'ငွေလဲနှုန်း ရယူလို့ မရဘူး',
-    buy: 'ဝယ်ဈေး',
-    sell: 'ရောင်းဈေး',
     lakh: '၁ သိန်း',
   },
   confirm: {
