@@ -55,6 +55,12 @@ class FirebaseService {
     } on FirebaseAuthAdminException catch (error) {
       throw InvalidIdTokenException('$error');
     }
+    // Anyone can make a password account with an email they do not own.
+    // The email picks up invites and passes ALLOWED_EMAILS, so it must be
+    // proven first. Google emails are always verified.
+    if (decoded.email != null && decoded.emailVerified != true) {
+      throw const InvalidIdTokenException('email is not verified');
+    }
     Object? name = decoded.claims['name'];
     return FirebaseIdentity(
       uid: decoded.uid,

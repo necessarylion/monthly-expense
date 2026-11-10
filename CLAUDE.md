@@ -18,7 +18,10 @@ Read this before changing code. It captures the non-obvious bits.
 
 ## Auth model (don't add sessions)
 
-- The frontend signs in via Firebase Google popup and stores nothing locally.
+- The frontend signs in via Firebase (Google popup, or email and password) and stores nothing locally.
+- `FirebaseService.verifyIdToken` refuses a token whose email is not verified.
+  Invites and `ALLOWED_EMAILS` trust the email, so do not remove this check.
+  The login page sends the verify link and signs the user out until then.
 - Every API request carries the Firebase **ID token** as `Authorization: Bearer <token>`.
   `apps/web/src/lib/api.ts` attaches it from `getIdToken()` automatically.
 - Passkeys: a signed-in user adds one on Me. The login page signs in with

@@ -6,7 +6,7 @@ let an AI assistant (over MCP) add expenses and read summaries for you.
 
 - **Web app:** React + Vite + shadcn/ui
 - **API:** Dart ([Dox](https://dartondox.dev) framework), SQLite or Postgres
-- **Sign-in:** Firebase (Google)
+- **Sign-in:** Firebase (Google, or email and password)
 - **AI:** an MCP server with OAuth sign-in
 
 ```
@@ -22,7 +22,8 @@ monthly-expense/
 
 ## How it works
 
-- The web app signs in with Firebase (Google). It keeps no session.
+- The web app signs in with Firebase (Google, or email and password). It keeps no session.
+- An email and password account must verify its email first. The API refuses a token whose email is not verified.
   Every API request sends the Firebase **ID token** as
   `Authorization: Bearer <token>`.
 - The API checks the token with `firebase_admin_sdk` on every request. It
@@ -39,7 +40,7 @@ monthly-expense/
 
 - **Dart** 3.13+ for the API.
 - **Bun** for the web app (`brew install oven-sh/bun/bun`).
-- A **Firebase project** with the Google sign-in provider on. From it you need:
+- A **Firebase project** with the Google and Email/Password sign-in providers on. From it you need:
   - the **web app config** (`apiKey`, `projectId`, `appId`), and
   - a **service account** (Project settings → Service accounts → Generate key).
 
