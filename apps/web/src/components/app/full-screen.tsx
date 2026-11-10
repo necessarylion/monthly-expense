@@ -53,7 +53,10 @@ export function FullScreen({ open, onClose, title, top, fields, children, footer
   )
 }
 
-/** The save bar of a `FullScreen`: flat, edge to edge, down into the phone's bottom safe area. */
+/**
+ * The save bar of a `FullScreen`: flat, edge to edge, down into the phone's
+ * bottom safe area. The label is centered over the whole bar, safe area included.
+ */
 export function FullScreenSave({
   label,
   disabled,
@@ -68,14 +71,14 @@ export function FullScreenSave({
 }) {
   return (
     <div className="flex items-stretch border-t">
-      {leading && <div className="flex items-center px-3 pb-safe">{leading}</div>}
+      {leading && <div className="flex items-center px-3">{leading}</div>}
       <button
         type="button"
         disabled={disabled}
         onClick={onClick}
-        className="flex-1 bg-primary pb-safe text-base font-semibold tracking-wide text-primary-foreground uppercase transition-opacity active:opacity-80 disabled:opacity-40"
+        className="flex h-[calc(3.5rem+env(safe-area-inset-bottom))] flex-1 items-center justify-center bg-primary text-base font-semibold tracking-wide text-primary-foreground uppercase transition-opacity active:opacity-80 disabled:opacity-40"
       >
-        <span className="flex h-14 items-center justify-center">{label}</span>
+        {label}
       </button>
     </div>
   )
