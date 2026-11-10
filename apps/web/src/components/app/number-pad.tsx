@@ -21,7 +21,8 @@ function isTextField(el: EventTarget | null): boolean {
 
 /**
  * On-screen keys, plus the hardware keyboard while no text field has focus.
- * Hidden while the phone keyboard is up (typing a note), so the sheet fits above it.
+ * The small pad hides while the phone keyboard is up (typing a note), so the sheet
+ * fits above it. The flat pad stays: the keyboard just covers it.
  */
 export function NumberPad({ onKey, onEnter, onEscape, flat, className }: NumberPadProps) {
   const t = useT()
@@ -47,7 +48,7 @@ export function NumberPad({ onKey, onEnter, onEscape, flat, className }: NumberP
   }, [])
 
   const keyboard = useKeyboardInset()
-  if (keyboard.open) return null
+  if (keyboard.open && !flat) return null
 
   return (
     <div

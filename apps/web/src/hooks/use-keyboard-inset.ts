@@ -6,6 +6,8 @@ export interface KeyboardInset {
   inset: number
   /** Height of the part of the screen still visible above the keyboard. */
   height: number
+  /** How far Safari panned the page up to show the focused field; 0 when it is closed. */
+  offsetTop: number
 }
 
 /** Smaller changes are browser toolbars sliding in and out, not a keyboard. */
@@ -17,7 +19,7 @@ const MIN_KEYBOARD = 120
  * keyboard; the inset says how far to lift it.
  */
 export function useKeyboardInset(): KeyboardInset {
-  const [state, setState] = useState<KeyboardInset>({ open: false, inset: 0, height: 0 })
+  const [state, setState] = useState<KeyboardInset>({ open: false, inset: 0, height: 0, offsetTop: 0 })
 
   useEffect(() => {
     const vv = window.visualViewport
@@ -30,7 +32,12 @@ export function useKeyboardInset(): KeyboardInset {
       const open = vv.scale < 1.05 && layout - vv.height > MIN_KEYBOARD
       const inset = open ? Math.max(0, Math.round(layout - vv.height - vv.offsetTop)) : 0
       const height = Math.round(vv.height)
-      setState((s) => (s.open === open && s.inset === inset && s.height === height ? s : { open, inset, height }))
+      const offsetTop = open ? Math.max(0, Math.round(vv.offsetTop)) : 0
+      setState((s) =>
+        s.open === open && s.inset === inset && s.height === height && s.offsetTop === offsetTop
+          ? s
+          : { open, inset, height, offsetTop }
+      )
     }
     update()
     vv.addEventListener('resize', update)

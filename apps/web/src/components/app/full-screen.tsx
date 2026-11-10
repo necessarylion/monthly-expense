@@ -1,6 +1,7 @@
 import { ChevronLeftIcon } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import type { ReactNode } from 'react'
+import { useKeyboardInset } from '@/hooks/use-keyboard-inset'
 import { t } from '@/lib/i18n'
 
 export interface FullScreenProps {
@@ -24,12 +25,16 @@ export interface FullScreenProps {
  * desktop it is a phone-wide column in the middle.
  */
 export function FullScreen({ open, onClose, title, top, fields, children, footer }: FullScreenProps) {
+  // Typing a note: Safari pans the page up to show the field. Move the screen down by as
+  // much, so it stays put and the keyboard covers the bottom (the number pad) instead.
+  const { offsetTop } = useKeyboardInset()
   return (
     <Dialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
         <Dialog.Content
           aria-describedby={undefined}
+          style={offsetTop ? { top: offsetTop, bottom: -offsetTop } : undefined}
           className="fixed inset-0 z-50 mx-auto flex max-w-md flex-col overflow-hidden bg-popover pt-safe text-popover-foreground outline-none duration-200 data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom sm:inset-y-4 sm:rounded-[28px] sm:border sm:shadow-2xl"
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
