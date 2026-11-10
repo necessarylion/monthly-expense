@@ -6,25 +6,17 @@ import { LoginScreen } from '@/screens/login'
 import { OAUTH_CONSENT_PATH, OAuthConsentScreen } from '@/screens/oauth-consent'
 import { SplashScreen } from '@/screens/splash'
 import { useAuth } from '@/stores/auth'
-import { useExpenses } from '@/stores/expenses'
-import { useGroups } from '@/stores/groups'
 
 /**
- * The splash covers the cold start: Firebase, /me + /groups, then the first
- * month. It latches off for good; later group or month switches never bring it back.
+ * The splash covers the cold start: Firebase, then /me. Groups and the first
+ * month load behind the dashboard. It latches off for good.
  */
 function useBooted(): boolean {
   const [booted, setBooted] = useState(false)
   const loading = useAuth((s) => s.loading)
   const booting = useAuth((s) => s.booting)
-  const user = useAuth((s) => s.user)
-  const activeId = useGroups((s) => s.activeId)
-  const syncedAt = useExpenses((s) => s.syncedAt)
-  const lastError = useExpenses((s) => s.lastError)
 
-  const waitingForData = !!user && !!activeId && syncedAt === null && lastError === null
-  const ready = !loading && !booting && !waitingForData
-  if (ready && !booted) setBooted(true)
+  if (!loading && !booting && !booted) setBooted(true)
 
   useEffect(() => {
     // ponytail: hard cap so a hung request never strands the user on the splash.
