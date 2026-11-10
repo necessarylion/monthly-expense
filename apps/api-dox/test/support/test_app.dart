@@ -71,7 +71,7 @@ class FakeClaudeClient extends ClaudeClient {
   Future<Object?> askJson({
     required String system,
     required String prompt,
-    required Map<String, dynamic> schema,
+    required Map<String, Object?> schema,
   }) async {
     calls++;
     return answer;
