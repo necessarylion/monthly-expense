@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:api_dox/app/services/file_cache.dart';
 import 'package:api_dox/app/services/fx/coinbase_rate_provider.dart';
 import 'package:api_dox/app/services/fx/fx.service.dart';
+import 'package:api_dox/app/services/fx/gold_quote_provider.dart';
 import 'package:api_dox/constants/fx.dart';
 import 'package:api_dox/http/http_error.dart';
 import 'package:dox_core/dox_core.dart';
@@ -137,6 +138,55 @@ void main() {
       CacheEntry<Object?>? entry = await cache.read('fx-coinbase-THB');
       expect(entry?.value, <String, dynamic>{'USD': 0.031});
       expect(entry?.at, greaterThan(0));
+    });
+  });
+
+  /// The shop quote has a real buy and sell. PAXG is only the fallback.
+  group('gold quote', () {
+    Directory dir = Directory.systemTemp.createTempSync('expense-gold-cache-');
+    FakeHttpFetch fetch = FakeHttpFetch();
+    FileCache cache = FileCache.withManager(
+      CacheManager(
+        CacheConfig(
+          defaultStore: 'file',
+          stores: <String, Map<String, dynamic>>{
+            'file': <String, dynamic>{'driver': 'file', 'path': dir.path},
+          },
+        ),
+      ),
+    );
+    GoldQuoteProvider provider = GoldQuoteProvider(cache, fetch);
+
+    tearDownAll(() => dir.deleteSync(recursive: true));
+
+    test('uses the shop ornament (JEWEL) row', () async {
+      fetch.answers[goldShopUrl] = <Map<String, dynamic>>[
+        <String, dynamic>{'GoldType': 'HSH', 'Buy': '64,640', 'Sell': '64,720'},
+        <String, dynamic>{
+          'GoldType': 'JEWEL',
+          'Buy': '63,308.16',
+          'Sell': '65,600',
+        },
+      ];
+      await provider.refresh();
+      GoldQuote quote = await provider.quote();
+      expect(quote.buyOrnament, 63308.16);
+      expect(quote.sellOrnament, 65600);
+      expect(await provider.thbPerGold(), 65600);
+    });
+
+    test('falls back to the PAXG spot price when the shop fails', () async {
+      fetch.answers
+        ..clear()
+        ..[goldTokenUrl] = <String, dynamic>{
+          'data': <String, dynamic>{
+            'rates': <String, dynamic>{'THB': '93031.5'},
+          },
+        };
+      await provider.refresh();
+      GoldQuote quote = await provider.quote();
+      expect(quote.buyOrnament, 43999);
+      expect(quote.sellOrnament, 43999);
     });
   });
 

@@ -329,6 +329,12 @@ export function AccountsScreen() {
   }
 
   function rateLine(a: Account): string | null {
+    if (a.currency === 'GLD' && total?.gold && total.gold.buyOrnament !== total.gold.sellOrnament) {
+      return t('accounts.goldQuote', {
+        buy: formatMoney(total.gold.buyOrnament, total.gold.currency),
+        sell: formatMoney(total.gold.sellOrnament, total.gold.currency),
+      })
+    }
     const rate = total?.rates?.[a.currency]
     if (a.currency !== code && rate) return `1 ${a.currency} ≈ ${formatMoney(rate, code, true)}`
     return null

@@ -160,6 +160,8 @@ export function RatesScreen() {
     )
   }
 
+  const thb = table?.rates.THB
+  const gold = table?.gold
   const rows = CURRENCIES.filter((c) => c.code !== base && c.code !== 'GLD')
 
   return (
@@ -183,11 +185,29 @@ export function RatesScreen() {
             <button
               type="button"
               onClick={() => setConverting('GLD')}
-              className="flex items-center gap-3 rounded-2xl border bg-gradient-to-br from-amber-500/15 to-amber-500/0 p-4 text-left transition-colors hover:bg-amber-500/10"
+              className="flex flex-col gap-3 rounded-2xl border bg-gradient-to-br from-amber-500/15 to-amber-500/0 p-4 text-left transition-colors hover:bg-amber-500/10"
             >
-              <CurrencyBadge code="GLD" />
-              <span className="flex-1 font-medium">{nameOf('GLD')}</span>
-              <span className="num font-semibold">{rateText('GLD') ?? '—'}</span>
+              <div className="flex items-center gap-3">
+                <CurrencyBadge code="GLD" />
+                <span className="flex-1 font-medium">{nameOf('GLD')}</span>
+                <span className="num font-semibold">{rateText('GLD') ?? '—'}</span>
+              </div>
+              {gold && thb && gold.buyOrnament !== gold.sellOrnament && (
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <span className="rounded-xl bg-background/70 px-3 py-2">
+                    <span className="block text-xs text-muted-foreground">{t('rates.buy')}</span>
+                    <span className="num font-semibold">
+                      {currencySymbol(base)} {fmtAmount(gold.buyOrnament / thb)}
+                    </span>
+                  </span>
+                  <span className="rounded-xl bg-background/70 px-3 py-2">
+                    <span className="block text-xs text-muted-foreground">{t('rates.sell')}</span>
+                    <span className="num font-semibold">
+                      {currencySymbol(base)} {fmtAmount(gold.sellOrnament / thb)}
+                    </span>
+                  </span>
+                </div>
+              )}
             </button>
           )}
           <ul className="overflow-hidden rounded-2xl border bg-card">
