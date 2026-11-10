@@ -13,10 +13,12 @@ const String defaultFxBase = 'USD';
 const String balanceAdjustmentNote = 'Balance adjustment';
 
 /// Quick-add suggestions: look this many days back, need this many
-/// repeats, return at most this many.
-const int frequentExpenseDays = 30;
+/// repeats, return at most this many. Claude picks the final list from
+/// up to [frequentCandidateLimit] rows.
+const int frequentExpenseDays = 90;
 const int frequentExpenseMinUses = 2;
 const int frequentExpenseLimit = 8;
+const int frequentCandidateLimit = 30;
 
 /// Balance history for the wallet cards.
 const int balanceHistoryDefaultDays = 30;

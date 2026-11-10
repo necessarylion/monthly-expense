@@ -2,6 +2,7 @@ import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/expense.repository.dart';
 import 'package:api_dox/app/services/account.service.dart';
+import 'package:api_dox/app/services/ai/quick_add_picker.dart';
 import 'package:api_dox/app/services/budget.service.dart';
 import 'package:api_dox/app/services/category.service.dart';
 import 'package:api_dox/app/services/live.service.dart';
@@ -71,6 +72,7 @@ class ExpenseService {
     this.budgets,
     this.accounts,
     this.live,
+    this.quickAdds,
   );
 
   final ExpenseRepository expenses;
@@ -78,6 +80,7 @@ class ExpenseService {
   final BudgetService budgets;
   final AccountService accounts;
   final LiveService live;
+  final QuickAddPicker quickAdds;
 
   /// The month's expenses with their category, newest first.
   Future<List<ExpenseWithCategory>> listForMonth(
@@ -102,15 +105,20 @@ class ExpenseService {
   }
 
   /// What this group logs again and again lately; the app shows these as
-  /// one-tap adds.
-  Future<List<FrequentExpense>> frequent(Group group) {
+  /// one-tap adds. Claude picks them and merges near-duplicates.
+  Future<List<FrequentExpense>> frequent(Group group) async {
     String since = DateUtil.addDays(DateUtil.today(), -frequentExpenseDays);
-    return expenses.frequent(
+    List<FrequentExpense> candidates = await expenses.frequent(
       group.id!,
       since,
       frequentExpenseMinUses,
-      frequentExpenseLimit,
+      frequentCandidateLimit,
     );
+    Map<int, String> names = <int, String>{
+      for (Category category in await categories.list(group))
+        category.id!: category.name,
+    };
+    return quickAdds.pick(group.id!, candidates, names);
   }
 
   Future<MonthlySummary> summary(Group group, MonthRange month) async {
