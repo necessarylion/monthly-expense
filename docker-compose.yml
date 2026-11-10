@@ -26,7 +26,7 @@ services:
       FIREBASE_APP_ID: ${FIREBASE_APP_ID}
     volumes:
       - expense-data:/app/storage
-    # Migrations run inside the binary on start. The healthcheck is in the Dockerfile.
+    # Migrations run inside the binary on start.
 
 volumes:
   expense-data:

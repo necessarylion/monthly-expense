@@ -59,7 +59,8 @@ RUN dart pub get --offline \
 ############################
 FROM debian:bookworm-slim AS runtime
 
-# ca-certificates: outgoing HTTPS (Firebase keys, FX rates). curl: healthcheck.
+# ca-certificates: outgoing HTTPS (Firebase keys, FX rates). curl: for checks
+# from inside the container.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates tini curl \
     && rm -rf /var/lib/apt/lists/*
@@ -86,8 +87,8 @@ ENV APP_ENV=production \
 EXPOSE 3333
 
 USER app
-HEALTHCHECK --interval=1m --timeout=5s --start-period=20s --retries=3 \
-    CMD curl -fsS http://localhost:3333/healthz || exit 1
+# No HEALTHCHECK: a call every minute kept the server busy for nothing.
+# GET /healthz still works if Coolify or a monitor wants to check it.
 
 # The API runs pending migrations itself on start (a SQLite backup first).
 ENTRYPOINT ["/usr/bin/tini", "--"]
