@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { ChoiceSheet } from '@/components/app/choice-sheet'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
 import { DateField } from '@/components/app/date-picker'
@@ -37,6 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { DeleteButton } from '@/components/ui/delete-button'
 import { Input } from '@/components/ui/input'
+import { OtpInput } from '@/components/ui/otp-input'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -1122,6 +1123,7 @@ function TwoFactor() {
   /** `uri` goes into the QR code; `secret` is the same key as text. */
   const [setup, setSetup] = useState<{ secret: string; uri: string } | null>(null)
   const [code, setCode] = useState('')
+  const [failed, setFailed] = useState(false)
   const [busy, setBusy] = useState(false)
 
   async function run(action: () => Promise<void>) {
@@ -1142,12 +1144,18 @@ function TwoFactor() {
     })
   }
 
-  function confirm(e: FormEvent) {
-    e.preventDefault()
+  /** Runs when the last digit is typed, or on the button. */
+  function confirm(value: string) {
+    if (busy || value.length !== 6) return
     void run(async () => {
-      const { data } = await api.post<{ data: { token: string } }>('/me/totp/enable', { code })
-      // From now on the API wants a token that says "the code was given". This is one.
-      await signInWithToken(data.data.token)
+      try {
+        const { data } = await api.post<{ data: { token: string } }>('/me/totp/enable', { code: value })
+        // From now on the API wants a token that says "the code was given". This is one.
+        await signInWithToken(data.data.token)
+      } catch (e) {
+        setFailed(true)
+        throw e
+      }
       await refreshMe()
       setSetup(null)
       setCode('')
@@ -1174,7 +1182,13 @@ function TwoFactor() {
           <DeleteButton onConfirm={turnOff} className="shrink-0" />
         </div>
       ) : setup ? (
-        <form className="flex flex-col gap-3" onSubmit={confirm}>
+        <form
+          className="flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            confirm(code)
+          }}
+        >
           <p className="text-sm text-muted-foreground">{t('settings.twoFactorScan')}</p>
           {/* White box: a scanner needs dark on light, in every theme. */}
           <div className="self-center rounded-xl bg-white p-3">
@@ -1182,22 +1196,32 @@ function TwoFactor() {
           </div>
           <p className="text-sm text-muted-foreground">{t('settings.twoFactorKey')}</p>
           <code className="rounded-lg bg-muted px-3 py-2 text-sm break-all select-all">{setup.secret}</code>
-          <Input
-            required
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="[0-9]{6}"
-            maxLength={6}
+          <OtpInput
+            size="sm"
+            role="group"
             aria-label={t('app.mfaCode')}
-            placeholder={t('app.mfaCode')}
-            className="h-10 text-center tracking-[0.4em]"
+            className="self-center py-1"
             value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+            status={failed ? 'error' : 'idle'}
+            onChange={(value) => {
+              setCode(value)
+              setFailed(false)
+            }}
+            onComplete={confirm}
           />
-          <Button type="submit" className="rounded-xl" disabled={busy}>
+          <Button type="submit" className="rounded-xl" disabled={busy || code.length !== 6}>
             {busy ? t('common.working') : t('common.confirm')}
           </Button>
-          <Button type="button" variant="ghost" className="rounded-xl" onClick={() => setSetup(null)}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-xl"
+            onClick={() => {
+              setSetup(null)
+              setCode('')
+              setFailed(false)
+            }}
+          >
             {t('common.cancel')}
           </Button>
         </form>

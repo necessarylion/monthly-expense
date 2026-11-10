@@ -2,9 +2,12 @@ import { KeyRoundIcon } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { OtpInput } from '@/components/ui/otp-input'
 import { useT } from '@/lib/i18n'
 import { passkeySupported } from '@/lib/passkey'
 import { useAuth } from '@/stores/auth'
+
+const CODE_LENGTH = 6
 
 function GoogleMark() {
   return (
@@ -36,31 +39,42 @@ function MfaForm() {
   const logout = useAuth((s) => s.logout)
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
 
-  async function submit(e: FormEvent) {
-    e.preventDefault()
+  /** Runs when the last digit is typed, or on the button. A right code reloads the page. */
+  async function send(value: string) {
+    if (busy || value.length !== CODE_LENGTH) return
     setBusy(true)
-    await verifyMfa(code)
+    await verifyMfa(value)
     setBusy(false)
+    setFailed(useAuth.getState().error !== null)
   }
 
   return (
-    <form className="flex flex-col gap-3" onSubmit={(e) => void submit(e)}>
+    <form
+      className="flex flex-col gap-3"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void send(code)
+      }}
+    >
       <p className="text-sm text-muted-foreground">{t('app.mfaTitle')}</p>
-      <Input
+      <OtpInput
         autoFocus
-        required
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        pattern="[0-9]{6}"
-        maxLength={6}
+        size="sm"
+        length={CODE_LENGTH}
+        role="group"
         aria-label={t('app.mfaCode')}
-        placeholder={t('app.mfaCode')}
-        className="h-12 rounded-xl px-4 text-center text-lg tracking-[0.4em]"
+        className="self-center py-2"
         value={code}
-        onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+        status={failed ? 'error' : 'idle'}
+        onChange={(value) => {
+          setCode(value)
+          setFailed(false)
+        }}
+        onComplete={(value) => void send(value)}
       />
-      <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy}>
+      <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy || code.length !== CODE_LENGTH}>
         {busy ? t('common.working') : t('app.mfaVerify')}
       </Button>
       <Button type="button" size="lg" variant="ghost" className="h-12 rounded-xl text-base" onClick={() => void logout()}>
