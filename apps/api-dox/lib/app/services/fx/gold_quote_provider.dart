@@ -48,7 +48,7 @@ class GoldQuote {
 
 const String _key = 'fx-gold';
 
-/// Thai Gold Traders Association ornament quote, via thaigoldtoday.com.
+/// The baht-gold price, worked out from the PAXG rate of Coinbase.
 /// Kept in the file cache for [fxTtl] (an hour). A stale quote beats an
 /// error.
 @Inject()
@@ -93,9 +93,16 @@ class GoldQuoteProvider {
     return current;
   }
 
+  /// THB per ounce from the PAXG rates, turned into THB per baht-gold.
+  /// The spot price has no shop spread, so buy and sell are the same.
   Future<GoldQuote?> _fetchCurrent() async {
-    Object? json = await http.getJson(goldPriceUrl);
-    return json is Map ? GoldQuote.fromJson(json['current']) : null;
+    Object? json = await http.getJson(goldTokenUrl);
+    Object? data = json is Map ? json['data'] : null;
+    Object? rates = data is Map ? data['rates'] : null;
+    if (rates is! Map) return null;
+    double perOunce = GoldQuote._number(rates['THB']);
+    double price = (perOunce * ouncesPerBahtGold).roundToDouble();
+    return GoldQuote(price, price);
   }
 
   static int _age(int at) => DateTime.now().millisecondsSinceEpoch - at;

@@ -153,15 +153,16 @@ void main() {
     });
 
     test('rates with gold, and a total across currencies', () async {
+      // First: the fake matches by prefix, and this URL starts with the
+      // Coinbase one.
+      app.fetch.answers[goldTokenUrl] = <String, dynamic>{
+        'data': <String, dynamic>{
+          'rates': <String, dynamic>{'THB': '93031.5'},
+        },
+      };
       app.fetch.answers[coinbaseRatesUrl] = <String, dynamic>{
         'data': <String, dynamic>{
           'rates': <String, dynamic>{'USD': '0.03', 'THB': '1', 'MMK': '60'},
-        },
-      };
-      app.fetch.answers[goldPriceUrl] = <String, dynamic>{
-        'current': <String, dynamic>{
-          'buyOrnament': 43500,
-          'sellOrnament': '44000',
         },
       };
 
@@ -172,10 +173,11 @@ void main() {
       expect(data['at'], isA<int>());
       expect(data['rates']['USD'], 0.03);
       expect(data['rates']['MMK'], closeTo(60 * mmkMarketRatio, 1e-9));
-      expect(data['rates']['GLD'], closeTo(1 / 44000, 1e-12));
+      // 93031.5 THB per ounce * ouncesPerBahtGold = 43999.43, rounded.
+      expect(data['rates']['GLD'], closeTo(1 / 43999, 1e-12));
       expect(data['gold'], <String, dynamic>{
-        'buyOrnament': 43500,
-        'sellOrnament': 44000,
+        'buyOrnament': 43999,
+        'sellOrnament': 43999,
       });
 
       Future<void> wallet(String currency, num amount) async {
