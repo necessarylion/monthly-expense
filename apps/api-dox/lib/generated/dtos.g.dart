@@ -9,6 +9,7 @@ import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/dtos/group/group.dto.dart';
 import 'package:api_dox/app/dtos/oauth/oauth.dto.dart';
 import 'package:api_dox/app/dtos/passkey/passkey.dto.dart';
+import 'package:api_dox/app/dtos/quick_add_pick/quick_add_pick.dto.dart';
 import 'package:api_dox/app/dtos/recurring/recurring.dto.dart';
 import 'package:api_dox/app/dtos/shopping_item/shopping_item.dto.dart';
 
@@ -39,6 +40,7 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $OauthClientQueryDto,
   $PageQueryDto,
   $PasskeyLoginDto,
+  $QuickAddPickDto,
   $SearchQueryDto,
   $SetBudgetDto,
   $SetDefaultAccountDto,

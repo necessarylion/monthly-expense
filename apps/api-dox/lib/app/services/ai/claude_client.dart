@@ -25,7 +25,7 @@ class ClaudeClient {
   Future<Object?> askJson({
     required String system,
     required String prompt,
-    required Map<String, Object?> schema,
+    required Map<String, dynamic> schema,
   }) async {
     if (!enabled) return null;
     http.Client client = http.Client();

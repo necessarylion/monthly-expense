@@ -60,7 +60,7 @@ void main() {
     FakeClaudeClient claude = FakeClaudeClient()
       ..on = true
       ..answer = <String, Object?>{
-        'ids': <Object?>[2, 0, 99, -1, 'x', 0],
+        'ids': <Object?>[2, 0, 99, -1, 0],
       };
     QuickAddPicker picker = QuickAddPicker(claude, cache);
     expect(notes(await picker.pick(2, candidates, names)), <String>[
@@ -83,6 +83,16 @@ void main() {
     // A new candidate: Claude is asked again.
     await picker.pick(2, <FrequentExpense>[...more, row('Taxi', 2)], names);
     expect(claude.calls, 2);
+  });
+
+  test('an answer in the wrong shape gives the plain list', () async {
+    FakeClaudeClient claude = FakeClaudeClient()
+      ..on = true
+      ..answer = <String, Object?>{
+        'ids': <Object?>[0, 'x'],
+      };
+    QuickAddPicker picker = QuickAddPicker(claude, cache);
+    expect(notes(await picker.pick(4, candidates, names)).length, 3);
   });
 
   test('a failed answer gives the plain list and waits before retry', () async {

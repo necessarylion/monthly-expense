@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:api_dox/app/dtos/quick_add_pick/quick_add_pick.dto.dart';
 import 'package:api_dox/app/repositories/expense.repository.dart';
 import 'package:api_dox/app/services/ai/claude_client.dart';
 import 'package:api_dox/app/services/file_cache.dart';
@@ -15,18 +16,6 @@ const String _system =
     'amount (for example "Coffee" and "coffee", or "Grab" and "Grab taxi"). '
     'For a merged item keep the row that is used most, then the newest. '
     'Prefer items the group still logs lately. Answer with the ids only.';
-
-const Map<String, Object?> _schema = <String, Object?>{
-  'type': 'object',
-  'properties': <String, Object?>{
-    'ids': <String, Object?>{
-      'type': 'array',
-      'items': <String, Object?>{'type': 'integer'},
-    },
-  },
-  'required': <String>['ids'],
-  'additionalProperties': false,
-};
 
 /// Picks the quick-add list from the repeat expenses, with Claude.
 ///
@@ -94,12 +83,15 @@ class QuickAddPicker {
     Object? answer = await claude.askJson(
       system: _system,
       prompt: jsonEncode(rows),
-      schema: _schema,
+      schema: QuickAddPick.schema.toJsonSchema(),
     );
-    if (answer is! Map || answer['ids'] is! List) return null;
+    if (answer is! Map<String, dynamic>) return null;
+    ParseResult<QuickAddPick> parsed = await QuickAddPick.schema
+        .safeValidateMap(answer);
+    if (!parsed.success) return null;
     List<String> keys = <String>[];
-    for (Object? id in answer['ids'] as List<Object?>) {
-      if (id is int && id >= 0 && id < candidates.length) {
+    for (int id in parsed.value!.ids) {
+      if (id >= 0 && id < candidates.length) {
         String key = _key(candidates[id]);
         if (!keys.contains(key)) keys.add(key);
       }
