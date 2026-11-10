@@ -26,6 +26,8 @@ class _$AppEnv extends AppEnv {
     required this.firebaseApiKey,
     required this.firebaseAuthDomain,
     required this.firebaseAppId,
+    required this.anthropicApiKey,
+    required this.anthropicModel,
     required this.logLevel,
   });
 
@@ -66,6 +68,10 @@ class _$AppEnv extends AppEnv {
   @override
   final String? firebaseAppId;
   @override
+  final String? anthropicApiKey;
+  @override
+  final String anthropicModel;
+  @override
   final String logLevel;
 
   /// reads and checks every key once. Throws `EnvException` with all
@@ -91,6 +97,8 @@ class _$AppEnv extends AppEnv {
     String? firebaseApiKey = r.string('FIREBASE_API_KEY');
     String? firebaseAuthDomain = r.string('FIREBASE_AUTH_DOMAIN');
     String? firebaseAppId = r.string('FIREBASE_APP_ID');
+    String? anthropicApiKey = r.string('ANTHROPIC_API_KEY');
+    String anthropicModel = r.string('ANTHROPIC_MODEL') ?? d.anthropicModel;
     String logLevel = r.string('LOG_LEVEL') ?? d.logLevel;
 
     r.check();
@@ -113,6 +121,8 @@ class _$AppEnv extends AppEnv {
       firebaseApiKey: firebaseApiKey,
       firebaseAuthDomain: firebaseAuthDomain,
       firebaseAppId: firebaseAppId,
+      anthropicApiKey: anthropicApiKey,
+      anthropicModel: anthropicModel,
       logLevel: logLevel,
     );
   }
@@ -143,4 +153,7 @@ class _$AppEnvDefaults extends AppEnv {
   @override
   String? get firebaseAppId =>
       throw StateError('FIREBASE_APP_ID has no default');
+  @override
+  String? get anthropicApiKey =>
+      throw StateError('ANTHROPIC_API_KEY has no default');
 }

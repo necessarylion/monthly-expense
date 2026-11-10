@@ -32,6 +32,12 @@ class AppSettings {
   final String? firebaseAuthDomain;
   final String? firebaseAppId;
 
+  /// Claude API key for the quick-add list. Null: plain list.
+  final String? anthropicApiKey;
+
+  /// The Claude model for the quick-add list.
+  final String anthropicModel;
+
   /// The settings from the env of this process.
   factory AppSettings() => AppSettings.fromEnv(env);
 
@@ -51,6 +57,8 @@ class AppSettings {
     this.firebaseApiKey,
     this.firebaseAuthDomain,
     this.firebaseAppId,
+    this.anthropicApiKey,
+    this.anthropicModel = 'claude-opus-5-5',
   });
 
   factory AppSettings.fromEnv(AppEnv env) {
@@ -78,6 +86,8 @@ class AppSettings {
               '${env.firebaseProjectId}.firebaseapp.com',
             ),
       firebaseAppId: env.firebaseAppId,
+      anthropicApiKey: env.anthropicApiKey,
+      anthropicModel: _orDefault(env.anthropicModel, 'claude-opus-5-5'),
     );
   }
 
@@ -104,6 +114,8 @@ class AppSettings {
       firebaseApiKey: firebaseApiKey,
       firebaseAuthDomain: firebaseAuthDomain,
       firebaseAppId: firebaseAppId,
+      anthropicApiKey: anthropicApiKey,
+      anthropicModel: anthropicModel,
     );
   }
 

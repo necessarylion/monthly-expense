@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:api_dox/app/services/ai/claude_client.dart';
 import 'package:api_dox/app/services/firebase.service.dart';
 import 'package:api_dox/app/services/fx/http_fetch.dart';
 import 'package:api_dox/config/app.dart';
@@ -54,6 +55,29 @@ class FakeHttpFetch extends HttpFetch {
   }
 }
 
+/// Claude with a set answer, and counts the calls. Off by default, so no
+/// test calls the real API, even when `.env` has a key.
+class FakeClaudeClient extends ClaudeClient {
+  FakeClaudeClient() : super(const AppSettings.of());
+
+  bool on = false;
+  Object? answer;
+  int calls = 0;
+
+  @override
+  bool get enabled => on;
+
+  @override
+  Future<Object?> askJson({
+    required String system,
+    required String prompt,
+    required Map<String, Object?> schema,
+  }) async {
+    calls++;
+    return answer;
+  }
+}
+
 /// The app on a real HTTP server, with an empty database.
 ///
 /// The database is the one of `.env.testing` (a SQLite file), or Postgres
@@ -79,6 +103,7 @@ class TestApp {
     FakeHttpFetch fetch = FakeHttpFetch();
     Dox().ioc.override<FirebaseService>(FakeFirebaseService());
     Dox().ioc.override<HttpFetch>(fetch);
+    Dox().ioc.override<ClaudeClient>(FakeClaudeClient());
     DoxTestClient client = await DoxTestClient.start(appConfig);
     return TestApp._(client, fetch);
   }
