@@ -40,16 +40,18 @@ class GoldQuote {
     return GoldQuote(buy, sell);
   }
 
+  /// A number, or a string like `"63,308.16"`. NaN when it is neither.
   static double _number(Object? value) {
     if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '') ?? double.nan;
+    String text = (value?.toString() ?? '').replaceAll(',', '');
+    return double.tryParse(text) ?? double.nan;
   }
 }
 
 const String _key = 'fx-gold';
 
-/// The baht-gold price, worked out from the PAXG rate of Coinbase.
-/// Kept in the file cache for [fxTtl] (an hour). A stale quote beats an
+/// The baht-gold ornament quote from Hua Seng Heng, or the PAXG spot price
+/// of Coinbase when the shop fails. Kept in the file cache for [fxTtl] (an hour). A stale quote beats an
 /// error.
 @Inject()
 class GoldQuoteProvider {
@@ -93,9 +95,27 @@ class GoldQuoteProvider {
     return current;
   }
 
+  Future<GoldQuote?> _fetchCurrent() async =>
+      await _fetchShop() ?? await _fetchSpot();
+
+  /// The shop's `JEWEL` row (96.5% ornament gold), with its own buy and sell.
+  Future<GoldQuote?> _fetchShop() async {
+    Object? json = await http.getJson(goldShopUrl, timeout: goldShopTimeout);
+    if (json is! List) return null;
+    for (Object? row in json) {
+      if (row is! Map || row['GoldType'] != 'JEWEL') continue;
+      double buy = GoldQuote._number(row['Buy']);
+      double sell = GoldQuote._number(row['Sell']);
+      if (buy.isFinite && sell.isFinite && buy > 0 && sell >= buy) {
+        return GoldQuote(buy, sell);
+      }
+    }
+    return null;
+  }
+
   /// THB per ounce from the PAXG rates, turned into THB per baht-gold.
   /// The spot price has no shop spread, so buy and sell are the same.
-  Future<GoldQuote?> _fetchCurrent() async {
+  Future<GoldQuote?> _fetchSpot() async {
     Object? json = await http.getJson(goldTokenUrl);
     Object? data = json is Map ? json['data'] : null;
     Object? rates = data is Map ? data['rates'] : null;

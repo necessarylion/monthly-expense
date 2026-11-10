@@ -9,12 +9,13 @@ import 'package:http/http.dart' as http;
 /// Null on any failure. Tests replace it with a fake.
 @Inject()
 class HttpFetch {
-  Future<Object?> getJson(String url) async {
+  Future<Object?> getJson(
+    String url, {
+    Duration timeout = fxFetchTimeout,
+  }) async {
     http.Client client = http.Client();
     try {
-      http.Response res = await client
-          .get(Uri.parse(url))
-          .timeout(fxFetchTimeout);
+      http.Response res = await client.get(Uri.parse(url)).timeout(timeout);
       if (res.statusCode < 200 || res.statusCode >= 300) return null;
       // Parses the bytes directly, with no String copy in between.
       return utf8.decoder.fuse(json.decoder).convert(res.bodyBytes);

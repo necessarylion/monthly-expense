@@ -7,6 +7,7 @@ import 'package:api_dox/app/services/fx/http_fetch.dart';
 import 'package:api_dox/config/app.dart';
 import 'package:api_dox/config/database.dart';
 import 'package:api_dox/config/settings.dart';
+import 'package:api_dox/constants/fx.dart';
 import 'package:api_dox/db/migrate.dart';
 import 'package:dox_core/dox_core.dart';
 import 'package:dox_core/testing.dart';
@@ -46,7 +47,10 @@ class FakeHttpFetch extends HttpFetch {
   int calls = 0;
 
   @override
-  Future<Object?> getJson(String url) async {
+  Future<Object?> getJson(
+    String url, {
+    Duration timeout = fxFetchTimeout,
+  }) async {
     calls++;
     for (MapEntry<String, Object?> answer in answers.entries) {
       if (url.startsWith(answer.key)) return answer.value;
