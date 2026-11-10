@@ -1,5 +1,7 @@
 import { KeyRoundIcon } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useT } from '@/lib/i18n'
 import { passkeySupported } from '@/lib/passkey'
 import { useAuth } from '@/stores/auth'
@@ -31,7 +33,32 @@ export function LoginScreen() {
   const t = useT()
   const login = useAuth((s) => s.login)
   const loginWithPasskey = useAuth((s) => s.loginWithPasskey)
+  const loginWithEmail = useAuth((s) => s.loginWithEmail)
+  const sendPasswordReset = useAuth((s) => s.sendPasswordReset)
   const error = useAuth((s) => s.error)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    setNotice(null)
+    setBusy(true)
+    const result = await loginWithEmail(email, password, creating)
+    setBusy(false)
+    if (result !== 'verify') return
+    setNotice(t('app.verifySent', { email }))
+    setCreating(false)
+    setPassword('')
+  }
+
+  async function forgot() {
+    if (!email) return setNotice(t('app.enterEmail'))
+    setNotice(null)
+    if (await sendPasswordReset(email)) setNotice(t('app.resetSent', { email }))
+  }
 
   return (
     <main className="relative flex min-h-dvh flex-col overflow-hidden bg-background px-6 pt-safe pb-safe">
@@ -49,6 +76,52 @@ export function LoginScreen() {
           </div>
         </div>
         <div className="flex flex-col gap-3">
+          <form className="flex flex-col gap-3" onSubmit={(e) => void submit(e)}>
+            <Input
+              type="email"
+              required
+              autoComplete="email"
+              aria-label={t('app.email')}
+              placeholder={t('app.email')}
+              className="h-12 rounded-xl px-4"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              required
+              minLength={6}
+              autoComplete={creating ? 'new-password' : 'current-password'}
+              aria-label={t('app.password')}
+              placeholder={t('app.password')}
+              className="h-12 rounded-xl px-4"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy}>
+              {t(creating ? 'app.createAccount' : 'app.signInEmail')}
+            </Button>
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <button type="button" className="underline-offset-4 hover:underline" onClick={() => setCreating(!creating)}>
+                {t(creating ? 'app.haveAccount' : 'app.createAccount')}
+              </button>
+              {!creating && (
+                <button type="button" className="underline-offset-4 hover:underline" onClick={() => void forgot()}>
+                  {t('app.forgotPassword')}
+                </button>
+              )}
+            </div>
+          </form>
+          {notice && (
+            <p role="status" className="text-sm text-muted-foreground">
+              {notice}
+            </p>
+          )}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            {t('app.or')}
+            <span className="h-px flex-1 bg-border" />
+          </div>
           <Button size="lg" variant="outline" className="h-12 rounded-xl text-base" onClick={() => void login()}>
             <GoogleMark />
             {t('app.signIn')}

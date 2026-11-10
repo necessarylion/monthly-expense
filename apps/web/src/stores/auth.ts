@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { api, getActiveGroupId } from '@/lib/api'
-import { onAuthChange, signInWithGoogle, signInWithToken, signOut } from '@/lib/firebase'
+import { onAuthChange, resetPassword, signInWithEmail, signInWithGoogle, signInWithToken, signOut } from '@/lib/firebase'
+import { t } from '@/lib/i18n'
 import { startLive, stopLive } from '@/lib/live'
 import { signInWithPasskeyToken } from '@/lib/passkey'
 import type { McpClient, User } from '@/lib/types'
@@ -22,6 +23,10 @@ interface AuthState {
   watch(): void
   login(): Promise<void>
   loginWithPasskey(): Promise<void>
+  /** Returns 'verify' when a verify link was sent instead of signing in. */
+  loginWithEmail(email: string, password: string, create: boolean): Promise<'ok' | 'verify' | 'error'>
+  /** Sends a password reset link. Returns false on an error. */
+  sendPasswordReset(email: string): Promise<boolean>
   logout(): Promise<void>
   refreshMe(): Promise<void>
   loadMcpUrl(): Promise<void>
@@ -33,6 +38,13 @@ interface AuthState {
 interface McpInfo {
   url: string
   clients?: McpClient[]
+}
+
+/** Firebase errors look like "Firebase: Error (auth/...)". Show our own text for the known codes. */
+function authError(e: any): string {
+  const key = `app.authError.${String(e?.code).replace('auth/', '')}`
+  const text = t(key)
+  return text === key ? (e?.message ?? 'Sign-in failed') : text
 }
 
 export const useAuth = create<AuthState>((set, get) => ({
@@ -134,6 +146,27 @@ export const useAuth = create<AuthState>((set, get) => ({
       // The user closed the browser's passkey prompt: not an error.
       if (e?.name === 'NotAllowedError' || e?.name === 'AbortError') return
       set({ error: e?.message ?? 'Sign-in failed' })
+    }
+  },
+
+  async loginWithEmail(email, password, create) {
+    set({ error: null })
+    try {
+      return (await signInWithEmail(email, password, create)) ? 'ok' : 'verify'
+    } catch (e: any) {
+      set({ error: authError(e) })
+      return 'error'
+    }
+  },
+
+  async sendPasswordReset(email) {
+    set({ error: null })
+    try {
+      await resetPassword(email)
+      return true
+    } catch (e: any) {
+      set({ error: authError(e) })
+      return false
     }
   },
 
