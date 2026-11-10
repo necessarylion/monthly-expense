@@ -58,7 +58,8 @@ class ClaudeClient {
           )
           .timeout(claudeTimeout);
       if (res.statusCode < 200 || res.statusCode >= 300) return null;
-      return _answer(jsonDecode(utf8.decode(res.bodyBytes)));
+      // Parses the bytes directly, with no String copy in between.
+      return _answer(utf8.decoder.fuse(json.decoder).convert(res.bodyBytes));
     } catch (_) {
       return null;
     } finally {
