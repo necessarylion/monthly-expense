@@ -109,8 +109,10 @@ Read this before changing code. It captures the non-obvious bits.
   (`lib/theme.ts`). Each palette is a CSS class in `index.css`. `midnight`
   and `forest` are dark, so they also get `.dark`. A script in `index.html`
   sets the classes before first paint; keep its lists in sync with `theme.ts`.
-- Every add/edit form is a `Sheet` (`components/app/sheet.tsx`): a floating vaul
-  drawer whose height animates between views. Deletes inside sheets use Rare
+- Add expense and add wallet transaction are full screen (`components/app/full-screen.tsx`):
+  a back button, the fields, the amount, then a flat number pad and the save bar. No
+  header and no tab bar. Every other add/edit form is a `Sheet` (`components/app/sheet.tsx`):
+  a floating vaul drawer whose height animates between views. Deletes inside sheets use Rare
   UI's `DeleteButton` (confirm in place); success shows a `toast`.
 - Icons come from `lucide-react` mapped by `icon_key`. The `icon_key`
   strings match `DEFAULT_CATEGORIES`; new categories pick from `ICON_OPTIONS`.

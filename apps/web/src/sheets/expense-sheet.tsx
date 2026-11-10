@@ -4,8 +4,7 @@ import { ChipRail } from '@/components/app/chip-rail'
 import { CategoryIcon } from '@/components/app/category-icon'
 import { DatePicker } from '@/components/app/date-picker'
 import { NumberPad } from '@/components/app/number-pad'
-import { Sheet } from '@/components/app/sheet'
-import { Button } from '@/components/ui/button'
+import { FullScreen, FullScreenSave } from '@/components/app/full-screen'
 import { DeleteButton } from '@/components/ui/delete-button'
 import { Input } from '@/components/ui/input'
 import { SelectField } from '@/components/app/select-field'
@@ -38,7 +37,7 @@ export function AmountDisplay({
   sign?: { text: string; className: string }
 }) {
   return (
-    <output aria-live="polite" className="flex h-20 items-center justify-center gap-1.5 overflow-hidden">
+    <output aria-live="polite" className="flex h-20 shrink-0 items-center justify-center gap-1.5 overflow-hidden">
       {sign && <span className={cn('text-4xl font-semibold', sign.className)}>{sign.text}</span>}
       <span className="text-3xl font-medium text-muted-foreground">{symbol}</span>
       <span
@@ -144,70 +143,52 @@ export function ExpenseSheet() {
   }
 
   return (
-    <Sheet
-      docked
+    <FullScreen
       open={open}
       onClose={close}
       title={isEdit ? t('expenseModal.titleEdit') : t('expenseModal.titleNew')}
-      hideTitle
-      footer={
-        <div className="flex items-center gap-2">
-          {isEdit && <DeleteButton onConfirm={() => void remove()} className="shrink-0" />}
-          <Button size="lg" className="h-12 flex-1 rounded-2xl text-base" disabled={!valid || submitting} onClick={() => void submit()}>
-            {submitting ? t('common.saving') : isEdit ? t('expenseModal.saveEdit') : t('expenseModal.saveNew')}
-          </Button>
-        </div>
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <AmountDisplay
-          symbol={currencySymbol(currency)}
-          display={input.display}
-          sizeClass={input.sizeClass}
-          dim={!input.amount || input.replaceOnType}
-        />
-
-        <ChipRail
-          ref={chips}
-          role="group"
-          aria-label={t('expenseModal.category')}
-          className="grid auto-cols-max grid-flow-col grid-rows-2 gap-2"
-        >
-          {categories.map((c) => {
-            const active = categoryId === c.id
-            return (
-              <button
-                key={c.id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setCategoryId(c.id)}
-                className={cn(
-                  'flex items-center gap-2 rounded-full border py-1 pr-3.5 pl-1 text-sm transition-colors',
-                  active ? 'font-semibold' : 'bg-background'
-                )}
-                style={active ? { background: tintBg(c.color, 14), borderColor: c.color } : undefined}
-              >
-                <CategoryIcon iconKey={c.iconKey} color={c.color} size={28} className="rounded-full" />
-                <span className="max-w-28 truncate">{c.name}</span>
-              </button>
-            )
-          })}
-        </ChipRail>
-
-        <DatePicker value={date} onChange={setDate} />
-
-        <div className="flex gap-2">
+      top={<DatePicker value={date} onChange={setDate} />}
+      fields={
+        <>
           {!isEdit && accounts.length > 0 && (
             <SelectField
               size="lg"
               aria-label={t('expenseModal.payFrom')}
-              className="max-w-[45%] rounded-full px-3.5"
+              className="w-full shrink-0 rounded-full px-3.5"
               icon={<WalletIcon className="text-muted-foreground" />}
               value={payFromId === null ? NONE : String(payFromId)}
               onChange={(v) => setPayFromId(v === NONE ? null : Number(v))}
               options={[{ value: NONE, label: t('accounts.none') }, ...payFrom.map((a) => ({ value: String(a.id), label: a.name }))]}
             />
           )}
+
+          <ChipRail
+            ref={chips}
+            role="group"
+            aria-label={t('expenseModal.category')}
+            className="grid auto-cols-max grid-flow-col grid-rows-2 gap-2"
+          >
+            {categories.map((c) => {
+              const active = categoryId === c.id
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setCategoryId(c.id)}
+                  className={cn(
+                    'flex items-center gap-2 rounded-full border py-1 pr-3.5 pl-1 text-sm transition-colors',
+                    active ? 'font-semibold' : 'bg-background'
+                  )}
+                  style={active ? { background: tintBg(c.color, 14), borderColor: c.color } : undefined}
+                >
+                  <CategoryIcon iconKey={c.iconKey} color={c.color} size={28} className="rounded-full" />
+                  <span className="max-w-28 truncate">{c.name}</span>
+                </button>
+              )
+            })}
+          </ChipRail>
+
           <Input
             value={note}
             maxLength={500}
@@ -215,27 +196,43 @@ export function ExpenseSheet() {
             onKeyDown={(e) => e.key === 'Enter' && void submit()}
             aria-label={t('expenseModal.note')}
             placeholder={t('expenseModal.notePlaceholder')}
-            className="h-11 flex-1 rounded-full px-4 text-base sm:text-sm"
+            className="h-11 shrink-0 rounded-full px-4 text-base sm:text-sm"
           />
-        </div>
+        </>
+      }
+      footer={
+        <FullScreenSave
+          label={submitting ? t('common.saving') : isEdit ? t('expenseModal.saveEdit') : t('expenseModal.saveNew')}
+          disabled={!valid || submitting}
+          onClick={() => void submit()}
+          leading={isEdit ? <DeleteButton onConfirm={() => void remove()} /> : undefined}
+        />
+      }
+    >
+      <AmountDisplay
+        symbol={currencySymbol(currency)}
+        display={input.display}
+        sizeClass={input.sizeClass}
+        dim={!input.amount || input.replaceOnType}
+      />
 
-        {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
-        )}
+      {error && (
+        <p role="alert" className="px-5 pb-2 text-center text-sm text-destructive">
+          {error}
+        </p>
+      )}
 
-        {open && (
-          <NumberPad
-            onKey={(k) => {
-              setError(null)
-              input.press(k)
-            }}
-            onEnter={() => void submit()}
-            onEscape={close}
-          />
-        )}
-      </div>
-    </Sheet>
+      {open && (
+        <NumberPad
+          flat
+          onKey={(k) => {
+            setError(null)
+            input.press(k)
+          }}
+          onEnter={() => void submit()}
+          onEscape={close}
+        />
+      )}
+    </FullScreen>
   )
 }

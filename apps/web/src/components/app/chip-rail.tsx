@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react'
 import { cn } from '@/lib/utils'
 
-/** Frosted glass over the sheet's side padding, so chips blur as they scroll under it. */
-const GLASS = 'pointer-events-none absolute inset-y-0 z-10 w-5 bg-popover/40 backdrop-blur-[6px]'
+/** Light glass over the sheet's side padding: chips blur a little as they scroll under it, but stay readable. */
+const GLASS = 'pointer-events-none absolute inset-y-0 z-10 w-5 bg-popover/10 backdrop-blur-[1px]'
 
 /**
  * A row of chips that scrolls sideways edge to edge in a sheet (it bleeds into

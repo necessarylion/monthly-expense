@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChipRail } from '@/components/app/chip-rail'
 import { DatePicker } from '@/components/app/date-picker'
 import { NumberPad } from '@/components/app/number-pad'
-import { Sheet } from '@/components/app/sheet'
-import { Button } from '@/components/ui/button'
+import { FullScreen, FullScreenSave } from '@/components/app/full-screen'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast'
 import { useAmountInput } from '@/hooks/use-amount-input'
@@ -119,123 +118,124 @@ export function EntrySheet({
   ]
 
   return (
-    <Sheet
-      docked
+    <FullScreen
       open={open}
       onClose={onClose}
       title={t('accounts.addTransaction')}
+      top={<DatePicker value={date} onChange={setDate} />}
+      fields={
+        <>
+          <ChipRail
+            ref={chips}
+            role="group"
+            aria-label={t('accounts.account')}
+            className={cn('grid auto-cols-max grid-flow-col gap-2', accounts.length > 4 ? 'grid-rows-2' : 'grid-rows-1')}
+          >
+            {accounts.map((a) => {
+              const active = accountId === a.id
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => chooseAccount(a.id)}
+                  className={cn(
+                    'flex items-center gap-2 rounded-full border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-40',
+                    active ? 'font-semibold' : 'bg-background'
+                  )}
+                  style={active ? { background: tintBg(a.color, 14), borderColor: a.color } : undefined}
+                >
+                  <span className="size-2.5 rounded-full" style={{ background: a.color }} />
+                  <span className="max-w-32 truncate">{a.name}</span>
+                </button>
+              )
+            })}
+          </ChipRail>
+
+          <div role="group" className="flex shrink-0 gap-1 rounded-full bg-muted p-1">
+            {modes.map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={mode === value}
+                onClick={() => chooseMode(value)}
+                className={cn(
+                  'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors',
+                  mode === value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                )}
+              >
+                <Icon className="size-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <Input
+            value={note}
+            maxLength={500}
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && void submit()}
+            aria-label={t('expenseModal.note')}
+            placeholder={t('expenseModal.notePlaceholder')}
+            className="h-11 shrink-0 rounded-full px-4 text-base sm:text-sm"
+          />
+        </>
+      }
       footer={
-        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!valid || submitting} onClick={() => void submit()}>
-          {submitting ? t('common.saving') : mode === 'set' ? t('accounts.setBalance') : t('accounts.record')}
-        </Button>
+        <FullScreenSave
+          label={submitting ? t('common.saving') : mode === 'set' ? t('accounts.setBalance') : t('accounts.record')}
+          disabled={!valid || submitting}
+          onClick={() => void submit()}
+        />
       }
     >
-      <div className="flex flex-col gap-4">
-        <div role="group" className="flex gap-1 rounded-full bg-muted p-1" data-vaul-no-drag="">
-          {modes.map(({ value, label, Icon }) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={mode === value}
-              onClick={() => chooseMode(value)}
-              className={cn(
-                'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors',
-                mode === value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
-              )}
-            >
-              <Icon className="size-4" />
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-col items-center">
-          <AmountDisplay
-            symbol={currencySymbol(currency)}
-            display={input.display}
-            sizeClass={input.sizeClass}
-            dim={!input.amount || input.replaceOnType}
-            sign={
-              mode === 'set'
-                ? undefined
-                : mode === 'in'
-                  ? { text: '+', className: 'text-success' }
-                  : { text: '−', className: 'text-destructive' }
-            }
-          />
-          {mode === 'set' && account && (
-            <p className="text-sm text-muted-foreground tabular-nums">
-              {t('accounts.currentBalance')} {formatMoneyFromCents(account.balanceCents, currency, true)}
-              {diff !== null && (
-                <>
-                  {' → '}
-                  <span className={cn('font-semibold', diff === 0 ? '' : diff > 0 ? 'text-success' : 'text-destructive')}>
-                    {diff === 0
-                      ? t('accounts.sameBalance')
-                      : `${diff > 0 ? '+' : '−'}${formatMoneyFromCents(Math.abs(diff), currency, true)}`}
-                  </span>
-                </>
-              )}
-            </p>
-          )}
-        </div>
-
-        <ChipRail
-          ref={chips}
-          role="group"
-          aria-label={t('accounts.account')}
-          className={cn('grid auto-cols-max grid-flow-col gap-2', accounts.length > 4 ? 'grid-rows-2' : 'grid-rows-1')}
-        >
-          {accounts.map((a) => {
-            const active = accountId === a.id
-            return (
-              <button
-                key={a.id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => chooseAccount(a.id)}
-                className={cn(
-                  'flex items-center gap-2 rounded-full border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-40',
-                  active ? 'font-semibold' : 'bg-background'
-                )}
-                style={active ? { background: tintBg(a.color, 14), borderColor: a.color } : undefined}
-              >
-                <span className="size-2.5 rounded-full" style={{ background: a.color }} />
-                <span className="max-w-32 truncate">{a.name}</span>
-              </button>
-            )
-          })}
-        </ChipRail>
-
-        <DatePicker value={date} onChange={setDate} />
-
-        <Input
-          value={note}
-          maxLength={500}
-          onChange={(e) => setNote(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && void submit()}
-          aria-label={t('expenseModal.note')}
-          placeholder={t('expenseModal.notePlaceholder')}
-          className="h-11 rounded-full px-4 text-base sm:text-sm"
+      <div className="flex shrink-0 flex-col items-center pb-2">
+        <AmountDisplay
+          symbol={currencySymbol(currency)}
+          display={input.display}
+          sizeClass={input.sizeClass}
+          dim={!input.amount || input.replaceOnType}
+          sign={
+            mode === 'set'
+              ? undefined
+              : mode === 'in'
+                ? { text: '+', className: 'text-success' }
+                : { text: '−', className: 'text-destructive' }
+          }
         />
-
+        {mode === 'set' && account && (
+          <p className="text-sm text-muted-foreground tabular-nums">
+            {t('accounts.currentBalance')} {formatMoneyFromCents(account.balanceCents, currency, true)}
+            {diff !== null && (
+              <>
+                {' → '}
+                <span className={cn('font-semibold', diff === 0 ? '' : diff > 0 ? 'text-success' : 'text-destructive')}>
+                  {diff === 0
+                    ? t('accounts.sameBalance')
+                    : `${diff > 0 ? '+' : '−'}${formatMoneyFromCents(Math.abs(diff), currency, true)}`}
+                </span>
+              </>
+            )}
+          </p>
+        )}
         {error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="px-5 text-center text-sm text-destructive">
             {error}
           </p>
         )}
-
-        {open && (
-          <NumberPad
-            onKey={(k) => {
-              setError(null)
-              input.press(k)
-            }}
-            onEnter={() => void submit()}
-            onEscape={onClose}
-          />
-        )}
       </div>
-    </Sheet>
+
+      {open && (
+        <NumberPad
+          flat
+          onKey={(k) => {
+            setError(null)
+            input.press(k)
+          }}
+          onEnter={() => void submit()}
+          onEscape={onClose}
+        />
+      )}
+    </FullScreen>
   )
 }
