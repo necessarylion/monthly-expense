@@ -40,7 +40,7 @@ FIREBASE_PRIVATE_KEY=...
 - Cache: the Dox cache (`file` store in `CACHE_DIR`), for exchange rates.
 - Validation: `@Dto` classes in `lib/app/dtos`, asked for as controller arguments (path params are typed args like `int id`). Body DTOs use `keyCase: KeyCase.field` (camelCase JSON) and `emptyStringsToNull: true` (`""` is `null`, so `note: ""` clears a note). Query numbers use `@OrDefault()`, so a bad value falls back to the default. Bad input is `422 { message, errors: [{ field, message, rule }] }`, built in `AppExceptionHandler` (`lib/app/exception_handler.dart`).
 - DI: Dox container. Classes have `@Inject()`; `dart run build_runner build` writes `lib/generated/container.g.dart`.
-- Auth: `firebase_admin_sdk` (the official Dart Admin SDK) checks the ID token in `FirebaseService`.
+- Auth: `firebase_admin_sdk` (the official Dart Admin SDK) checks the Firebase ID token in `FirebaseService`, once, at `POST /api/v1/auth/token`. That gives an API token (`ApiTokenService`, table `api_tokens`, only the hash stored), which every other call sends.
 - MCP: `dox_mcp` at `/mcp`. Clients sign in with OAuth (`McpOAuth` of `dox_mcp`): the consent page is the web app's `/oauth/authorize`, the tokens are rows of `mcp_tokens` (hash only). Tools are in `lib/app/mcp/tools`.
 - API docs: `/docs` (Scalar), `/openapi.json`, `/openapi.yaml`, made by `dart run build_runner build`. On only when `APP_ENV=development`. Config in `lib/config/openapi.dart`.
 - Layers: route → controller → service → repository → model.

@@ -16,9 +16,9 @@ import 'package:test/test.dart';
 
 import '../../db/migration/migrations.dart';
 
-/// Accepts `Bearer <uid>` and signs in `<uid>@gmail.com`. `bad` is a bad
-/// token; `down` acts like Firebase timing out. `mfa:<uid>` is `<uid>`
-/// after the two-step code (or a passkey).
+/// Accepts the ID token `<uid>` and signs in `<uid>@gmail.com`. `bad` is a
+/// bad token; `down` acts like Firebase timing out. `mfa:<uid>` is `<uid>`
+/// with the `mfa` claim (a Firebase session from a passkey or a code).
 class FakeFirebaseService extends FirebaseService {
   FakeFirebaseService() : super(const AppSettings.of());
 
@@ -34,15 +34,6 @@ class FakeFirebaseService extends FirebaseService {
       name: 'Test $uid',
       secondFactor: secondFactor,
     );
-  }
-
-  /// `custom:<uid>` (or `mfa:<uid>`), so a test can see whose token it is.
-  @override
-  Future<String> createCustomToken(
-    String uid, {
-    bool secondFactor = false,
-  }) async {
-    return secondFactor ? 'mfa:$uid' : 'custom:$uid';
   }
 
   @override
@@ -126,21 +117,45 @@ class TestApp {
     Dox().ioc.clearOverrides();
   }
 
-  /// One API call as [user] (`''`: no token). [group] sends `X-Group-Id`.
+  /// API tokens by fake Firebase ID token, one sign-in each.
+  final Map<String, String> _tokens = <String, String>{};
+
+  /// A new sign-in: trades the fake Firebase ID token [user] for an API
+  /// token, like the web app does.
+  Future<String> signIn(String user) async {
+    TestResponse res = await client.send(
+      'POST',
+      '/api/v1/auth/token',
+      headers: <String, String>{'authorization': 'Bearer $user'},
+    );
+    res.expectStatus(200);
+    return res.json['data']['token'] as String;
+  }
+
+  /// The API token of [user], signed in on first use.
+  Future<String> tokenOf(String user) async {
+    return _tokens[user] ??= await signIn(user);
+  }
+
+  /// One API call as [user] (`''`: no token), a fake Firebase ID token that
+  /// is signed in on first use. [token] sends that bearer token instead.
+  /// [group] sends `X-Group-Id`.
   Future<TestResponse> call(
     String path, {
     String method = 'GET',
     Object? body,
     String user = 'alice',
+    String? token,
     int? group,
     Map<String, String> headers = const <String, String>{},
-  }) {
+  }) async {
+    String? bearer = token ?? (user.isEmpty ? null : await tokenOf(user));
     return client.send(
       method,
       path,
       body: body,
       headers: <String, String>{
-        if (user.isNotEmpty) 'authorization': 'Bearer $user',
+        if (bearer != null) 'authorization': 'Bearer $bearer',
         if (group != null) 'x-group-id': '$group',
         ...headers,
       },

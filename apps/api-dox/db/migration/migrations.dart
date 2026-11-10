@@ -13,6 +13,7 @@ import '2026_11_09_135608_add_split_to_groups.dart' as m8;
 import '2026_11_09_140558_add_kind_to_groups.dart' as m9;
 import '2026_11_09_141633_add_trip_dates_to_groups.dart' as m10;
 import '2026_11_10_210626_add_totp_to_users.dart' as m11;
+import '2026_11_10_220000_create_api_tokens_table.dart' as m12;
 
 /// all Dart migrations of db/migration, sorted by name
 final List<MigrationEntry> migrations = <MigrationEntry>[
@@ -45,4 +46,8 @@ final List<MigrationEntry> migrations = <MigrationEntry>[
     m10.AddTripDatesToGroups(),
   ),
   MigrationEntry('2026_11_10_210626_add_totp_to_users', m11.AddTotpToUsers()),
+  MigrationEntry(
+    '2026_11_10_220000_create_api_tokens_table',
+    m12.CreateApiTokensTable(),
+  ),
 ];

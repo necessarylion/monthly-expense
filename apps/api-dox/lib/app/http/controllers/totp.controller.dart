@@ -20,20 +20,22 @@ class TotpController {
 
   @Summary('Turn on two-step sign-in')
   @Description(
-    'Needs one code from the app. Gives a Firebase custom token; the web app calls `signInWithCustomToken` with it.',
+    'Needs one code from the app. The API token of this call stays signed in; other browsers are asked for a code.',
   )
-  Future<Map<String, dynamic>> enable(DoxRequest req, TotpCode body) async {
-    String token = await totp.enable(req.authUser, body.code);
-    return JsonResponse.ok(<String, String>{'token': token});
+  @Response(204, null, description: 'Done, no body')
+  Future<DoxResponse> enable(DoxRequest req, TotpCode body) async {
+    await totp.enable(req.authUser, req.authToken, body.code);
+    return JsonResponse.noContent();
   }
 
   @Summary('Finish a sign-in with a code')
   @Description(
-    'For a user with two-step sign-in on. Gives a Firebase custom token; the web app calls `signInWithCustomToken` with it.',
+    'For a user with two-step sign-in on. After it, the API token of this call passes.',
   )
-  Future<Map<String, dynamic>> verify(DoxRequest req, TotpCode body) async {
-    String token = await totp.verify(req.authUser, body.code);
-    return JsonResponse.ok(<String, String>{'token': token});
+  @Response(204, null, description: 'Done, no body')
+  Future<DoxResponse> verify(DoxRequest req, TotpCode body) async {
+    await totp.verify(req.authUser, req.authToken, body.code);
+    return JsonResponse.noContent();
   }
 
   @Summary('Turn off two-step sign-in')

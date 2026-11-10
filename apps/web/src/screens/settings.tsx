@@ -45,7 +45,6 @@ import { SelectField } from '@/components/app/select-field'
 import { DEFAULT_THEMES, ThemeSelector } from '@/components/ui/theme-selector'
 import { toast } from '@/components/ui/toast'
 import { errorMessage } from '@/lib/errors'
-import { signInWithToken } from '@/lib/firebase'
 import { addPasskey, passkeySupported } from '@/lib/passkey'
 import { api } from '@/lib/api'
 import type { Category, Group, GroupKind, Passkey } from '@/lib/types'
@@ -1149,9 +1148,8 @@ function TwoFactor() {
     if (busy || value.length !== 6) return
     void run(async () => {
       try {
-        const { data } = await api.post<{ data: { token: string } }>('/me/totp/enable', { code: value })
-        // From now on the API wants a token that says "the code was given". This is one.
-        await signInWithToken(data.data.token)
+        // This browser's API token is marked as "the code was given", so it stays signed in.
+        await api.post('/me/totp/enable', { code: value })
       } catch (e) {
         setFailed(true)
         throw e

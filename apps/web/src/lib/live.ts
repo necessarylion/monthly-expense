@@ -4,7 +4,7 @@ import { useAccounts } from '@/stores/accounts'
 import { useExpenses } from '@/stores/expenses'
 import { useGroups } from '@/stores/groups'
 import { useShopping } from '@/stores/shopping'
-import { getIdToken } from './firebase'
+import { getApiToken } from './session'
 
 /**
  * Live updates. The API sends `changed` with `{topic, groupId?}` when data
@@ -55,9 +55,9 @@ function apiOrigin(): string {
   return url.startsWith('http') ? new URL(url).origin : window.location.origin
 }
 
-/** A fresh Firebase token on every (re)connect: the server checks it then. */
-async function sendToken(done: (data: object) => void) {
-  done({ token: (await getIdToken()) ?? '' })
+/** The API token, on every (re)connect: the server checks it then. */
+function sendToken(done: (data: object) => void) {
+  done({ token: getApiToken() ?? '' })
 }
 
 /** Events sent while we were offline are lost, so a reconnect loads all. */

@@ -61,7 +61,7 @@ void main() {
 
   /// A socket of [user] that is connected and collects every live event.
   Future<List<Object?>> listen(String user) async {
-    sio.Socket socket = open(user);
+    sio.Socket socket = open(await app.tokenOf(user));
     List<Object?> events = <Object?>[];
     Completer<void> connected = Completer<void>();
     socket.onConnect((dynamic _) => connected.complete());
@@ -81,16 +81,13 @@ void main() {
     expect(error.toString(), contains('Unauthorized'));
   });
 
-  test(
-    'a Firebase outage is not Unauthorized, so the app tries again',
-    () async {
-      sio.Socket socket = open('down');
-      Completer<Object?> refused = Completer<Object?>();
-      socket.onConnectError(refused.complete);
-      Object? error = await refused.future.timeout(const Duration(seconds: 5));
-      expect(error.toString(), contains(liveUnavailable));
-    },
-  );
+  test('a Firebase ID token can not connect, only an API token', () async {
+    sio.Socket socket = open('alice');
+    Completer<Object?> refused = Completer<Object?>();
+    socket.onConnectError(refused.complete);
+    Object? error = await refused.future.timeout(const Duration(seconds: 5));
+    expect(error.toString(), contains('Unauthorized'));
+  });
 
   test('a new expense reaches the group members only', () async {
     List<Object?> alice = await listen('alice');

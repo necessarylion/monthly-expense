@@ -3,7 +3,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithCustomToken,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -27,11 +26,6 @@ const googleProvider = new GoogleAuthProvider()
 
 export async function signInWithGoogle() {
   await signInWithPopup(auth, googleProvider)
-}
-
-/** After a passkey sign-in or a two-step code: the API gives a custom token for the user. */
-export async function signInWithToken(token: string) {
-  await signInWithCustomToken(auth, token)
 }
 
 /**
@@ -63,9 +57,4 @@ export async function signOut() {
 export function onAuthChange(cb: (user: FirebaseUser | null) => void) {
   // A user whose email is not verified counts as signed out (see signInWithEmail).
   return onIdTokenChanged(auth, (user) => cb(user?.email && !user.emailVerified ? null : user))
-}
-
-export async function getIdToken(): Promise<string | null> {
-  const u = auth.currentUser
-  return u ? u.getIdToken() : null
 }

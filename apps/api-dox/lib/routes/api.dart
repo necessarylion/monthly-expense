@@ -1,4 +1,5 @@
 import 'package:api_dox/app/http/controllers/account.controller.dart';
+import 'package:api_dox/app/http/controllers/auth.controller.dart';
 import 'package:api_dox/app/http/controllers/category.controller.dart';
 import 'package:api_dox/app/http/controllers/config.controller.dart';
 import 'package:api_dox/app/http/controllers/expense.controller.dart';
@@ -19,8 +20,9 @@ import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/request_context.dart';
 import 'package:dox_core/dox_core.dart';
 
-/// Every route, with the same paths as the Bun API. `user` routes need a
-/// Firebase ID token (and the two-step code, when the user has that on);
+/// Every route, with the same paths as the Bun API. `user` routes need an
+/// API token from `POST /auth/token` (and the two-step code, when the user
+/// has that on);
 /// `member` routes also need `X-Group-Id`.
 class ApiRouter extends Router {
   @override
@@ -40,6 +42,9 @@ class ApiRouter extends Router {
     Route.get('/config.js', (ConfigController c) => c.script);
 
     Route.group('/api/v1', () {
+      // Sign-in: a Firebase ID token in, an API token out.
+      Route.post('/auth/token', (AuthController c) => c.store);
+
       // Passkey sign-in: no token yet.
       Route.post(
         '/passkeys/login/options',
@@ -49,6 +54,10 @@ class ApiRouter extends Router {
 
       Route.middleware(<dynamic>[...signedIn, codeTries], () {
         Route.post('/me/totp/verify', (TotpController c) => c.verify);
+      });
+
+      Route.middleware(signedIn, () {
+        Route.delete('/auth/token', (AuthController c) => c.destroy);
       });
 
       Route.middleware(<dynamic>[...user, codeTries], () {

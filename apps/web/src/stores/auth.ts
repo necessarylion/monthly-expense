@@ -1,23 +1,23 @@
 import { create } from 'zustand'
 import { api, getActiveGroupId } from '@/lib/api'
-import {
-  onAuthChange,
-  resetPassword,
-  signInWithEmail,
-  signInWithGoogle,
-  signInWithToken,
-  signOut,
-} from '@/lib/firebase'
+import type { User as FirebaseUser } from 'firebase/auth'
+import { onAuthChange, resetPassword, signInWithEmail, signInWithGoogle, signOut } from '@/lib/firebase'
 import { errorMessage } from '@/lib/errors'
 import { t } from '@/lib/i18n'
 import { startLive, stopLive } from '@/lib/live'
 import { signInWithPasskeyToken } from '@/lib/passkey'
+import { clearSession, getApiToken, getCachedUser, setApiToken, setCachedUser } from '@/lib/session'
 import type { McpClient, User } from '@/lib/types'
 import { useAccounts } from './accounts'
 import { useGroups } from './groups'
 
-/** Placeholder backend id while /me is still in flight; never matches a real row. */
-const PENDING_ID = -1
+/**
+ * Sign-in: Firebase (Google, or email and password) once, then the API
+ * trades its ID token for our own API token (`POST /auth/token`). A passkey
+ * gives an API token directly. Every call after sends the API token, which
+ * is kept across reloads (`lib/session.ts`): a returning user's data starts
+ * loading at once, with no wait for Firebase.
+ */
 
 interface AuthState {
   user: User | null
@@ -71,12 +71,12 @@ export const useAuth = create<AuthState>((set, get) => ({
   async refreshMe() {
     try {
       const { data } = await api.get<{ data: User }>('/me')
-      set({ user: data.data })
+      setCachedUser(data.data)
+      set({ user: data.data, mfaRequired: false })
     } catch (e: any) {
-      // Step one passed, but this user has two-step sign-in on: ask for the code.
+      // Signed in, but this user has two-step sign-in on: ask for the code.
       if (e?.response?.data?.code === 'mfa_required') return set({ mfaRequired: true })
-      // Keep `user` as is. Firebase decides "signed in"; a real 401 fires
-      // `auth:unauthorized`, which App turns into a logout.
+      // Keep `user` as is. A real 401 fires `auth:unauthorized`, which App turns into a logout.
       set({ error: e?.message ?? 'Failed to load profile' })
     }
   },
@@ -97,50 +97,24 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   watch() {
-    let hydratedUid: string | null = null
+    // Signed in before: paint from the last /me and load right away.
+    if (getApiToken()) {
+      const cached = getCachedUser()
+      if (cached) set({ user: cached, loading: false })
+      void start()
+    }
 
     // Offline or behind a blocking proxy Firebase never calls back. Give up
     // and treat it as signed out; the listener still fires later if a session shows up.
-    const giveUp = setTimeout(() => set({ loading: false, booting: false }), 8000)
+    const giveUp = getApiToken() ? null : setTimeout(() => set({ loading: false, booting: false }), 8000)
 
-    onAuthChange(async (fbUser) => {
-      clearTimeout(giveUp)
-      if (!fbUser) {
-        hydratedUid = null
-        stopLive()
-        useGroups.getState().reset()
-        set({ user: null, mfaRequired: false, loading: false, booting: false })
-        return
-      }
-
-      // Paint now from the Firebase user; only the backend `id` waits for /me.
-      if (get().user?.firebaseUid !== fbUser.uid) {
-        set({
-          user: {
-            id: PENDING_ID,
-            firebaseUid: fbUser.uid,
-            email: fbUser.email ?? '',
-            displayName: fbUser.displayName,
-            photoUrl: fbUser.photoURL,
-          },
-        })
-      }
-      set({ loading: false })
-
-      // onIdTokenChanged also fires on every hourly token refresh.
-      if (hydratedUid === fbUser.uid) return
-      hydratedUid = fbUser.uid
-      startLive()
-
-      const groups = useGroups.getState()
-      // Returning user: already provisioned server-side, so /me and /groups can race.
-      const returning = getActiveGroupId() !== null
-      if (returning) void groups.load()
-      await get().refreshMe()
-      // The splash only waits for /me. Groups and the month fill in after.
-      set({ booting: false })
-      // ponytail: first login stays serial; user provisioning on the server is not concurrency safe.
-      if (!returning && get().user) await groups.load()
+    // Firebase only matters while there is no API token: after a Google or
+    // email sign-in, or for a Firebase session from before API tokens.
+    onAuthChange((fbUser) => {
+      if (giveUp) clearTimeout(giveUp)
+      if (getApiToken() || exchanging) return
+      if (!fbUser) return set({ user: null, mfaRequired: false, loading: false, booting: false })
+      void exchange(fbUser)
     })
   },
 
@@ -156,7 +130,8 @@ export const useAuth = create<AuthState>((set, get) => ({
   async loginWithPasskey() {
     set({ error: null })
     try {
-      await signInWithToken(await signInWithPasskeyToken())
+      setApiToken(await signInWithPasskeyToken())
+      await start()
     } catch (e: any) {
       // The user closed the browser's passkey prompt: not an error.
       if (e?.name === 'NotAllowedError' || e?.name === 'AbortError') return
@@ -188,21 +163,74 @@ export const useAuth = create<AuthState>((set, get) => ({
   async verifyMfa(code) {
     set({ error: null })
     try {
-      const { data } = await api.post<{ data: { token: string } }>('/me/totp/verify', { code })
-      await signInWithToken(data.data.token)
-      // ponytail: reload instead of restarting every store and the live socket by hand.
-      // Firebase keeps the new session, so the app starts clean with it.
-      window.location.reload()
+      // Marks this browser's API token: from now on it passes.
+      await api.post('/me/totp/verify', { code })
     } catch (e: any) {
-      set({ error: errorMessage(e, 'Sign-in failed') })
+      return set({ error: errorMessage(e, 'Sign-in failed') })
     }
+    set({ mfaRequired: false })
+    // The socket was refused while the code was missing.
+    stopLive()
+    started = false
+    await start()
   },
 
   async logout() {
-    await signOut()
-    set({ user: null, mfaRequired: false, error: null, mcpUrl: null, mcpClients: [] })
+    const token = getApiToken()
+    clearSession()
+    stopLive()
+    started = false
+    set({ user: null, mfaRequired: false, error: null, mcpUrl: null, mcpClients: [], loading: false, booting: false })
     useGroups.getState().reset()
     // Accounts are user-owned; clear them so the next sign-in can't see old balances.
     useAccounts.getState().clear()
+    // End the API token on the server too. Already gone after a 401: no matter.
+    if (token) void api.delete('/auth/token', { token }).catch(() => {})
+    await signOut().catch(() => {})
   },
 }))
+
+let started = false
+let exchanging = false
+
+/** Signed in (an API token is stored): /me, the groups and the live socket. */
+async function start() {
+  if (started) return
+  started = true
+  const auth = useAuth.getState
+  startLive()
+  const groups = useGroups.getState()
+  // Returning user: already provisioned server-side, so /me and /groups can race.
+  const returning = getActiveGroupId() !== null
+  if (returning) void groups.load()
+  await auth().refreshMe()
+  // The splash only waits for /me. Groups and the month fill in after.
+  useAuth.setState({ loading: false, booting: false })
+  // ponytail: first login stays serial; user provisioning on the server is not concurrency safe.
+  if (!returning && auth().user && !auth().mfaRequired) await groups.load()
+}
+
+/** Trades the Firebase ID token for an API token, once per sign-in. */
+async function exchange(fbUser: FirebaseUser) {
+  exchanging = true
+  useAuth.setState({ error: null })
+  try {
+    const idToken = await fbUser.getIdToken()
+    const { data } = await api.post<{ data: { token: string; user: User } }>('/auth/token', undefined, {
+      token: idToken,
+    })
+    setApiToken(data.data.token)
+    // With two-step sign-in on, /me decides first whether the code is still needed.
+    if (!data.data.user.twoFactorEnabled) {
+      setCachedUser(data.data.user)
+      useAuth.setState({ user: data.data.user })
+    }
+    await start()
+  } catch (e: any) {
+    useAuth.setState({ error: errorMessage(e, 'Sign-in failed'), loading: false, booting: false })
+    // Firebase said yes but the API said no (not allowed): sign out of Firebase too.
+    if (e?.response?.status === 401) await signOut().catch(() => {})
+  } finally {
+    exchanging = false
+  }
+}

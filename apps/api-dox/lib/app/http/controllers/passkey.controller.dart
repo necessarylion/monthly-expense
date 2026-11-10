@@ -59,14 +59,15 @@ class PasskeyController {
 
   @Summary('Sign in with a passkey')
   @Description(
-    'Gives a Firebase custom token. The web app calls `signInWithCustomToken` with it. No token needed.',
+    'Gives an API token, as `POST /auth/token` does. No token needed.',
   )
-  Future<Map<String, dynamic>> login(PasskeyLogin body) async {
+  Future<Map<String, dynamic>> login(DoxRequest req, PasskeyLogin body) async {
     String token = await passkeys.login(
       credentialId: body.credentialId,
       clientDataJson: body.clientDataJson,
       authenticatorData: body.authenticatorData,
       signature: body.signature,
+      device: req.header('user-agent'),
     );
     return JsonResponse.ok(<String, String>{'token': token});
   }

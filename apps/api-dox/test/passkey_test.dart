@@ -178,9 +178,10 @@ void main() {
       body: answer,
       user: '',
     );
-    login.expectStatus(200).expectJson(<String, dynamic>{
-      'data': <String, dynamic>{'token': 'mfa:alice'},
-    });
+    String token = login.expectStatus(200).json['data']['token'] as String;
+    expect(token, startsWith('mea_'));
+    TestResponse me = await app.call('/api/v1/me', token: token);
+    expect(me.expectStatus(200).json['data']['email'], 'alice@gmail.com');
 
     // a challenge works once
     (await app.call(

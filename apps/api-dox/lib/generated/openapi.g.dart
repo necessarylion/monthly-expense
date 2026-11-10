@@ -37,6 +37,31 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       },
     ),
     OpenApiOperation(
+      controller: 'AuthController',
+      method: 'store',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'Trade a Firebase ID token for an API token',
+      description: 'Send the Firebase ID token as `Authorization: Bearer`. Gives `token` (send it as the bearer token from now on) and the user. A user with two-step sign-in on still needs the code (`POST /me/totp/verify`) unless the ID token has the `mfa` claim.',
+      tags: <String>['Auth'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'AuthController',
+      method: 'destroy',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'Sign out this browser',
+      description: 'The API token stops working.',
+      tags: <String>['Auth'],
+      responses: <int, ResponseDoc>{
+        204: ResponseDoc(description: 'Done, no body'),
+      },
+    ),
+    OpenApiOperation(
       controller: 'PasskeyController',
       method: 'index',
       argumentTypes: <String>['DoxRequest'],
@@ -106,9 +131,10 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
     OpenApiOperation(
       controller: 'PasskeyController',
       method: 'login',
-      argumentTypes: <String>['PasskeyLogin'],
+      argumentTypes: <String>['DoxRequest', 'PasskeyLogin'],
       summary: 'Sign in with a passkey',
-      description: 'Gives a Firebase custom token. The web app calls `signInWithCustomToken` with it. No token needed.',
+      description:
+          'Gives an API token, as `POST /auth/token` does. No token needed.',
       tags: <String>['Passkeys'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/PasskeyLogin'},
       responses: <int, ResponseDoc>{
@@ -138,14 +164,11 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       method: 'enable',
       argumentTypes: <String>['DoxRequest', 'TotpCode'],
       summary: 'Turn on two-step sign-in',
-      description: 'Needs one code from the app. Gives a Firebase custom token; the web app calls `signInWithCustomToken` with it.',
+      description: 'Needs one code from the app. The API token of this call stays signed in; other browsers are asked for a code.',
       tags: <String>['Two-step sign-in'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/TotpCode'},
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(
-          description: 'Successful response',
-          schema: <String, dynamic>{'type': 'object'},
-        ),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
@@ -153,14 +176,11 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       method: 'verify',
       argumentTypes: <String>['DoxRequest', 'TotpCode'],
       summary: 'Finish a sign-in with a code',
-      description: 'For a user with two-step sign-in on. Gives a Firebase custom token; the web app calls `signInWithCustomToken` with it.',
+      description: 'For a user with two-step sign-in on. After it, the API token of this call passes.',
       tags: <String>['Two-step sign-in'],
       schema: <String, dynamic>{'\$ref': '#/components/schemas/TotpCode'},
       responses: <int, ResponseDoc>{
-        200: ResponseDoc(
-          description: 'Successful response',
-          schema: <String, dynamic>{'type': 'object'},
-        ),
+        204: ResponseDoc(description: 'Done, no body'),
       },
     ),
     OpenApiOperation(
@@ -980,6 +1000,7 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
   routes: <OpenApiRouteBinding>[
     OpenApiRouteBinding('GET', '/healthz', 'HealthController.show'),
     OpenApiRouteBinding('GET', '/config.js', 'ConfigController.script'),
+    OpenApiRouteBinding('POST', '/api/v1/auth/token', 'AuthController.store'),
     OpenApiRouteBinding(
       'POST',
       '/api/v1/passkeys/login/options',
@@ -994,6 +1015,11 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       'POST',
       '/api/v1/me/totp/verify',
       'TotpController.verify',
+    ),
+    OpenApiRouteBinding(
+      'DELETE',
+      '/api/v1/auth/token',
+      'AuthController.destroy',
     ),
     OpenApiRouteBinding(
       'POST',

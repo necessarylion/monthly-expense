@@ -1,4 +1,4 @@
-import { getIdToken } from './firebase'
+import { getApiToken } from './session'
 
 const ACTIVE_GROUP_KEY = 'monthlyExpense.activeGroupId'
 
@@ -19,6 +19,8 @@ const BASE_URL: string = import.meta.env.VITE_API_URL || '/api/v1'
 
 export interface RequestConfig {
   params?: Record<string, unknown>
+  /** Send this bearer token instead of the API token (the Firebase ID token at sign-in). */
+  token?: string
 }
 
 /** Same shape callers used to read off an axios error: `e.response.status`, `e.response.data.message`. */
@@ -50,7 +52,7 @@ async function request<T>(
 ): Promise<{ data: T }> {
   const headers: Record<string, string> = {}
 
-  const token = await getIdToken()
+  const token = config?.token ?? getApiToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
   const groupId = getActiveGroupId()
@@ -76,7 +78,8 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    if (res.status === 401) window.dispatchEvent(new Event('auth:unauthorized'))
+    // Only for the API token: a sign-in with its own token handles its own errors.
+    if (res.status === 401 && !config?.token) window.dispatchEvent(new Event('auth:unauthorized'))
     throw new ApiError(res.status, data)
   }
 

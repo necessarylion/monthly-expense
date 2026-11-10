@@ -1,6 +1,6 @@
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/user.repository.dart';
-import 'package:api_dox/app/services/firebase.service.dart';
+import 'package:api_dox/app/services/api_token.service.dart';
 import 'package:api_dox/app/services/totp/totp.dart';
 import 'package:api_dox/config/env.dart';
 import 'package:api_dox/constants/limits.dart';
@@ -9,16 +9,15 @@ import 'package:dox_core/dox_core.dart';
 
 /// Two-step sign-in with an authenticator app.
 ///
-/// Firebase still does step one (Google, or email and password). The ID
-/// token of that sign-in has no `mfa` claim, so `TwoFactorMiddleware`
-/// stops it. The user then sends a code to [verify] and gets a Firebase
-/// custom token that has the claim. No sessions: the claim is in the token.
+/// Firebase still does step one (Google, or email and password). The API
+/// token of that sign-in is not marked, so `TwoFactorMiddleware` stops it.
+/// The user then sends a code to [verify], which marks that token.
 @Inject()
 class TotpService {
-  TotpService(this.users, this.firebase);
+  TotpService(this.users, this.tokens);
 
   final UserRepository users;
-  final FirebaseService firebase;
+  final ApiTokenService tokens;
 
   /// Step 1 of turning it on: a new secret, not active yet.
   Future<Map<String, String>> setup(User user) async {
@@ -34,22 +33,22 @@ class TotpService {
     };
   }
 
-  /// Step 2: one right code proves the app has the secret. Gives a token
-  /// with the `mfa` claim, so this browser stays signed in.
-  Future<String> enable(User user, String code) async {
+  /// Step 2: one right code proves the app has the secret. Marks [token],
+  /// so this browser stays signed in. Other browsers are asked for a code.
+  Future<void> enable(User user, ApiToken token, String code) async {
     _mustBeOff(user);
     await _check(user, code);
     await users.update(user.id!, <String, dynamic>{'totp_enabled': true});
-    return _token(user);
+    await tokens.markSecondFactor(token);
   }
 
-  /// The second step of a sign-in.
-  Future<String> verify(User user, String code) async {
+  /// The second step of a sign-in: marks [token].
+  Future<void> verify(User user, ApiToken token, String code) async {
     if (user.totpEnabled != true) {
       throw HttpError.unprocessable('Two-step sign-in is off');
     }
     await _check(user, code);
-    return _token(user);
+    await tokens.markSecondFactor(token);
   }
 
   Future<void> disable(User user) async {
@@ -77,18 +76,6 @@ class TotpService {
       throw HttpError.unprocessable('Wrong code. Try again.');
     }
     await Cache().put(usedKey, '1', duration: totpCodeLife);
-  }
-
-  Future<String> _token(User user) async {
-    try {
-      return await firebase.createCustomToken(
-        user.firebaseUid,
-        secondFactor: true,
-      );
-    } catch (error) {
-      Logger.danger('[totp] createCustomToken failed: $error');
-      throw HttpError(503, 'Sign-in is not available. Try again.');
-    }
   }
 
   /// The AES key is made from `APP_KEY` and this label.

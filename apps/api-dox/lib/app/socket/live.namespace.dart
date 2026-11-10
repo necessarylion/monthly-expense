@@ -1,17 +1,15 @@
 import 'package:api_dox/app/models/models.dart';
-import 'package:api_dox/app/services/firebase.service.dart';
+import 'package:api_dox/app/services/api_token.service.dart';
 import 'package:api_dox/app/services/live.service.dart';
-import 'package:api_dox/app/services/user.service.dart';
 import 'package:api_dox/constants/live.dart';
 import 'package:dox_core/dox_core.dart';
 import 'package:dox_socketio/dox_socketio.dart';
 
-/// The default namespace `/`. The app connects with its Firebase ID token
-/// in `auth.token`, and the socket joins the room of its user. The server
+/// The default namespace `/`. The app connects with its API token in
+/// `auth.token`, and the socket joins the room of its user. The server
 /// only sends here (see `LiveService`); the app sends nothing.
 ///
-/// The token is checked once, at connect. The app sends a fresh one on
-/// each reconnect.
+/// The token is checked once, at connect, and again on each reconnect.
 class LiveNamespace extends NamespaceHandler {
   @override
   String get path => '/';
@@ -19,32 +17,23 @@ class LiveNamespace extends NamespaceHandler {
   @override
   List<Middleware> get middleware => <Middleware>[SocketAuth(findUser).handle];
 
-  /// Same checks as `AuthMiddleware`. A bad token or a not allowed email
-  /// gives null (`Unauthorized`). Anything else (Firebase or the database
-  /// is down) throws [liveUnavailable], so the app knows to try again.
+  /// Same checks as `AuthMiddleware` and `TwoFactorMiddleware`. A bad
+  /// token gives null (`Unauthorized`). Anything else (the database is
+  /// down) throws [liveUnavailable], so the app knows to try again.
   static Future<User?> findUser(Handshake handshake) async {
     String? token = handshake.token;
     if (token == null || token.isEmpty) return null;
-    FirebaseIdentity identity;
+    ApiSession? session;
     try {
-      identity = await Dox().ioc.get<FirebaseService>().verifyIdToken(token);
-    } on InvalidIdTokenException {
-      return null;
+      session = await Dox().ioc.get<ApiTokenService>().verify(token);
     } catch (error) {
-      Logger.warn('[live] Firebase is not reachable: $error');
+      Logger.warn('[live] token check failed: $error');
       throw SocketIoException(liveUnavailable);
     }
-    UserService users = Dox().ioc.get<UserService>();
-    if (!users.isEmailAllowed(identity.email)) return null;
-    try {
-      User user = await users.findOrCreate(identity);
-      // same rule as `TwoFactorMiddleware`
-      if (user.totpEnabled == true && !identity.secondFactor) return null;
-      return user;
-    } catch (error) {
-      Logger.warn('[live] user setup failed: $error');
-      throw SocketIoException(liveUnavailable);
-    }
+    if (session == null) return null;
+    User user = session.user;
+    if (user.totpEnabled == true && !session.secondFactor) return null;
+    return user;
   }
 
   @override

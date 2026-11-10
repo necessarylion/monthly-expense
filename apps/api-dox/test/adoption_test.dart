@@ -64,6 +64,7 @@ void main() {
         '2026_11_09_140558_add_kind_to_groups',
         '2026_11_09_141633_add_trip_dates_to_groups',
         '2026_11_10_210626_add_totp_to_users',
+        '2026_11_10_220000_create_api_tokens_table',
       ],
     );
     // the Bun migration table is left alone

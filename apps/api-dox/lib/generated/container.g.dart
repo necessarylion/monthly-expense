@@ -4,90 +4,94 @@
 
 import 'package:dox_core/dox_core.dart';
 import 'package:api_dox/app/http/controllers/account.controller.dart' as i1;
-import 'package:api_dox/app/http/controllers/category.controller.dart' as i2;
-import 'package:api_dox/app/http/controllers/config.controller.dart' as i3;
-import 'package:api_dox/app/http/controllers/expense.controller.dart' as i4;
-import 'package:api_dox/app/http/controllers/group.controller.dart' as i5;
-import 'package:api_dox/app/http/controllers/health.controller.dart' as i6;
-import 'package:api_dox/app/http/controllers/mcp.controller.dart' as i7;
-import 'package:api_dox/app/http/controllers/me.controller.dart' as i8;
-import 'package:api_dox/app/http/controllers/oauth.controller.dart' as i9;
-import 'package:api_dox/app/http/controllers/passkey.controller.dart' as i10;
-import 'package:api_dox/app/http/controllers/recurring.controller.dart' as i11;
+import 'package:api_dox/app/http/controllers/auth.controller.dart' as i2;
+import 'package:api_dox/app/http/controllers/category.controller.dart' as i3;
+import 'package:api_dox/app/http/controllers/config.controller.dart' as i4;
+import 'package:api_dox/app/http/controllers/expense.controller.dart' as i5;
+import 'package:api_dox/app/http/controllers/group.controller.dart' as i6;
+import 'package:api_dox/app/http/controllers/health.controller.dart' as i7;
+import 'package:api_dox/app/http/controllers/mcp.controller.dart' as i8;
+import 'package:api_dox/app/http/controllers/me.controller.dart' as i9;
+import 'package:api_dox/app/http/controllers/oauth.controller.dart' as i10;
+import 'package:api_dox/app/http/controllers/passkey.controller.dart' as i11;
+import 'package:api_dox/app/http/controllers/recurring.controller.dart' as i12;
 import 'package:api_dox/app/http/controllers/shopping_item.controller.dart'
-    as i12;
-import 'package:api_dox/app/http/controllers/totp.controller.dart' as i13;
-import 'package:api_dox/app/http/middleware/auth.middleware.dart' as i14;
-import 'package:api_dox/app/http/middleware/group.middleware.dart' as i15;
-import 'package:api_dox/app/mcp/mcp_tool_registry.dart' as i16;
-import 'package:api_dox/app/mcp/tools/category_tools.dart' as i17;
-import 'package:api_dox/app/mcp/tools/expense_tools.dart' as i18;
-import 'package:api_dox/app/mcp/tools/group_tools.dart' as i19;
-import 'package:api_dox/app/mcp/tools/shopping_tools.dart' as i20;
-import 'package:api_dox/app/mcp/tools/wallet_tools.dart' as i21;
-import 'package:api_dox/app/repositories/account.repository.dart' as i22;
-import 'package:api_dox/app/repositories/account_entry.repository.dart' as i23;
-import 'package:api_dox/app/repositories/account_member.repository.dart' as i24;
-import 'package:api_dox/app/repositories/budget.repository.dart' as i25;
-import 'package:api_dox/app/repositories/category.repository.dart' as i26;
-import 'package:api_dox/app/repositories/expense.repository.dart' as i27;
-import 'package:api_dox/app/repositories/group.repository.dart' as i28;
-import 'package:api_dox/app/repositories/group_member.repository.dart' as i29;
-import 'package:api_dox/app/repositories/mcp_token.repository.dart' as i30;
-import 'package:api_dox/app/repositories/passkey.repository.dart' as i31;
+    as i13;
+import 'package:api_dox/app/http/controllers/totp.controller.dart' as i14;
+import 'package:api_dox/app/http/middleware/auth.middleware.dart' as i15;
+import 'package:api_dox/app/http/middleware/group.middleware.dart' as i16;
+import 'package:api_dox/app/mcp/mcp_tool_registry.dart' as i17;
+import 'package:api_dox/app/mcp/tools/category_tools.dart' as i18;
+import 'package:api_dox/app/mcp/tools/expense_tools.dart' as i19;
+import 'package:api_dox/app/mcp/tools/group_tools.dart' as i20;
+import 'package:api_dox/app/mcp/tools/shopping_tools.dart' as i21;
+import 'package:api_dox/app/mcp/tools/wallet_tools.dart' as i22;
+import 'package:api_dox/app/repositories/account.repository.dart' as i23;
+import 'package:api_dox/app/repositories/account_entry.repository.dart' as i24;
+import 'package:api_dox/app/repositories/account_member.repository.dart' as i25;
+import 'package:api_dox/app/repositories/api_token.repository.dart' as i26;
+import 'package:api_dox/app/repositories/budget.repository.dart' as i27;
+import 'package:api_dox/app/repositories/category.repository.dart' as i28;
+import 'package:api_dox/app/repositories/expense.repository.dart' as i29;
+import 'package:api_dox/app/repositories/group.repository.dart' as i30;
+import 'package:api_dox/app/repositories/group_member.repository.dart' as i31;
+import 'package:api_dox/app/repositories/mcp_token.repository.dart' as i32;
+import 'package:api_dox/app/repositories/passkey.repository.dart' as i33;
 import 'package:api_dox/app/repositories/recurring_expense.repository.dart'
-    as i32;
-import 'package:api_dox/app/repositories/shopping_item.repository.dart' as i33;
-import 'package:api_dox/app/repositories/user.repository.dart' as i34;
-import 'package:api_dox/app/services/account.service.dart' as i35;
-import 'package:api_dox/app/services/account_share.service.dart' as i36;
-import 'package:api_dox/app/services/ai/claude_client.dart' as i37;
-import 'package:api_dox/app/services/ai/quick_add_picker.dart' as i38;
-import 'package:api_dox/app/services/budget.service.dart' as i39;
-import 'package:api_dox/app/services/category.service.dart' as i40;
-import 'package:api_dox/app/services/expense.service.dart' as i41;
-import 'package:api_dox/app/services/file_cache.dart' as i42;
-import 'package:api_dox/app/services/firebase.service.dart' as i43;
-import 'package:api_dox/app/services/fx/account_total.service.dart' as i44;
-import 'package:api_dox/app/services/fx/coinbase_rate_provider.dart' as i45;
-import 'package:api_dox/app/services/fx/fx.service.dart' as i46;
-import 'package:api_dox/app/services/fx/gold_quote_provider.dart' as i47;
-import 'package:api_dox/app/services/fx/http_fetch.dart' as i48;
-import 'package:api_dox/app/services/group.service.dart' as i49;
-import 'package:api_dox/app/services/live.service.dart' as i50;
-import 'package:api_dox/app/services/mcp_oauth.service.dart' as i51;
-import 'package:api_dox/app/services/mcp_token.service.dart' as i52;
-import 'package:api_dox/app/services/passkey/passkey.service.dart' as i53;
-import 'package:api_dox/app/services/recurring.service.dart' as i54;
-import 'package:api_dox/app/services/report.service.dart' as i55;
-import 'package:api_dox/app/services/shopping_list.service.dart' as i56;
-import 'package:api_dox/app/services/totp/totp.service.dart' as i57;
-import 'package:api_dox/app/services/user.service.dart' as i58;
-import 'package:api_dox/config/settings.dart' as i59;
-import 'package:api_dox/http/static_files.dart' as i60;
-import 'package:api_dox/providers/orm_provider.dart' as i61;
-import 'package:api_dox/providers/schedule_provider.dart' as i62;
-import 'package:api_dox/providers/socket_io_provider.dart' as i63;
-import 'package:api_dox/routes/api.dart' as i64;
-import 'package:api_dox/routes/web.dart' as i65;
-import 'package:api_dox/app/models/account/account.model.dart' as i66;
+    as i34;
+import 'package:api_dox/app/repositories/shopping_item.repository.dart' as i35;
+import 'package:api_dox/app/repositories/user.repository.dart' as i36;
+import 'package:api_dox/app/services/account.service.dart' as i37;
+import 'package:api_dox/app/services/account_share.service.dart' as i38;
+import 'package:api_dox/app/services/ai/claude_client.dart' as i39;
+import 'package:api_dox/app/services/ai/quick_add_picker.dart' as i40;
+import 'package:api_dox/app/services/api_token.service.dart' as i41;
+import 'package:api_dox/app/services/budget.service.dart' as i42;
+import 'package:api_dox/app/services/category.service.dart' as i43;
+import 'package:api_dox/app/services/expense.service.dart' as i44;
+import 'package:api_dox/app/services/file_cache.dart' as i45;
+import 'package:api_dox/app/services/firebase.service.dart' as i46;
+import 'package:api_dox/app/services/fx/account_total.service.dart' as i47;
+import 'package:api_dox/app/services/fx/coinbase_rate_provider.dart' as i48;
+import 'package:api_dox/app/services/fx/fx.service.dart' as i49;
+import 'package:api_dox/app/services/fx/gold_quote_provider.dart' as i50;
+import 'package:api_dox/app/services/fx/http_fetch.dart' as i51;
+import 'package:api_dox/app/services/group.service.dart' as i52;
+import 'package:api_dox/app/services/live.service.dart' as i53;
+import 'package:api_dox/app/services/mcp_oauth.service.dart' as i54;
+import 'package:api_dox/app/services/mcp_token.service.dart' as i55;
+import 'package:api_dox/app/services/passkey/passkey.service.dart' as i56;
+import 'package:api_dox/app/services/recurring.service.dart' as i57;
+import 'package:api_dox/app/services/report.service.dart' as i58;
+import 'package:api_dox/app/services/shopping_list.service.dart' as i59;
+import 'package:api_dox/app/services/totp/totp.service.dart' as i60;
+import 'package:api_dox/app/services/user.service.dart' as i61;
+import 'package:api_dox/config/settings.dart' as i62;
+import 'package:api_dox/http/static_files.dart' as i63;
+import 'package:api_dox/providers/orm_provider.dart' as i64;
+import 'package:api_dox/providers/schedule_provider.dart' as i65;
+import 'package:api_dox/providers/socket_io_provider.dart' as i66;
+import 'package:api_dox/routes/api.dart' as i67;
+import 'package:api_dox/routes/web.dart' as i68;
+import 'package:api_dox/app/models/account/account.model.dart' as i69;
 import 'package:api_dox/app/models/account_entry/account_entry.model.dart'
-    as i67;
+    as i70;
 import 'package:api_dox/app/models/account_member/account_member.model.dart'
-    as i68;
-import 'package:api_dox/app/models/category/category.model.dart' as i69;
-import 'package:api_dox/app/models/expense/expense.model.dart' as i70;
-import 'package:api_dox/app/models/group/group.model.dart' as i71;
-import 'package:api_dox/app/models/group_member/group_member.model.dart' as i72;
+    as i71;
+import 'package:api_dox/app/models/api_token/api_token.model.dart' as i72;
+import 'package:api_dox/app/models/category/category.model.dart' as i73;
+import 'package:api_dox/app/models/expense/expense.model.dart' as i74;
+import 'package:api_dox/app/models/group/group.model.dart' as i75;
+import 'package:api_dox/app/models/group_member/group_member.model.dart' as i76;
 import 'package:api_dox/app/models/group_monthly_budget/group_monthly_budget.model.dart'
-    as i73;
-import 'package:api_dox/app/models/mcp_token/mcp_token.model.dart' as i74;
-import 'package:api_dox/app/models/passkey/passkey.model.dart' as i75;
-import 'package:api_dox/app/models/recurring_expense/recurring_expense.model.dart'
-    as i76;
-import 'package:api_dox/app/models/shopping_item/shopping_item.model.dart'
     as i77;
-import 'package:api_dox/app/models/user/user.model.dart' as i78;
+import 'package:api_dox/app/models/mcp_token/mcp_token.model.dart' as i78;
+import 'package:api_dox/app/models/passkey/passkey.model.dart' as i79;
+import 'package:api_dox/app/models/recurring_expense/recurring_expense.model.dart'
+    as i80;
+import 'package:api_dox/app/models/shopping_item/shopping_item.model.dart'
+    as i81;
+import 'package:api_dox/app/models/user/user.model.dart' as i82;
 
 /// Puts every class of the app into the container: the
 /// `@Inject()` classes, routers, providers and model binders.
@@ -95,622 +99,638 @@ import 'package:api_dox/app/models/user/user.model.dart' as i78;
 void registerContainer(IocContainer c) {
   c.singleton<i1.AccountController>(
     (IocContainer c) => i1.AccountController(
-      c.get<i35.AccountService>(),
-      c.get<i44.AccountTotalService>(),
-      c.get<i46.FxService>(),
-      c.get<i36.AccountShareService>(),
+      c.get<i37.AccountService>(),
+      c.get<i47.AccountTotalService>(),
+      c.get<i49.FxService>(),
+      c.get<i38.AccountShareService>(),
     ),
   );
-  c.singleton<i2.CategoryController>(
-    (IocContainer c) => i2.CategoryController(c.get<i40.CategoryService>()),
+  c.singleton<i2.AuthController>(
+    (IocContainer c) => i2.AuthController(c.get<i41.ApiTokenService>()),
   );
-  c.singleton<i3.ConfigController>(
-    (IocContainer c) => i3.ConfigController(c.get<i59.AppSettings>()),
+  c.singleton<i3.CategoryController>(
+    (IocContainer c) => i3.CategoryController(c.get<i43.CategoryService>()),
   );
-  c.singleton<i4.ExpenseController>(
-    (IocContainer c) => i4.ExpenseController(
-      c.get<i41.ExpenseService>(),
-      c.get<i55.ReportService>(),
+  c.singleton<i4.ConfigController>(
+    (IocContainer c) => i4.ConfigController(c.get<i62.AppSettings>()),
+  );
+  c.singleton<i5.ExpenseController>(
+    (IocContainer c) => i5.ExpenseController(
+      c.get<i44.ExpenseService>(),
+      c.get<i58.ReportService>(),
     ),
   );
-  c.singleton<i5.GroupController>(
-    (IocContainer c) => i5.GroupController(
-      c.get<i49.GroupService>(),
-      c.get<i39.BudgetService>(),
+  c.singleton<i6.GroupController>(
+    (IocContainer c) => i6.GroupController(
+      c.get<i52.GroupService>(),
+      c.get<i42.BudgetService>(),
     ),
   );
-  c.singleton<i6.HealthController>((IocContainer c) => i6.HealthController());
-  c.singleton<i7.McpController>(
-    (IocContainer c) => i7.McpController(
-      c.get<i51.McpOAuthService>(),
-      c.get<i16.McpToolRegistry>(),
+  c.singleton<i7.HealthController>((IocContainer c) => i7.HealthController());
+  c.singleton<i8.McpController>(
+    (IocContainer c) => i8.McpController(
+      c.get<i54.McpOAuthService>(),
+      c.get<i17.McpToolRegistry>(),
     ),
   );
-  c.singleton<i8.MeController>(
-    (IocContainer c) => i8.MeController(
-      c.get<i51.McpOAuthService>(),
-      c.get<i52.McpTokenService>(),
+  c.singleton<i9.MeController>(
+    (IocContainer c) => i9.MeController(
+      c.get<i54.McpOAuthService>(),
+      c.get<i55.McpTokenService>(),
     ),
   );
-  c.singleton<i9.OauthController>(
-    (IocContainer c) => i9.OauthController(
-      c.get<i51.McpOAuthService>(),
-      c.get<i52.McpTokenService>(),
+  c.singleton<i10.OauthController>(
+    (IocContainer c) => i10.OauthController(
+      c.get<i54.McpOAuthService>(),
+      c.get<i55.McpTokenService>(),
     ),
   );
-  c.singleton<i10.PasskeyController>(
-    (IocContainer c) => i10.PasskeyController(c.get<i53.PasskeyService>()),
+  c.singleton<i11.PasskeyController>(
+    (IocContainer c) => i11.PasskeyController(c.get<i56.PasskeyService>()),
   );
-  c.singleton<i11.RecurringController>(
-    (IocContainer c) => i11.RecurringController(c.get<i54.RecurringService>()),
+  c.singleton<i12.RecurringController>(
+    (IocContainer c) => i12.RecurringController(c.get<i57.RecurringService>()),
   );
-  c.singleton<i12.ShoppingItemController>(
+  c.singleton<i13.ShoppingItemController>(
     (IocContainer c) =>
-        i12.ShoppingItemController(c.get<i56.ShoppingListService>()),
+        i13.ShoppingItemController(c.get<i59.ShoppingListService>()),
   );
-  c.singleton<i13.TotpController>(
-    (IocContainer c) => i13.TotpController(c.get<i57.TotpService>()),
+  c.singleton<i14.TotpController>(
+    (IocContainer c) => i14.TotpController(c.get<i60.TotpService>()),
   );
-  c.singleton<i14.AuthMiddleware>(
-    (IocContainer c) => i14.AuthMiddleware(
-      c.get<i43.FirebaseService>(),
-      c.get<i58.UserService>(),
+  c.singleton<i15.AuthMiddleware>(
+    (IocContainer c) => i15.AuthMiddleware(c.get<i41.ApiTokenService>()),
+  );
+  c.singleton<i16.GroupMiddleware>(
+    (IocContainer c) => i16.GroupMiddleware(c.get<i52.GroupService>()),
+  );
+  c.singleton<i17.McpToolRegistry>(
+    (IocContainer c) => i17.McpToolRegistry(
+      c.get<i20.GetMeTool>(),
+      c.get<i20.ListGroupsTool>(),
+      c.get<i20.CreateGroupTool>(),
+      c.get<i20.UpdateGroupTool>(),
+      c.get<i20.ListGroupMembersTool>(),
+      c.get<i20.InviteGroupMemberTool>(),
+      c.get<i20.RemoveGroupMemberTool>(),
+      c.get<i20.LeaveGroupTool>(),
+      c.get<i20.GetBudgetTool>(),
+      c.get<i20.SetBudgetTool>(),
+      c.get<i20.GetDefaultWalletTool>(),
+      c.get<i20.SetDefaultWalletTool>(),
+      c.get<i18.ListCategoriesTool>(),
+      c.get<i18.CreateCategoryTool>(),
+      c.get<i18.UpdateCategoryTool>(),
+      c.get<i18.DeleteCategoryTool>(),
+      c.get<i19.AddExpenseTool>(),
+      c.get<i19.ListExpensesTool>(),
+      c.get<i19.FrequentExpensesTool>(),
+      c.get<i19.UpdateExpenseTool>(),
+      c.get<i19.DeleteExpenseTool>(),
+      c.get<i19.MonthlySummaryTool>(),
+      c.get<i22.ListWalletsTool>(),
+      c.get<i22.CreateWalletTool>(),
+      c.get<i22.UpdateWalletTool>(),
+      c.get<i22.DeleteWalletTool>(),
+      c.get<i22.WalletTotalTool>(),
+      c.get<i22.WalletHistoryTool>(),
+      c.get<i22.TransferBetweenWalletsTool>(),
+      c.get<i22.ListWalletMembersTool>(),
+      c.get<i22.InviteWalletMemberTool>(),
+      c.get<i22.RemoveWalletMemberTool>(),
+      c.get<i22.ListWalletEntriesTool>(),
+      c.get<i22.RecentWalletEntriesTool>(),
+      c.get<i22.AddWalletEntryTool>(),
+      c.get<i22.UpdateWalletEntryTool>(),
+      c.get<i22.DeleteWalletEntryTool>(),
+      c.get<i22.AdjustWalletBalanceTool>(),
+      c.get<i22.ExchangeRatesTool>(),
+      c.get<i21.ListShoppingItemsTool>(),
+      c.get<i21.AddShoppingItemTool>(),
+      c.get<i21.UpdateShoppingItemTool>(),
+      c.get<i21.DeleteShoppingItemTool>(),
+      c.get<i21.ClearDoneShoppingItemsTool>(),
     ),
   );
-  c.singleton<i15.GroupMiddleware>(
-    (IocContainer c) => i15.GroupMiddleware(c.get<i49.GroupService>()),
-  );
-  c.singleton<i16.McpToolRegistry>(
-    (IocContainer c) => i16.McpToolRegistry(
-      c.get<i19.GetMeTool>(),
-      c.get<i19.ListGroupsTool>(),
-      c.get<i19.CreateGroupTool>(),
-      c.get<i19.UpdateGroupTool>(),
-      c.get<i19.ListGroupMembersTool>(),
-      c.get<i19.InviteGroupMemberTool>(),
-      c.get<i19.RemoveGroupMemberTool>(),
-      c.get<i19.LeaveGroupTool>(),
-      c.get<i19.GetBudgetTool>(),
-      c.get<i19.SetBudgetTool>(),
-      c.get<i19.GetDefaultWalletTool>(),
-      c.get<i19.SetDefaultWalletTool>(),
-      c.get<i17.ListCategoriesTool>(),
-      c.get<i17.CreateCategoryTool>(),
-      c.get<i17.UpdateCategoryTool>(),
-      c.get<i17.DeleteCategoryTool>(),
-      c.get<i18.AddExpenseTool>(),
-      c.get<i18.ListExpensesTool>(),
-      c.get<i18.FrequentExpensesTool>(),
-      c.get<i18.UpdateExpenseTool>(),
-      c.get<i18.DeleteExpenseTool>(),
-      c.get<i18.MonthlySummaryTool>(),
-      c.get<i21.ListWalletsTool>(),
-      c.get<i21.CreateWalletTool>(),
-      c.get<i21.UpdateWalletTool>(),
-      c.get<i21.DeleteWalletTool>(),
-      c.get<i21.WalletTotalTool>(),
-      c.get<i21.WalletHistoryTool>(),
-      c.get<i21.TransferBetweenWalletsTool>(),
-      c.get<i21.ListWalletMembersTool>(),
-      c.get<i21.InviteWalletMemberTool>(),
-      c.get<i21.RemoveWalletMemberTool>(),
-      c.get<i21.ListWalletEntriesTool>(),
-      c.get<i21.RecentWalletEntriesTool>(),
-      c.get<i21.AddWalletEntryTool>(),
-      c.get<i21.UpdateWalletEntryTool>(),
-      c.get<i21.DeleteWalletEntryTool>(),
-      c.get<i21.AdjustWalletBalanceTool>(),
-      c.get<i21.ExchangeRatesTool>(),
-      c.get<i20.ListShoppingItemsTool>(),
-      c.get<i20.AddShoppingItemTool>(),
-      c.get<i20.UpdateShoppingItemTool>(),
-      c.get<i20.DeleteShoppingItemTool>(),
-      c.get<i20.ClearDoneShoppingItemsTool>(),
+  c.singleton<i18.ListCategoriesTool>(
+    (IocContainer c) => i18.ListCategoriesTool(
+      c.get<i52.GroupService>(),
+      c.get<i43.CategoryService>(),
     ),
   );
-  c.singleton<i17.ListCategoriesTool>(
-    (IocContainer c) => i17.ListCategoriesTool(
-      c.get<i49.GroupService>(),
-      c.get<i40.CategoryService>(),
+  c.singleton<i18.CreateCategoryTool>(
+    (IocContainer c) => i18.CreateCategoryTool(
+      c.get<i52.GroupService>(),
+      c.get<i43.CategoryService>(),
     ),
   );
-  c.singleton<i17.CreateCategoryTool>(
-    (IocContainer c) => i17.CreateCategoryTool(
-      c.get<i49.GroupService>(),
-      c.get<i40.CategoryService>(),
+  c.singleton<i18.UpdateCategoryTool>(
+    (IocContainer c) => i18.UpdateCategoryTool(
+      c.get<i52.GroupService>(),
+      c.get<i43.CategoryService>(),
     ),
   );
-  c.singleton<i17.UpdateCategoryTool>(
-    (IocContainer c) => i17.UpdateCategoryTool(
-      c.get<i49.GroupService>(),
-      c.get<i40.CategoryService>(),
+  c.singleton<i18.DeleteCategoryTool>(
+    (IocContainer c) => i18.DeleteCategoryTool(
+      c.get<i52.GroupService>(),
+      c.get<i43.CategoryService>(),
     ),
   );
-  c.singleton<i17.DeleteCategoryTool>(
-    (IocContainer c) => i17.DeleteCategoryTool(
-      c.get<i49.GroupService>(),
-      c.get<i40.CategoryService>(),
+  c.singleton<i19.AddExpenseTool>(
+    (IocContainer c) => i19.AddExpenseTool(
+      c.get<i52.GroupService>(),
+      c.get<i44.ExpenseService>(),
     ),
   );
-  c.singleton<i18.AddExpenseTool>(
-    (IocContainer c) => i18.AddExpenseTool(
-      c.get<i49.GroupService>(),
-      c.get<i41.ExpenseService>(),
+  c.singleton<i19.ListExpensesTool>(
+    (IocContainer c) => i19.ListExpensesTool(
+      c.get<i52.GroupService>(),
+      c.get<i44.ExpenseService>(),
     ),
   );
-  c.singleton<i18.ListExpensesTool>(
-    (IocContainer c) => i18.ListExpensesTool(
-      c.get<i49.GroupService>(),
-      c.get<i41.ExpenseService>(),
+  c.singleton<i19.FrequentExpensesTool>(
+    (IocContainer c) => i19.FrequentExpensesTool(
+      c.get<i52.GroupService>(),
+      c.get<i44.ExpenseService>(),
     ),
   );
-  c.singleton<i18.FrequentExpensesTool>(
-    (IocContainer c) => i18.FrequentExpensesTool(
-      c.get<i49.GroupService>(),
-      c.get<i41.ExpenseService>(),
+  c.singleton<i19.UpdateExpenseTool>(
+    (IocContainer c) => i19.UpdateExpenseTool(
+      c.get<i52.GroupService>(),
+      c.get<i44.ExpenseService>(),
     ),
   );
-  c.singleton<i18.UpdateExpenseTool>(
-    (IocContainer c) => i18.UpdateExpenseTool(
-      c.get<i49.GroupService>(),
-      c.get<i41.ExpenseService>(),
+  c.singleton<i19.DeleteExpenseTool>(
+    (IocContainer c) => i19.DeleteExpenseTool(
+      c.get<i52.GroupService>(),
+      c.get<i44.ExpenseService>(),
     ),
   );
-  c.singleton<i18.DeleteExpenseTool>(
-    (IocContainer c) => i18.DeleteExpenseTool(
-      c.get<i49.GroupService>(),
-      c.get<i41.ExpenseService>(),
+  c.singleton<i19.MonthlySummaryTool>(
+    (IocContainer c) => i19.MonthlySummaryTool(
+      c.get<i52.GroupService>(),
+      c.get<i43.CategoryService>(),
+      c.get<i44.ExpenseService>(),
     ),
   );
-  c.singleton<i18.MonthlySummaryTool>(
-    (IocContainer c) => i18.MonthlySummaryTool(
-      c.get<i49.GroupService>(),
-      c.get<i40.CategoryService>(),
-      c.get<i41.ExpenseService>(),
+  c.singleton<i20.GetMeTool>(
+    (IocContainer c) => i20.GetMeTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.ListGroupsTool>(
+    (IocContainer c) => i20.ListGroupsTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.CreateGroupTool>(
+    (IocContainer c) => i20.CreateGroupTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.UpdateGroupTool>(
+    (IocContainer c) => i20.UpdateGroupTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.ListGroupMembersTool>(
+    (IocContainer c) => i20.ListGroupMembersTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.InviteGroupMemberTool>(
+    (IocContainer c) => i20.InviteGroupMemberTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.RemoveGroupMemberTool>(
+    (IocContainer c) => i20.RemoveGroupMemberTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.LeaveGroupTool>(
+    (IocContainer c) => i20.LeaveGroupTool(c.get<i52.GroupService>()),
+  );
+  c.singleton<i20.GetBudgetTool>(
+    (IocContainer c) => i20.GetBudgetTool(
+      c.get<i52.GroupService>(),
+      c.get<i44.ExpenseService>(),
     ),
   );
-  c.singleton<i19.GetMeTool>(
-    (IocContainer c) => i19.GetMeTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.ListGroupsTool>(
-    (IocContainer c) => i19.ListGroupsTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.CreateGroupTool>(
-    (IocContainer c) => i19.CreateGroupTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.UpdateGroupTool>(
-    (IocContainer c) => i19.UpdateGroupTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.ListGroupMembersTool>(
-    (IocContainer c) => i19.ListGroupMembersTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.InviteGroupMemberTool>(
-    (IocContainer c) => i19.InviteGroupMemberTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.RemoveGroupMemberTool>(
-    (IocContainer c) => i19.RemoveGroupMemberTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.LeaveGroupTool>(
-    (IocContainer c) => i19.LeaveGroupTool(c.get<i49.GroupService>()),
-  );
-  c.singleton<i19.GetBudgetTool>(
-    (IocContainer c) => i19.GetBudgetTool(
-      c.get<i49.GroupService>(),
-      c.get<i41.ExpenseService>(),
+  c.singleton<i20.SetBudgetTool>(
+    (IocContainer c) => i20.SetBudgetTool(
+      c.get<i52.GroupService>(),
+      c.get<i42.BudgetService>(),
     ),
   );
-  c.singleton<i19.SetBudgetTool>(
-    (IocContainer c) => i19.SetBudgetTool(
-      c.get<i49.GroupService>(),
-      c.get<i39.BudgetService>(),
+  c.singleton<i20.GetDefaultWalletTool>(
+    (IocContainer c) => i20.GetDefaultWalletTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i19.GetDefaultWalletTool>(
-    (IocContainer c) => i19.GetDefaultWalletTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i20.SetDefaultWalletTool>(
+    (IocContainer c) => i20.SetDefaultWalletTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i19.SetDefaultWalletTool>(
-    (IocContainer c) => i19.SetDefaultWalletTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i21.ListShoppingItemsTool>(
+    (IocContainer c) => i21.ListShoppingItemsTool(
+      c.get<i52.GroupService>(),
+      c.get<i59.ShoppingListService>(),
     ),
   );
-  c.singleton<i20.ListShoppingItemsTool>(
-    (IocContainer c) => i20.ListShoppingItemsTool(
-      c.get<i49.GroupService>(),
-      c.get<i56.ShoppingListService>(),
+  c.singleton<i21.AddShoppingItemTool>(
+    (IocContainer c) => i21.AddShoppingItemTool(
+      c.get<i52.GroupService>(),
+      c.get<i59.ShoppingListService>(),
     ),
   );
-  c.singleton<i20.AddShoppingItemTool>(
-    (IocContainer c) => i20.AddShoppingItemTool(
-      c.get<i49.GroupService>(),
-      c.get<i56.ShoppingListService>(),
+  c.singleton<i21.UpdateShoppingItemTool>(
+    (IocContainer c) => i21.UpdateShoppingItemTool(
+      c.get<i52.GroupService>(),
+      c.get<i59.ShoppingListService>(),
     ),
   );
-  c.singleton<i20.UpdateShoppingItemTool>(
-    (IocContainer c) => i20.UpdateShoppingItemTool(
-      c.get<i49.GroupService>(),
-      c.get<i56.ShoppingListService>(),
+  c.singleton<i21.DeleteShoppingItemTool>(
+    (IocContainer c) => i21.DeleteShoppingItemTool(
+      c.get<i52.GroupService>(),
+      c.get<i59.ShoppingListService>(),
     ),
   );
-  c.singleton<i20.DeleteShoppingItemTool>(
-    (IocContainer c) => i20.DeleteShoppingItemTool(
-      c.get<i49.GroupService>(),
-      c.get<i56.ShoppingListService>(),
+  c.singleton<i21.ClearDoneShoppingItemsTool>(
+    (IocContainer c) => i21.ClearDoneShoppingItemsTool(
+      c.get<i52.GroupService>(),
+      c.get<i59.ShoppingListService>(),
     ),
   );
-  c.singleton<i20.ClearDoneShoppingItemsTool>(
-    (IocContainer c) => i20.ClearDoneShoppingItemsTool(
-      c.get<i49.GroupService>(),
-      c.get<i56.ShoppingListService>(),
+  c.singleton<i22.ListWalletsTool>(
+    (IocContainer c) => i22.ListWalletsTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.ListWalletsTool>(
-    (IocContainer c) => i21.ListWalletsTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.CreateWalletTool>(
+    (IocContainer c) => i22.CreateWalletTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.CreateWalletTool>(
-    (IocContainer c) => i21.CreateWalletTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.UpdateWalletTool>(
+    (IocContainer c) => i22.UpdateWalletTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.UpdateWalletTool>(
-    (IocContainer c) => i21.UpdateWalletTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.DeleteWalletTool>(
+    (IocContainer c) => i22.DeleteWalletTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.DeleteWalletTool>(
-    (IocContainer c) => i21.DeleteWalletTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.WalletTotalTool>(
+    (IocContainer c) => i22.WalletTotalTool(
+      c.get<i52.GroupService>(),
+      c.get<i47.AccountTotalService>(),
     ),
   );
-  c.singleton<i21.WalletTotalTool>(
-    (IocContainer c) => i21.WalletTotalTool(
-      c.get<i49.GroupService>(),
-      c.get<i44.AccountTotalService>(),
+  c.singleton<i22.WalletHistoryTool>(
+    (IocContainer c) => i22.WalletHistoryTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.WalletHistoryTool>(
-    (IocContainer c) => i21.WalletHistoryTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.TransferBetweenWalletsTool>(
+    (IocContainer c) => i22.TransferBetweenWalletsTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.TransferBetweenWalletsTool>(
-    (IocContainer c) => i21.TransferBetweenWalletsTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.ListWalletMembersTool>(
+    (IocContainer c) => i22.ListWalletMembersTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
+      c.get<i38.AccountShareService>(),
     ),
   );
-  c.singleton<i21.ListWalletMembersTool>(
-    (IocContainer c) => i21.ListWalletMembersTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
-      c.get<i36.AccountShareService>(),
+  c.singleton<i22.InviteWalletMemberTool>(
+    (IocContainer c) => i22.InviteWalletMemberTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
+      c.get<i38.AccountShareService>(),
     ),
   );
-  c.singleton<i21.InviteWalletMemberTool>(
-    (IocContainer c) => i21.InviteWalletMemberTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
-      c.get<i36.AccountShareService>(),
+  c.singleton<i22.RemoveWalletMemberTool>(
+    (IocContainer c) => i22.RemoveWalletMemberTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
+      c.get<i38.AccountShareService>(),
     ),
   );
-  c.singleton<i21.RemoveWalletMemberTool>(
-    (IocContainer c) => i21.RemoveWalletMemberTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
-      c.get<i36.AccountShareService>(),
+  c.singleton<i22.ListWalletEntriesTool>(
+    (IocContainer c) => i22.ListWalletEntriesTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.ListWalletEntriesTool>(
-    (IocContainer c) => i21.ListWalletEntriesTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.RecentWalletEntriesTool>(
+    (IocContainer c) => i22.RecentWalletEntriesTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.RecentWalletEntriesTool>(
-    (IocContainer c) => i21.RecentWalletEntriesTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.AddWalletEntryTool>(
+    (IocContainer c) => i22.AddWalletEntryTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.AddWalletEntryTool>(
-    (IocContainer c) => i21.AddWalletEntryTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.UpdateWalletEntryTool>(
+    (IocContainer c) => i22.UpdateWalletEntryTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.UpdateWalletEntryTool>(
-    (IocContainer c) => i21.UpdateWalletEntryTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.DeleteWalletEntryTool>(
+    (IocContainer c) => i22.DeleteWalletEntryTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.DeleteWalletEntryTool>(
-    (IocContainer c) => i21.DeleteWalletEntryTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.AdjustWalletBalanceTool>(
+    (IocContainer c) => i22.AdjustWalletBalanceTool(
+      c.get<i52.GroupService>(),
+      c.get<i37.AccountService>(),
     ),
   );
-  c.singleton<i21.AdjustWalletBalanceTool>(
-    (IocContainer c) => i21.AdjustWalletBalanceTool(
-      c.get<i49.GroupService>(),
-      c.get<i35.AccountService>(),
+  c.singleton<i22.ExchangeRatesTool>(
+    (IocContainer c) => i22.ExchangeRatesTool(
+      c.get<i52.GroupService>(),
+      c.get<i49.FxService>(),
     ),
   );
-  c.singleton<i21.ExchangeRatesTool>(
-    (IocContainer c) => i21.ExchangeRatesTool(
-      c.get<i49.GroupService>(),
-      c.get<i46.FxService>(),
+  c.singleton<i23.AccountRepository>(
+    (IocContainer c) => i23.AccountRepository(),
+  );
+  c.singleton<i24.AccountEntryRepository>(
+    (IocContainer c) => i24.AccountEntryRepository(),
+  );
+  c.singleton<i25.AccountMemberRepository>(
+    (IocContainer c) => i25.AccountMemberRepository(),
+  );
+  c.singleton<i26.ApiTokenRepository>(
+    (IocContainer c) => i26.ApiTokenRepository(),
+  );
+  c.singleton<i27.BudgetRepository>((IocContainer c) => i27.BudgetRepository());
+  c.singleton<i28.CategoryRepository>(
+    (IocContainer c) => i28.CategoryRepository(),
+  );
+  c.singleton<i29.ExpenseRepository>(
+    (IocContainer c) => i29.ExpenseRepository(),
+  );
+  c.singleton<i30.GroupRepository>((IocContainer c) => i30.GroupRepository());
+  c.singleton<i31.GroupMemberRepository>(
+    (IocContainer c) => i31.GroupMemberRepository(),
+  );
+  c.singleton<i32.McpTokenRepository>(
+    (IocContainer c) => i32.McpTokenRepository(),
+  );
+  c.singleton<i33.PasskeyRepository>(
+    (IocContainer c) => i33.PasskeyRepository(),
+  );
+  c.singleton<i34.RecurringExpenseRepository>(
+    (IocContainer c) => i34.RecurringExpenseRepository(),
+  );
+  c.singleton<i35.ShoppingItemRepository>(
+    (IocContainer c) => i35.ShoppingItemRepository(),
+  );
+  c.singleton<i36.UserRepository>((IocContainer c) => i36.UserRepository());
+  c.singleton<i37.AccountService>(
+    (IocContainer c) => i37.AccountService(
+      c.get<i23.AccountRepository>(),
+      c.get<i24.AccountEntryRepository>(),
+      c.get<i31.GroupMemberRepository>(),
+      c.get<i25.AccountMemberRepository>(),
+      c.get<i38.AccountShareService>(),
+      c.get<i53.LiveService>(),
     ),
   );
-  c.singleton<i22.AccountRepository>(
-    (IocContainer c) => i22.AccountRepository(),
-  );
-  c.singleton<i23.AccountEntryRepository>(
-    (IocContainer c) => i23.AccountEntryRepository(),
-  );
-  c.singleton<i24.AccountMemberRepository>(
-    (IocContainer c) => i24.AccountMemberRepository(),
-  );
-  c.singleton<i25.BudgetRepository>((IocContainer c) => i25.BudgetRepository());
-  c.singleton<i26.CategoryRepository>(
-    (IocContainer c) => i26.CategoryRepository(),
-  );
-  c.singleton<i27.ExpenseRepository>(
-    (IocContainer c) => i27.ExpenseRepository(),
-  );
-  c.singleton<i28.GroupRepository>((IocContainer c) => i28.GroupRepository());
-  c.singleton<i29.GroupMemberRepository>(
-    (IocContainer c) => i29.GroupMemberRepository(),
-  );
-  c.singleton<i30.McpTokenRepository>(
-    (IocContainer c) => i30.McpTokenRepository(),
-  );
-  c.singleton<i31.PasskeyRepository>(
-    (IocContainer c) => i31.PasskeyRepository(),
-  );
-  c.singleton<i32.RecurringExpenseRepository>(
-    (IocContainer c) => i32.RecurringExpenseRepository(),
-  );
-  c.singleton<i33.ShoppingItemRepository>(
-    (IocContainer c) => i33.ShoppingItemRepository(),
-  );
-  c.singleton<i34.UserRepository>((IocContainer c) => i34.UserRepository());
-  c.singleton<i35.AccountService>(
-    (IocContainer c) => i35.AccountService(
-      c.get<i22.AccountRepository>(),
-      c.get<i23.AccountEntryRepository>(),
-      c.get<i29.GroupMemberRepository>(),
-      c.get<i24.AccountMemberRepository>(),
-      c.get<i36.AccountShareService>(),
-      c.get<i50.LiveService>(),
+  c.singleton<i38.AccountShareService>(
+    (IocContainer c) => i38.AccountShareService(
+      c.get<i25.AccountMemberRepository>(),
+      c.get<i36.UserRepository>(),
+      c.get<i53.LiveService>(),
     ),
   );
-  c.singleton<i36.AccountShareService>(
-    (IocContainer c) => i36.AccountShareService(
-      c.get<i24.AccountMemberRepository>(),
-      c.get<i34.UserRepository>(),
-      c.get<i50.LiveService>(),
-    ),
+  c.singleton<i39.ClaudeClient>(
+    (IocContainer c) => i39.ClaudeClient(c.get<i62.AppSettings>()),
   );
-  c.singleton<i37.ClaudeClient>(
-    (IocContainer c) => i37.ClaudeClient(c.get<i59.AppSettings>()),
-  );
-  c.singleton<i38.QuickAddPicker>(
+  c.singleton<i40.QuickAddPicker>(
     (IocContainer c) =>
-        i38.QuickAddPicker(c.get<i37.ClaudeClient>(), c.get<i42.FileCache>()),
+        i40.QuickAddPicker(c.get<i39.ClaudeClient>(), c.get<i45.FileCache>()),
   );
-  c.singleton<i39.BudgetService>(
-    (IocContainer c) => i39.BudgetService(
-      c.get<i25.BudgetRepository>(),
-      c.get<i50.LiveService>(),
+  c.singleton<i41.ApiTokenService>(
+    (IocContainer c) => i41.ApiTokenService(
+      c.get<i26.ApiTokenRepository>(),
+      c.get<i36.UserRepository>(),
+      c.get<i61.UserService>(),
+      c.get<i46.FirebaseService>(),
     ),
   );
-  c.singleton<i40.CategoryService>(
-    (IocContainer c) => i40.CategoryService(
-      c.get<i26.CategoryRepository>(),
-      c.get<i27.ExpenseRepository>(),
-      c.get<i50.LiveService>(),
+  c.singleton<i42.BudgetService>(
+    (IocContainer c) => i42.BudgetService(
+      c.get<i27.BudgetRepository>(),
+      c.get<i53.LiveService>(),
     ),
   );
-  c.singleton<i41.ExpenseService>(
-    (IocContainer c) => i41.ExpenseService(
-      c.get<i27.ExpenseRepository>(),
-      c.get<i40.CategoryService>(),
-      c.get<i39.BudgetService>(),
-      c.get<i35.AccountService>(),
-      c.get<i50.LiveService>(),
-      c.get<i38.QuickAddPicker>(),
+  c.singleton<i43.CategoryService>(
+    (IocContainer c) => i43.CategoryService(
+      c.get<i28.CategoryRepository>(),
+      c.get<i29.ExpenseRepository>(),
+      c.get<i53.LiveService>(),
     ),
   );
-  c.singleton<i42.FileCache>((IocContainer c) => i42.FileCache());
-  c.singleton<i43.FirebaseService>(
-    (IocContainer c) => i43.FirebaseService(c.get<i59.AppSettings>()),
-  );
-  c.singleton<i44.AccountTotalService>(
-    (IocContainer c) => i44.AccountTotalService(
-      c.get<i35.AccountService>(),
-      c.get<i46.FxService>(),
+  c.singleton<i44.ExpenseService>(
+    (IocContainer c) => i44.ExpenseService(
+      c.get<i29.ExpenseRepository>(),
+      c.get<i43.CategoryService>(),
+      c.get<i42.BudgetService>(),
+      c.get<i37.AccountService>(),
+      c.get<i53.LiveService>(),
+      c.get<i40.QuickAddPicker>(),
     ),
   );
-  c.singleton<i45.CoinbaseRateProvider>(
-    (IocContainer c) => i45.CoinbaseRateProvider(
-      c.get<i42.FileCache>(),
-      c.get<i48.HttpFetch>(),
+  c.singleton<i45.FileCache>((IocContainer c) => i45.FileCache());
+  c.singleton<i46.FirebaseService>(
+    (IocContainer c) => i46.FirebaseService(c.get<i62.AppSettings>()),
+  );
+  c.singleton<i47.AccountTotalService>(
+    (IocContainer c) => i47.AccountTotalService(
+      c.get<i37.AccountService>(),
+      c.get<i49.FxService>(),
     ),
   );
-  c.singleton<i46.FxService>(
-    (IocContainer c) => i46.FxService(
-      c.get<i45.CoinbaseRateProvider>(),
-      c.get<i47.GoldQuoteProvider>(),
-      c.get<i50.LiveService>(),
+  c.singleton<i48.CoinbaseRateProvider>(
+    (IocContainer c) => i48.CoinbaseRateProvider(
+      c.get<i45.FileCache>(),
+      c.get<i51.HttpFetch>(),
     ),
   );
-  c.singleton<i47.GoldQuoteProvider>(
+  c.singleton<i49.FxService>(
+    (IocContainer c) => i49.FxService(
+      c.get<i48.CoinbaseRateProvider>(),
+      c.get<i50.GoldQuoteProvider>(),
+      c.get<i53.LiveService>(),
+    ),
+  );
+  c.singleton<i50.GoldQuoteProvider>(
     (IocContainer c) =>
-        i47.GoldQuoteProvider(c.get<i42.FileCache>(), c.get<i48.HttpFetch>()),
+        i50.GoldQuoteProvider(c.get<i45.FileCache>(), c.get<i51.HttpFetch>()),
   );
-  c.singleton<i48.HttpFetch>((IocContainer c) => i48.HttpFetch());
-  c.singleton<i49.GroupService>(
-    (IocContainer c) => i49.GroupService(
-      c.get<i28.GroupRepository>(),
-      c.get<i29.GroupMemberRepository>(),
-      c.get<i26.CategoryRepository>(),
-      c.get<i34.UserRepository>(),
-      c.get<i50.LiveService>(),
+  c.singleton<i51.HttpFetch>((IocContainer c) => i51.HttpFetch());
+  c.singleton<i52.GroupService>(
+    (IocContainer c) => i52.GroupService(
+      c.get<i30.GroupRepository>(),
+      c.get<i31.GroupMemberRepository>(),
+      c.get<i28.CategoryRepository>(),
+      c.get<i36.UserRepository>(),
+      c.get<i53.LiveService>(),
     ),
   );
-  c.singleton<i50.LiveService>(
-    (IocContainer c) => i50.LiveService(
-      c.get<i29.GroupMemberRepository>(),
-      c.get<i22.AccountRepository>(),
-      c.get<i24.AccountMemberRepository>(),
-      c.get<i23.AccountEntryRepository>(),
+  c.singleton<i53.LiveService>(
+    (IocContainer c) => i53.LiveService(
+      c.get<i31.GroupMemberRepository>(),
+      c.get<i23.AccountRepository>(),
+      c.get<i25.AccountMemberRepository>(),
+      c.get<i24.AccountEntryRepository>(),
     ),
   );
-  c.singleton<i51.McpOAuthService>(
-    (IocContainer c) => i51.McpOAuthService(
-      c.get<i59.AppSettings>(),
-      c.get<i52.McpTokenService>(),
+  c.singleton<i54.McpOAuthService>(
+    (IocContainer c) => i54.McpOAuthService(
+      c.get<i62.AppSettings>(),
+      c.get<i55.McpTokenService>(),
     ),
   );
-  c.singleton<i52.McpTokenService>(
-    (IocContainer c) => i52.McpTokenService(
-      c.get<i30.McpTokenRepository>(),
-      c.get<i34.UserRepository>(),
-      c.get<i58.UserService>(),
+  c.singleton<i55.McpTokenService>(
+    (IocContainer c) => i55.McpTokenService(
+      c.get<i32.McpTokenRepository>(),
+      c.get<i36.UserRepository>(),
+      c.get<i61.UserService>(),
     ),
   );
-  c.singleton<i53.PasskeyService>(
-    (IocContainer c) => i53.PasskeyService(
-      c.get<i31.PasskeyRepository>(),
-      c.get<i34.UserRepository>(),
-      c.get<i58.UserService>(),
-      c.get<i43.FirebaseService>(),
-      c.get<i59.AppSettings>(),
+  c.singleton<i56.PasskeyService>(
+    (IocContainer c) => i56.PasskeyService(
+      c.get<i33.PasskeyRepository>(),
+      c.get<i36.UserRepository>(),
+      c.get<i61.UserService>(),
+      c.get<i41.ApiTokenService>(),
+      c.get<i62.AppSettings>(),
     ),
   );
-  c.singleton<i54.RecurringService>(
-    (IocContainer c) => i54.RecurringService(
-      c.get<i32.RecurringExpenseRepository>(),
-      c.get<i41.ExpenseService>(),
-      c.get<i40.CategoryService>(),
-      c.get<i35.AccountService>(),
-      c.get<i34.UserRepository>(),
-      c.get<i28.GroupRepository>(),
-      c.get<i29.GroupMemberRepository>(),
+  c.singleton<i57.RecurringService>(
+    (IocContainer c) => i57.RecurringService(
+      c.get<i34.RecurringExpenseRepository>(),
+      c.get<i44.ExpenseService>(),
+      c.get<i43.CategoryService>(),
+      c.get<i37.AccountService>(),
+      c.get<i36.UserRepository>(),
+      c.get<i30.GroupRepository>(),
+      c.get<i31.GroupMemberRepository>(),
     ),
   );
-  c.singleton<i55.ReportService>(
-    (IocContainer c) => i55.ReportService(
-      c.get<i27.ExpenseRepository>(),
-      c.get<i29.GroupMemberRepository>(),
-      c.get<i34.UserRepository>(),
+  c.singleton<i58.ReportService>(
+    (IocContainer c) => i58.ReportService(
+      c.get<i29.ExpenseRepository>(),
+      c.get<i31.GroupMemberRepository>(),
+      c.get<i36.UserRepository>(),
     ),
   );
-  c.singleton<i56.ShoppingListService>(
-    (IocContainer c) => i56.ShoppingListService(
-      c.get<i33.ShoppingItemRepository>(),
-      c.get<i50.LiveService>(),
+  c.singleton<i59.ShoppingListService>(
+    (IocContainer c) => i59.ShoppingListService(
+      c.get<i35.ShoppingItemRepository>(),
+      c.get<i53.LiveService>(),
     ),
   );
-  c.singleton<i57.TotpService>(
-    (IocContainer c) => i57.TotpService(
-      c.get<i34.UserRepository>(),
-      c.get<i43.FirebaseService>(),
+  c.singleton<i60.TotpService>(
+    (IocContainer c) => i60.TotpService(
+      c.get<i36.UserRepository>(),
+      c.get<i41.ApiTokenService>(),
     ),
   );
-  c.singleton<i58.UserService>(
-    (IocContainer c) => i58.UserService(
-      c.get<i34.UserRepository>(),
-      c.get<i49.GroupService>(),
-      c.get<i36.AccountShareService>(),
-      c.get<i59.AppSettings>(),
+  c.singleton<i61.UserService>(
+    (IocContainer c) => i61.UserService(
+      c.get<i36.UserRepository>(),
+      c.get<i52.GroupService>(),
+      c.get<i38.AccountShareService>(),
+      c.get<i62.AppSettings>(),
     ),
   );
-  c.singleton<i59.AppSettings>((IocContainer c) => i59.AppSettings());
-  c.singleton<i60.StaticFiles>(
-    (IocContainer c) => i60.StaticFiles(c.get<i59.AppSettings>()),
+  c.singleton<i62.AppSettings>((IocContainer c) => i62.AppSettings());
+  c.singleton<i63.StaticFiles>(
+    (IocContainer c) => i63.StaticFiles(c.get<i62.AppSettings>()),
   );
-  c.provider<i61.ORMProvider>((IocContainer c) => i61.ORMProvider());
-  c.provider<i62.ScheduleProvider>((IocContainer c) => i62.ScheduleProvider());
-  c.provider<i63.AppSocketIoProvider>(
-    (IocContainer c) => i63.AppSocketIoProvider(),
+  c.provider<i64.ORMProvider>((IocContainer c) => i64.ORMProvider());
+  c.provider<i65.ScheduleProvider>((IocContainer c) => i65.ScheduleProvider());
+  c.provider<i66.AppSocketIoProvider>(
+    (IocContainer c) => i66.AppSocketIoProvider(),
   );
-  c.router<i64.ApiRouter>((IocContainer c) => i64.ApiRouter());
-  c.router<i65.WebRouter>((IocContainer c) => i65.WebRouter());
-  c.bindModel<i66.Account>((String id) {
+  c.router<i67.ApiRouter>((IocContainer c) => i67.ApiRouter());
+  c.router<i68.WebRouter>((IocContainer c) => i68.WebRouter());
+  c.bindModel<i69.Account>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i66.Account().find(key);
+    return i69.Account().find(key);
   });
-  c.bindModel<i67.AccountEntry>((String id) {
+  c.bindModel<i70.AccountEntry>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i67.AccountEntry().find(key);
+    return i70.AccountEntry().find(key);
   });
-  c.bindModel<i68.AccountMember>((String id) {
+  c.bindModel<i71.AccountMember>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i68.AccountMember().find(key);
+    return i71.AccountMember().find(key);
   });
-  c.bindModel<i69.Category>((String id) {
+  c.bindModel<i72.ApiToken>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i69.Category().find(key);
+    return i72.ApiToken().find(key);
   });
-  c.bindModel<i70.Expense>((String id) {
+  c.bindModel<i73.Category>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i70.Expense().find(key);
+    return i73.Category().find(key);
   });
-  c.bindModel<i71.Group>((String id) {
+  c.bindModel<i74.Expense>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i71.Group().find(key);
+    return i74.Expense().find(key);
   });
-  c.bindModel<i72.GroupMember>((String id) {
+  c.bindModel<i75.Group>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i72.GroupMember().find(key);
+    return i75.Group().find(key);
   });
-  c.bindModel<i73.GroupMonthlyBudget>((String id) {
+  c.bindModel<i76.GroupMember>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i73.GroupMonthlyBudget().find(key);
+    return i76.GroupMember().find(key);
   });
-  c.bindModel<i74.McpToken>((String id) {
+  c.bindModel<i77.GroupMonthlyBudget>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i74.McpToken().find(key);
+    return i77.GroupMonthlyBudget().find(key);
   });
-  c.bindModel<i75.Passkey>((String id) {
+  c.bindModel<i78.McpToken>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i75.Passkey().find(key);
+    return i78.McpToken().find(key);
   });
-  c.bindModel<i76.RecurringExpense>((String id) {
+  c.bindModel<i79.Passkey>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i76.RecurringExpense().find(key);
+    return i79.Passkey().find(key);
   });
-  c.bindModel<i77.ShoppingItem>((String id) {
+  c.bindModel<i80.RecurringExpense>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i77.ShoppingItem().find(key);
+    return i80.RecurringExpense().find(key);
   });
-  c.bindModel<i78.User>((String id) {
+  c.bindModel<i81.ShoppingItem>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i78.User().find(key);
+    return i81.ShoppingItem().find(key);
+  });
+  c.bindModel<i82.User>((String id) {
+    int? key = int.tryParse(id);
+    if (key == null) return null;
+    return i82.User().find(key);
   });
 }

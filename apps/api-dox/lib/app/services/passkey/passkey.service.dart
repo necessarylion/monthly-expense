@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/passkey.repository.dart';
 import 'package:api_dox/app/repositories/user.repository.dart';
-import 'package:api_dox/app/services/firebase.service.dart';
+import 'package:api_dox/app/services/api_token.service.dart';
 import 'package:api_dox/app/services/passkey/webauthn.dart';
 import 'package:api_dox/app/services/user.service.dart';
 import 'package:api_dox/config/settings.dart';
@@ -13,22 +13,22 @@ import 'package:api_dox/http/http_error.dart';
 import 'package:dox_core/dox_core.dart';
 
 /// Sign in with a passkey. A signed-in user adds one on the Me page. Later
-/// the login page signs in with it: the API checks it and gives a Firebase
-/// custom token, so the rest of the app still runs on Firebase ID tokens.
+/// the login page signs in with it: the API checks it and gives an API
+/// token, like `POST /auth/token` does after a Firebase sign-in.
 @Inject()
 class PasskeyService {
   PasskeyService(
     this.passkeys,
     this.users,
     this.userService,
-    this.firebase,
+    this.tokens,
     this.settings,
   );
 
   final PasskeyRepository passkeys;
   final UserRepository users;
   final UserService userService;
-  final FirebaseService firebase;
+  final ApiTokenService tokens;
   final AppSettings settings;
 
   static final Random _random = Random.secure();
@@ -121,7 +121,7 @@ class PasskeyService {
     };
   }
 
-  /// Checks the passkey and gives a Firebase custom token for its user.
+  /// Checks the passkey and gives an API token for its user.
   /// Every failure is a 401 with no detail, so it tells nothing about
   /// which passkeys exist.
   Future<String> login({
@@ -129,6 +129,7 @@ class PasskeyService {
     required String clientDataJson,
     required String authenticatorData,
     required String signature,
+    String? device,
   }) async {
     Passkey? passkey = await passkeys.findByCredentialId(credentialId);
     User? user = passkey == null ? null : await users.findById(passkey.userId);
@@ -160,16 +161,8 @@ class PasskeyService {
     }
     await passkeys.markUsed(passkey.id!, data.signCount);
 
-    try {
-      // A passkey is a device plus a face, finger or PIN: no code on top.
-      return await firebase.createCustomToken(
-        user.firebaseUid,
-        secondFactor: true,
-      );
-    } catch (error) {
-      Logger.danger('[passkey] createCustomToken failed: $error');
-      throw HttpError(503, 'Sign-in is not available. Try again.');
-    }
+    // A passkey is a device plus a face, finger or PIN: no code on top.
+    return tokens.issue(user, secondFactor: true, device: device);
   }
 
   static HttpError _loginFailed() {

@@ -68,3 +68,14 @@ const String groupKindTrip = 'trip';
 
 /// A trip's budget row uses this in place of a `YYYY-MM` month key.
 const String tripBudgetKey = 'trip';
+
+/// Web app tokens (`POST /auth/token`) start with this, so a leaked one is
+/// easy to spot.
+const String apiTokenPrefix = 'mea_';
+
+/// A browser that makes no call for this long is signed out. Each use moves
+/// the end forward.
+const Duration apiTokenLife = Duration(days: 30);
+
+/// `api_tokens.last_used_at` (and the end) are written at most this often.
+const Duration apiTokenTouchEvery = Duration(hours: 1);

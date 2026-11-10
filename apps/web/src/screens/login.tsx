@@ -41,7 +41,7 @@ function MfaForm() {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
-  /** Runs when the last digit is typed, or on the button. A right code reloads the page. */
+  /** Runs when the last digit is typed, or on the button. A right code signs in. */
   async function send(value: string) {
     if (busy || value.length !== CODE_LENGTH) return
     setBusy(true)

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:api_dox/app/models/models.dart';
+import 'package:api_dox/app/services/api_token.service.dart';
 import 'package:crypto/crypto.dart' show sha256;
 
 import 'package:dox_core/testing.dart';
@@ -47,21 +49,54 @@ void main() {
       );
     });
 
+    Future<TestResponse> signIn(String idToken) {
+      return app.call('/api/v1/auth/token', method: 'POST', token: idToken);
+    }
+
     test('missing and bad tokens are 401 with a message', () async {
       (await app.call('/api/v1/me', user: '')).expectStatus(401).expectJson(
         <String, dynamic>{'message': 'Missing bearer token'},
       );
-      (await app.call('/api/v1/me', user: 'bad')).expectStatus(401).expectJson(
-        <String, dynamic>{'message': 'Invalid Firebase ID token'},
-      );
+      (await app.call('/api/v1/me', token: 'mea_nope')).expectStatus(401);
+      // a Firebase ID token only works at sign-in
+      (await app.call('/api/v1/me', token: 'alice')).expectStatus(401);
+      (await signIn('bad')).expectStatus(401).expectJson(<String, dynamic>{
+        'message': 'Invalid Firebase ID token',
+      });
     });
 
     test(
       'Firebase not answering is 503, not 401 (a 401 logs the user out)',
       () async {
-        (await app.call('/api/v1/me', user: 'down')).expectStatus(503);
+        (await signIn('down')).expectStatus(503);
       },
     );
+
+    test('sign-in gives an API token and the user; sign-out ends it', () async {
+      TestResponse res = (await signIn('sam')).expectStatus(200);
+      String token = res.json['data']['token'] as String;
+      expect(token, startsWith('mea_'));
+      expect(
+        res.json['data']['user'],
+        matchesObject(<String, Object?>{'email': 'sam@gmail.com'}),
+      );
+      (await app.call('/api/v1/me', token: token)).expectStatus(200);
+      (await app.call(
+        '/api/v1/auth/token',
+        method: 'DELETE',
+        token: token,
+      )).expectStatus(204);
+      (await app.call('/api/v1/me', token: token)).expectStatus(401);
+    });
+
+    test('a token unused for too long stops working', () async {
+      String token = await app.signIn('old');
+      (await app.call('/api/v1/me', token: token)).expectStatus(200);
+      await ApiToken().where('token_hash', ApiTokenService.hash(token)).update(
+        <String, dynamic>{'expires_at': '2000-01-01 00:00:00'},
+      );
+      (await app.call('/api/v1/me', token: token)).expectStatus(401);
+    });
 
     test('first sign-in creates the user and a personal group with default categories', () async {
       TestResponse me = await app.call('/api/v1/me');

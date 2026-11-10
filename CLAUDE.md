@@ -16,28 +16,39 @@ Read this before changing code. It captures the non-obvious bits.
   old installs).
 - **Package manager** (web): **bun**.
 
-## Auth model (don't add sessions)
+## Auth model (API tokens; Firebase only at sign-in)
 
-- The frontend signs in via Firebase (Google popup, or email and password) and stores nothing locally.
+- The frontend signs in via Firebase (Google popup, or email and password),
+  then trades the Firebase ID token for our own **API token** once:
+  `POST /api/v1/auth/token` (`ApiTokenService.signIn`). Firebase is not
+  checked again after that; this is what makes calls and cold starts fast.
 - `FirebaseService.verifyIdToken` refuses a token whose email is not verified.
   Invites and `ALLOWED_EMAILS` trust the email, so do not remove this check.
   The login page sends the verify link and signs the user out until then.
-- Every API request carries the Firebase **ID token** as `Authorization: Bearer <token>`.
-  `apps/web/src/lib/api.ts` attaches it from `getIdToken()` automatically.
+- API tokens are random (`mea_` prefix), stored only as SHA-256 in
+  `api_tokens`, one row per browser. They expire after 30 days unused (each
+  use moves the end forward). `DELETE /auth/token` (sign out) deletes the
+  row. Every API request carries it as `Authorization: Bearer <token>`;
+  `apps/web/src/lib/api.ts` attaches it from `lib/session.ts`.
+- The web app keeps the API token and the last `/me` in `localStorage`
+  (`lib/session.ts`), so a returning user loads at once without waiting for
+  Firebase. Never store the Firebase ID token. A Firebase session with no
+  API token (from before API tokens) is traded automatically.
 - Passkeys: a signed-in user adds one on Me. The login page signs in with
-  it: `PasskeyService` checks it (`webauthn.dart`, ES256 only) and returns a
-  Firebase **custom token**; the web app calls `signInWithCustomToken`.
-  After that it is a normal Firebase session. Accepted origins are
-  `APP_URL` and `FRONTEND_URLS`; the rpId is the page host.
+  it: `PasskeyService` checks it (`webauthn.dart`, ES256 only) and returns
+  an API token directly. Accepted origins are `APP_URL` and
+  `FRONTEND_URLS`; the rpId is the page host.
 - Two-step sign-in (TOTP) is ours, not Firebase MFA (that needs Identity
-  Platform). `TotpService` checks the code and returns a Firebase custom
-  token with an `mfa` claim. `TwoFactorMiddleware` (and the live socket)
-  refuse a user who has it on when the ID token has no claim: 403 with
-  `code: mfa_required`, and the web app shows the code form. Still no
-  sessions. A passkey token has the claim too. New routes go in the `user`
-  group of `api.dart`, never in `signedIn`.
-- `lib/app/http/middleware/auth.middleware.dart` checks the token and finds or
-  makes the user. `group.middleware.dart` reads `X-Group-Id` and checks
+  Platform). An API token has a `second_factor` flag. `TotpService` checks
+  the code and sets it on the caller's token (`/me/totp/verify`, and
+  `/me/totp/enable` for the browser that turns it on). `TwoFactorMiddleware`
+  (and the live socket) refuse a user who has it on when the token is not
+  marked: 403 with `code: mfa_required`, and the web app shows the code
+  form. A passkey token is marked, and so is one traded from a Firebase ID
+  token with the old `mfa` claim. New routes go in the `user` group of
+  `api.dart`, never in `signedIn`.
+- `lib/app/http/middleware/auth.middleware.dart` looks up the API token and
+  its user (the user is made at sign-in, in `ApiTokenService.signIn`). `group.middleware.dart` reads `X-Group-Id` and checks
   membership. Routes are in `lib/routes/api.dart`.
 - The Firebase web config is not in the bundle. `index.html` loads
   `/config.js` (`ConfigController`) before the app, and `lib/firebase.ts`
@@ -54,7 +65,7 @@ Read this before changing code. It captures the non-obvious bits.
 ## Live updates
 
 - Socket.IO (`dox_socketio`) at `/socket.io/`, websocket only. The app
-  sends its Firebase ID token in `auth.token`; each socket joins
+  sends its API token in `auth.token`; each socket joins
   `user:<id>` (`lib/app/socket/live.namespace.dart`).
 - After a write, a service calls `LiveService`, which sends `changed`
   `{topic, groupId?}` to the users who can see the data. The event has no
@@ -127,8 +138,9 @@ Read this before changing code. It captures the non-obvious bits.
   other tables reference with `ON DELETE CASCADE`.** A rebuild is copy → DROP
   old table → rename, and the DROP fires the cascade on every child table.
   This wiped all `account_entries` once. Leave retired columns in place.
-- Don't add sessions or an auth framework. Token verification is custom on purpose.
-- Don't store the Firebase ID token anywhere; the SDK manages refresh.
+- Don't add an auth framework. API tokens (`ApiTokenService`) are custom on purpose.
+- Don't store the Firebase ID token anywhere, and don't accept it on API
+  routes: it is only for `POST /auth/token`.
 - Outgoing HTTP calls need a timeout. A provider that never answers once hung
   every exchange-rate request.
 

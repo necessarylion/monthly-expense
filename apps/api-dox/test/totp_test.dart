@@ -66,53 +66,57 @@ void main() {
       (await post('enable', 'tina', '000000')).expectStatus(422);
       (await app.call('/api/v1/me', user: 'tina')).expectStatus(200);
 
-      TestResponse enable = await post('enable', 'tina', codeNow(secret, 1));
-      enable.expectStatus(200).expectJson(<String, dynamic>{
-        'data': <String, dynamic>{'token': 'mfa:tina'},
+      (await post('enable', 'tina', codeNow(secret, 1))).expectStatus(204);
+      // the browser that turned it on stays signed in
+      (await app.call('/api/v1/me', user: 'tina')).expectStatus(200);
+
+      // a new sign-in is stopped: 403, not 401 (a 401 logs the app out)
+      String fresh = await app.signIn('tina');
+      Future<TestResponse> asFresh(String path, [String method = 'GET']) {
+        return app.call('/api/v1$path', method: method, token: fresh);
+      }
+
+      (await asFresh('/me')).expectStatus(403).expectJson(<String, dynamic>{
+        'message': 'Two-step code needed',
+        'code': 'mfa_required',
       });
+      (await asFresh('/groups')).expectStatus(403);
+      (await asFresh('/me/totp/setup', 'POST')).expectStatus(403);
+      (await asFresh('/me/totp', 'DELETE')).expectStatus(403);
 
-      // step one alone is stopped: 403, not 401 (a 401 logs the app out)
-      (await app.call('/api/v1/me', user: 'tina')).expectStatus(403).expectJson(
-        <String, dynamic>{
-          'message': 'Two-step code needed',
-          'code': 'mfa_required',
-        },
-      );
-      (await app.call('/api/v1/groups', user: 'tina')).expectStatus(403);
-      (await post('setup', 'tina')).expectStatus(403);
-      (await app.call(
-        '/api/v1/me/totp',
-        method: 'DELETE',
-        user: 'tina',
-      )).expectStatus(403);
-
-      // the code gives the token that passes
+      // the code lets this sign-in through
       String code = codeNow(secret);
-      (await post('verify', 'tina', code)).expectStatus(200).expectJson(
-        <String, dynamic>{
-          'data': <String, dynamic>{'token': 'mfa:tina'},
-        },
-      );
-      TestResponse me = await app.call('/api/v1/me', user: 'mfa:tina');
+      (await app.call(
+        '/api/v1/me/totp/verify',
+        method: 'POST',
+        token: fresh,
+        body: <String, String>{'code': code},
+      )).expectStatus(204);
+      TestResponse me = await asFresh('/me');
       expect(me.expectStatus(200).json['data']['twoFactorEnabled'], isTrue);
 
       // a code works once
-      (await post('verify', 'tina', code)).expectStatus(422);
+      (await app.call(
+        '/api/v1/me/totp/verify',
+        method: 'POST',
+        token: fresh,
+        body: <String, String>{'code': code},
+      )).expectStatus(422);
+
+      // a Firebase session that has the `mfa` claim passes at sign-in
+      (await app.call('/api/v1/me', user: 'mfa:tina')).expectStatus(200);
 
       // turn off: step one is enough again
-      (await app.call(
-        '/api/v1/me/totp',
-        method: 'DELETE',
-        user: 'mfa:tina',
-      )).expectStatus(204);
-      TestResponse after = await app.call('/api/v1/me', user: 'tina');
+      (await asFresh('/me/totp', 'DELETE')).expectStatus(204);
+      String later = await app.signIn('tina');
+      TestResponse after = await app.call('/api/v1/me', token: later);
       expect(after.expectStatus(200).json['data']['twoFactorEnabled'], isFalse);
     });
 
     test('code tries are limited', () async {
       String secret =
           (await post('setup', 'gus')).json['data']['secret'] as String;
-      (await post('enable', 'gus', codeNow(secret))).expectStatus(200);
+      (await post('enable', 'gus', codeNow(secret))).expectStatus(204);
       // 10 tries: more than the limit, also when a new minute starts between
       List<int> statuses = <int>[
         for (int i = 0; i < 10; i++)

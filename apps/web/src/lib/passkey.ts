@@ -57,7 +57,7 @@ export async function addPasskey(): Promise<void> {
   })
 }
 
-/** Asks the browser for a passkey of this site. Gives a Firebase custom token. */
+/** Asks the browser for a passkey of this site. Gives an API token. */
 export async function signInWithPasskeyToken(): Promise<string> {
   const { data } = await api.post<{ data: any }>('/passkeys/login/options')
   const o = data.data

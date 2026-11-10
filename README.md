@@ -22,15 +22,18 @@ monthly-expense/
 
 ## How it works
 
-- The web app signs in with Firebase (Google, or email and password). It keeps no session.
+- The web app signs in with Firebase (Google, or email and password).
 - An email and password account must verify its email first. The API refuses a token whose email is not verified.
-  Every API request sends the Firebase **ID token** as
-  `Authorization: Bearer <token>`.
-- The API checks the token with `firebase_admin_sdk` on every request. It
-  finds the user, or makes one on the first sign-in.
+- The API checks the Firebase ID token once, with `firebase_admin_sdk`, and
+  gives the app its own **API token** (`POST /api/v1/auth/token`). It finds
+  the user then, or makes one on the first sign-in.
+- Every API request after that sends the API token as
+  `Authorization: Bearer <token>`. The API stores only its hash, so signing
+  out ends it. The app keeps it across reloads, so it starts without
+  waiting for Firebase. A token unused for 30 days stops working.
 - After the first Google sign-in, a user can add a **passkey** on the Me
   page. Then they can sign in with it. The API checks the passkey and gives
-  a Firebase custom token, so the rest works the same.
+  an API token, so the rest works the same.
 - The web app has no Firebase config built in. It loads `/config.js` from
   the API, which makes it from the API env. So one image works with any
   Firebase project.

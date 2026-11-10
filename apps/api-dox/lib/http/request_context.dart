@@ -5,9 +5,10 @@ import 'package:dox_core/dox_core.dart';
 const String _userKey = 'app.user';
 const String _groupKey = 'app.group';
 const String _secondFactorKey = 'app.second_factor';
+const String _tokenKey = 'app.token';
 
 /// What the middleware found for one request. `AuthMiddleware` sets the
-/// user, `GroupMiddleware` the group. Both live on the request
+/// user and its token, `GroupMiddleware` the group. Both live on the request
 /// (`boundValues`), so nothing is shared between requests.
 extension RequestContext on DoxRequest {
   /// The signed-in user. Only use on routes behind the auth middleware.
@@ -18,6 +19,16 @@ extension RequestContext on DoxRequest {
   }
 
   set authUser(User user) => boundValues[_userKey] = user;
+
+  /// The API token row of this call. Only use on routes behind the auth
+  /// middleware.
+  ApiToken get authToken {
+    Object? token = boundValues[_tokenKey];
+    if (token is! ApiToken) throw HttpError.unauthorized('Not authenticated');
+    return token;
+  }
+
+  set authToken(ApiToken token) => boundValues[_tokenKey] = token;
 
   /// This sign-in passed the two-step code (or used a passkey).
   bool get secondFactorDone => boundValues[_secondFactorKey] == true;

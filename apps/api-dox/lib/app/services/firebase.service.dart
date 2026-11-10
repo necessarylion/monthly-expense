@@ -13,8 +13,9 @@ class FirebaseIdentity {
   final String? name;
   final String? picture;
 
-  /// The token has our `mfa` claim: this sign-in gave a two-step code, or
-  /// used a passkey. Only a custom token of this API can set it.
+  /// The token has the `mfa` claim: a Firebase session from a passkey or a
+  /// two-step code, made when this API still gave Firebase custom tokens.
+  /// Only a custom token of this API can set it.
   final bool secondFactor;
 
   const FirebaseIdentity({
@@ -36,7 +37,8 @@ class InvalidIdTokenException implements Exception {
   String toString() => 'InvalidIdTokenException: $reason';
 }
 
-/// Verifies Firebase ID tokens with the Firebase Admin SDK. The SDK starts
+/// Verifies Firebase ID tokens with the Firebase Admin SDK. Only at sign-in
+/// (`ApiTokenService.signIn`); calls after that carry an API token. The SDK starts
 /// on first use. Each isolate has its own instance (and key cache).
 @Inject()
 class FirebaseService {
@@ -73,20 +75,6 @@ class FirebaseService {
       name: name is String ? name : null,
       picture: decoded.picture,
       secondFactor: decoded.claims[_mfaClaim] == true,
-    );
-  }
-
-  /// A token the web app trades for a Firebase session with
-  /// `signInWithCustomToken`. Used after a passkey sign-in or a two-step
-  /// code. The SDK signs it with the service account key, so there is no
-  /// network call.
-  ///
-  /// [secondFactor] adds the `mfa` claim. Firebase copies it into every ID
-  /// token of that session, so the API needs no session of its own.
-  Future<String> createCustomToken(String uid, {bool secondFactor = false}) {
-    return _getApp().auth().createCustomToken(
-      uid,
-      developerClaims: secondFactor ? <String, Object?>{_mfaClaim: true} : null,
     );
   }
 
