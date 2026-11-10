@@ -29,7 +29,7 @@ export async function signInWithGoogle() {
   await signInWithPopup(auth, googleProvider)
 }
 
-/** After a passkey sign-in: the API gives a custom token for the user. */
+/** After a passkey sign-in or a two-step code: the API gives a custom token for the user. */
 export async function signInWithToken(token: string) {
   await signInWithCustomToken(auth, token)
 }

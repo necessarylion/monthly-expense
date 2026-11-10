@@ -161,7 +161,11 @@ class PasskeyService {
     await passkeys.markUsed(passkey.id!, data.signCount);
 
     try {
-      return await firebase.createCustomToken(user.firebaseUid);
+      // A passkey is a device plus a face, finger or PIN: no code on top.
+      return await firebase.createCustomToken(
+        user.firebaseUid,
+        secondFactor: true,
+      );
     } catch (error) {
       Logger.danger('[passkey] createCustomToken failed: $error');
       throw HttpError(503, 'Sign-in is not available. Try again.');

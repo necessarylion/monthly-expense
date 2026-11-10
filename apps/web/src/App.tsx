@@ -34,6 +34,7 @@ const IS_CONSENT = window.location.pathname === OAUTH_CONSENT_PATH
 export function App() {
   const loading = useAuth((s) => s.loading)
   const user = useAuth((s) => s.user)
+  const mfaRequired = useAuth((s) => s.mfaRequired)
   const booted = useBooted()
   // The consent page loads no month, so it only waits for Firebase.
   const showSplash = IS_CONSENT ? loading : !booted
@@ -49,7 +50,8 @@ export function App() {
   return (
     <TooltipProvider>
       {/* Mounted behind the splash, so the dashboard's first fetches start right away. */}
-      {!loading && (user ? IS_CONSENT ? <OAuthConsentScreen /> : <Dashboard /> : <LoginScreen />)}
+      {/* The login screen also asks for the two-step code. */}
+      {!loading && (user && !mfaRequired ? IS_CONSENT ? <OAuthConsentScreen /> : <Dashboard /> : <LoginScreen />)}
       {showSplash && <SplashScreen />}
       <Toaster position="top-center" />
     </TooltipProvider>

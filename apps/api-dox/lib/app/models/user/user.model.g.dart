@@ -37,6 +37,8 @@ class UserGenerator extends Model<User> {
     'email',
     'display_name',
     'photo_url',
+    'totp_secret',
+    'totp_enabled',
     'created_at',
     'updated_at',
   ];
@@ -51,6 +53,7 @@ class UserGenerator extends Model<User> {
   @override
   Map<String, Function> get relationsQueryMatcher => const <String, Function>{};
 
+  static const _totpEnabledCast = BoolCast();
   static const _createdAtTextCast = TimestampText();
   static const _updatedAtTextCast = TimestampText();
 
@@ -61,6 +64,8 @@ class UserGenerator extends Model<User> {
     ..email = m['email'] as String
     ..displayName = m['display_name'] as String?
     ..photoUrl = m['photo_url'] as String?
+    ..totpSecret = m['totp_secret'] as String?
+    ..totpEnabled = _totpEnabledCast.get(m['totp_enabled'])
     ..createdAtText = _createdAtTextCast.get(m['created_at']) as String
     ..updatedAtText = _updatedAtTextCast.get(m['updated_at']) as String;
   @override
@@ -72,6 +77,8 @@ class UserGenerator extends Model<User> {
       'email': instance.email,
       'display_name': instance.displayName,
       'photo_url': instance.photoUrl,
+      'totp_secret': instance.totpSecret,
+      'totp_enabled': _totpEnabledCast.set(instance.totpEnabled),
       'created_at': _createdAtTextCast.set(instance.createdAtText),
       'updated_at': _updatedAtTextCast.set(instance.updatedAtText),
     };
@@ -110,6 +117,14 @@ class UserGenerator extends Model<User> {
       case 'photo_url':
         if (value is! String?) return false;
         instance.photoUrl = value;
+        return true;
+      case 'totp_secret':
+        if (value is! String?) return false;
+        instance.totpSecret = value;
+        return true;
+      case 'totp_enabled':
+        if (value is! bool?) return false;
+        instance.totpEnabled = value;
         return true;
       case 'created_at':
         if (value is! String) return false;

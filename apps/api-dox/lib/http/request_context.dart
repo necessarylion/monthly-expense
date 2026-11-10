@@ -4,6 +4,7 @@ import 'package:dox_core/dox_core.dart';
 
 const String _userKey = 'app.user';
 const String _groupKey = 'app.group';
+const String _secondFactorKey = 'app.second_factor';
 
 /// What the middleware found for one request. `AuthMiddleware` sets the
 /// user, `GroupMiddleware` the group. Both live on the request
@@ -17,6 +18,11 @@ extension RequestContext on DoxRequest {
   }
 
   set authUser(User user) => boundValues[_userKey] = user;
+
+  /// This sign-in passed the two-step code (or used a passkey).
+  bool get secondFactorDone => boundValues[_secondFactorKey] == true;
+
+  set secondFactorDone(bool done) => boundValues[_secondFactorKey] = done;
 
   /// The active group. Only use on routes behind the group middleware.
   Group get activeGroup {

@@ -6,6 +6,7 @@ import {
   ChartColumnIcon,
   RepeatIcon,
   SearchIcon,
+  ShieldCheckIcon,
   CheckIcon,
   ChevronRightIcon,
   CopyIcon,
@@ -25,6 +26,7 @@ import {
   XIcon,
 } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useState } from 'react'
 import { ChoiceSheet } from '@/components/app/choice-sheet'
 import { ConfirmDialog } from '@/components/app/confirm-dialog'
@@ -35,6 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { DeleteButton } from '@/components/ui/delete-button'
 import { Input } from '@/components/ui/input'
+import { OtpInput } from '@/components/ui/otp-input'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -42,6 +45,7 @@ import { SelectField } from '@/components/app/select-field'
 import { DEFAULT_THEMES, ThemeSelector } from '@/components/ui/theme-selector'
 import { toast } from '@/components/ui/toast'
 import { errorMessage } from '@/lib/errors'
+import { signInWithToken } from '@/lib/firebase'
 import { addPasskey, passkeySupported } from '@/lib/passkey'
 import { api } from '@/lib/api'
 import type { Category, Group, GroupKind, Passkey } from '@/lib/types'
@@ -1112,6 +1116,125 @@ function Passkeys() {
   )
 }
 
+function TwoFactor() {
+  const t = useT()
+  const on = useAuth((s) => s.user?.twoFactorEnabled === true)
+  const refreshMe = useAuth((s) => s.refreshMe)
+  /** `uri` goes into the QR code; `secret` is the same key as text. */
+  const [setup, setSetup] = useState<{ secret: string; uri: string } | null>(null)
+  const [code, setCode] = useState('')
+  const [failed, setFailed] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  async function run(action: () => Promise<void>) {
+    setBusy(true)
+    try {
+      await action()
+    } catch (e) {
+      toast.error(errorMessage(e, t('settings.failedToSave')))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function start() {
+    void run(async () => {
+      const { data } = await api.post<{ data: { secret: string; uri: string } }>('/me/totp/setup')
+      setSetup(data.data)
+    })
+  }
+
+  /** Runs when the last digit is typed, or on the button. */
+  function confirm(value: string) {
+    if (busy || value.length !== 6) return
+    void run(async () => {
+      try {
+        const { data } = await api.post<{ data: { token: string } }>('/me/totp/enable', { code: value })
+        // From now on the API wants a token that says "the code was given". This is one.
+        await signInWithToken(data.data.token)
+      } catch (e) {
+        setFailed(true)
+        throw e
+      }
+      await refreshMe()
+      setSetup(null)
+      setCode('')
+      toast.success(t('settings.twoFactorEnabled'))
+    })
+  }
+
+  function turnOff() {
+    void run(async () => {
+      await api.delete('/me/totp')
+      await refreshMe()
+      toast.success(t('settings.twoFactorDisabled'))
+    })
+  }
+
+  return (
+    <Section title={t('settings.twoFactor')} description={t('settings.twoFactorNote')}>
+      {on ? (
+        <div className="flex items-center gap-3 py-2.5">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{t('settings.twoFactorApp')}</p>
+            <p className="text-xs text-muted-foreground">{t('settings.twoFactorIsOn')}</p>
+          </div>
+          <DeleteButton onConfirm={turnOff} className="shrink-0" />
+        </div>
+      ) : setup ? (
+        <form
+          className="flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            confirm(code)
+          }}
+        >
+          <p className="text-sm text-muted-foreground">{t('settings.twoFactorScan')}</p>
+          {/* White box: a scanner needs dark on light, in every theme. */}
+          <div className="self-center rounded-xl bg-white p-3">
+            <QRCodeSVG value={setup.uri} size={176} />
+          </div>
+          <p className="text-sm text-muted-foreground">{t('settings.twoFactorKey')}</p>
+          <code className="rounded-lg bg-muted px-3 py-2 text-sm break-all select-all">{setup.secret}</code>
+          <OtpInput
+            size="sm"
+            role="group"
+            aria-label={t('app.mfaCode')}
+            className="self-center py-1"
+            value={code}
+            status={failed ? 'error' : 'idle'}
+            onChange={(value) => {
+              setCode(value)
+              setFailed(false)
+            }}
+            onComplete={confirm}
+          />
+          <Button type="submit" className="rounded-xl" disabled={busy || code.length !== 6}>
+            {busy ? t('common.working') : t('common.confirm')}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-xl"
+            onClick={() => {
+              setSetup(null)
+              setCode('')
+              setFailed(false)
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+        </form>
+      ) : (
+        <Button className="rounded-xl" disabled={busy} onClick={start}>
+          <ShieldCheckIcon />
+          {busy ? t('common.working') : t('settings.twoFactorTurnOn')}
+        </Button>
+      )}
+    </Section>
+  )
+}
+
 /* ---------- The settings list ---------- */
 
 function Row({
@@ -1204,6 +1327,7 @@ function SettingsRoot() {
         <Row icon={<ArrowLeftRightIcon />} tint="#2f9e8f" label={t('rates.title')} onClick={() => go('rates')} />
         <Row icon={<SparklesIcon />} tint="#d97706" label={t('settings.mcp')} onClick={() => go('mcp')} />
         <Row icon={<KeyRoundIcon />} tint="#5b6ee1" label={t('settings.passkeys')} onClick={() => go('passkeys')} />
+        <Row icon={<ShieldCheckIcon />} tint="#2e8b57" label={t('settings.twoFactor')} onClick={() => go('twoFactor')} />
       </RowGroup>
 
       <RowGroup>
@@ -1242,6 +1366,7 @@ export const SETTINGS_TITLES: Record<Exclude<SettingsTab, 'root'>, string> = {
   rates: 'rates.title',
   recurring: 'reports.recurring',
   search: 'reports.search',
+  twoFactor: 'settings.twoFactor',
   year: 'reports.year',
 }
 
@@ -1263,6 +1388,7 @@ function SettingsPage({ page }: { page: SettingsTab }) {
   if (page === 'language') return <Language />
   if (page === 'mcp') return <Mcp />
   if (page === 'passkeys') return <Passkeys />
+  if (page === 'twoFactor') return <TwoFactor />
   return <SettingsRoot />
 }
 

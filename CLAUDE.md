@@ -29,6 +29,13 @@ Read this before changing code. It captures the non-obvious bits.
   Firebase **custom token**; the web app calls `signInWithCustomToken`.
   After that it is a normal Firebase session. Accepted origins are
   `APP_URL` and `FRONTEND_URLS`; the rpId is the page host.
+- Two-step sign-in (TOTP) is ours, not Firebase MFA (that needs Identity
+  Platform). `TotpService` checks the code and returns a Firebase custom
+  token with an `mfa` claim. `TwoFactorMiddleware` (and the live socket)
+  refuse a user who has it on when the ID token has no claim: 403 with
+  `code: mfa_required`, and the web app shows the code form. Still no
+  sessions. A passkey token has the claim too. New routes go in the `user`
+  group of `api.dart`, never in `signedIn`.
 - `lib/app/http/middleware/auth.middleware.dart` checks the token and finds or
   makes the user. `group.middleware.dart` reads `X-Group-Id` and checks
   membership. Routes are in `lib/routes/api.dart`.

@@ -1,3 +1,7 @@
+/// `code` of the 403 for a sign-in that still needs its two-step code.
+/// The web app reads it (`stores/auth.ts`).
+const String mfaRequiredCode = 'mfa_required';
+
 const List<String> corsMethods = <String>[
   'GET',
   'HEAD',

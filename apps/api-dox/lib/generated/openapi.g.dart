@@ -119,6 +119,61 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       },
     ),
     OpenApiOperation(
+      controller: 'TotpController',
+      method: 'setup',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'Start turning on two-step sign-in',
+      description:
+          'Gives the secret, and the `otpauth://` text for the QR code.',
+      tags: <String>['Two-step sign-in'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'TotpController',
+      method: 'enable',
+      argumentTypes: <String>['DoxRequest', 'TotpCode'],
+      summary: 'Turn on two-step sign-in',
+      description: 'Needs one code from the app. Gives a Firebase custom token; the web app calls `signInWithCustomToken` with it.',
+      tags: <String>['Two-step sign-in'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/TotpCode'},
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'TotpController',
+      method: 'verify',
+      argumentTypes: <String>['DoxRequest', 'TotpCode'],
+      summary: 'Finish a sign-in with a code',
+      description: 'For a user with two-step sign-in on. Gives a Firebase custom token; the web app calls `signInWithCustomToken` with it.',
+      tags: <String>['Two-step sign-in'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/TotpCode'},
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'TotpController',
+      method: 'destroy',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'Turn off two-step sign-in',
+      tags: <String>['Two-step sign-in'],
+      responses: <int, ResponseDoc>{
+        204: ResponseDoc(description: 'Done, no body'),
+      },
+    ),
+    OpenApiOperation(
       controller: 'MeController',
       method: 'show',
       argumentTypes: <String>['DoxRequest'],
@@ -935,6 +990,22 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       '/api/v1/passkeys/login',
       'PasskeyController.login',
     ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/me/totp/verify',
+      'TotpController.verify',
+    ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/me/totp/enable',
+      'TotpController.enable',
+    ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/me/totp/setup',
+      'TotpController.setup',
+    ),
+    OpenApiRouteBinding('DELETE', '/api/v1/me/totp', 'TotpController.destroy'),
     OpenApiRouteBinding('GET', '/api/v1/me', 'MeController.show'),
     OpenApiRouteBinding('GET', '/api/v1/me/mcp', 'MeController.mcp'),
     OpenApiRouteBinding(
@@ -1264,6 +1335,18 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
         'authenticatorData',
         'signature',
       ],
+    },
+    'TotpCode': <String, dynamic>{
+      'type': 'object',
+      'title': 'TotpCode',
+      'properties': <String, dynamic>{
+        'code': <String, dynamic>{
+          'type': 'string',
+          'minLength': 6,
+          'maxLength': 6,
+        },
+      },
+      'required': <dynamic>['code'],
     },
     'OauthClientQuery': <String, dynamic>{
       'type': 'object',

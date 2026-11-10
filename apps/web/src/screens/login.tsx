@@ -2,9 +2,12 @@ import { KeyRoundIcon } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { OtpInput } from '@/components/ui/otp-input'
 import { useT } from '@/lib/i18n'
 import { passkeySupported } from '@/lib/passkey'
 import { useAuth } from '@/stores/auth'
+
+const CODE_LENGTH = 6
 
 function GoogleMark() {
   return (
@@ -29,6 +32,58 @@ function GoogleMark() {
   )
 }
 
+/** Step two of a sign-in: the 6-digit code from the authenticator app. */
+function MfaForm() {
+  const t = useT()
+  const verifyMfa = useAuth((s) => s.verifyMfa)
+  const logout = useAuth((s) => s.logout)
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
+
+  /** Runs when the last digit is typed, or on the button. A right code reloads the page. */
+  async function send(value: string) {
+    if (busy || value.length !== CODE_LENGTH) return
+    setBusy(true)
+    await verifyMfa(value)
+    setBusy(false)
+    setFailed(useAuth.getState().error !== null)
+  }
+
+  return (
+    <form
+      className="flex flex-col gap-3"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void send(code)
+      }}
+    >
+      <p className="text-sm text-muted-foreground">{t('app.mfaTitle')}</p>
+      <OtpInput
+        autoFocus
+        size="sm"
+        length={CODE_LENGTH}
+        role="group"
+        aria-label={t('app.mfaCode')}
+        className="self-center py-2"
+        value={code}
+        status={failed ? 'error' : 'idle'}
+        onChange={(value) => {
+          setCode(value)
+          setFailed(false)
+        }}
+        onComplete={(value) => void send(value)}
+      />
+      <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy || code.length !== CODE_LENGTH}>
+        {busy ? t('common.working') : t('app.mfaVerify')}
+      </Button>
+      <Button type="button" size="lg" variant="ghost" className="h-12 rounded-xl text-base" onClick={() => void logout()}>
+        {t('common.back')}
+      </Button>
+    </form>
+  )
+}
+
 export function LoginScreen() {
   const t = useT()
   const login = useAuth((s) => s.login)
@@ -36,6 +91,7 @@ export function LoginScreen() {
   const loginWithEmail = useAuth((s) => s.loginWithEmail)
   const sendPasswordReset = useAuth((s) => s.sendPasswordReset)
   const error = useAuth((s) => s.error)
+  const mfa = useAuth((s) => s.mfaRequired)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [creating, setCreating] = useState(false)
@@ -76,61 +132,67 @@ export function LoginScreen() {
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          <form className="flex flex-col gap-3" onSubmit={(e) => void submit(e)}>
-            <Input
-              type="email"
-              required
-              autoComplete="email"
-              aria-label={t('app.email')}
-              placeholder={t('app.email')}
-              className="h-12 rounded-xl px-4"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Input
-              type="password"
-              required
-              minLength={6}
-              autoComplete={creating ? 'new-password' : 'current-password'}
-              aria-label={t('app.password')}
-              placeholder={t('app.password')}
-              className="h-12 rounded-xl px-4"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy}>
-              {t(creating ? 'app.createAccount' : 'app.signInEmail')}
-            </Button>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <button type="button" className="underline-offset-4 hover:underline" onClick={() => setCreating(!creating)}>
-                {t(creating ? 'app.haveAccount' : 'app.createAccount')}
-              </button>
-              {!creating && (
-                <button type="button" className="underline-offset-4 hover:underline" onClick={() => void forgot()}>
-                  {t('app.forgotPassword')}
-                </button>
+          {mfa ? (
+            <MfaForm />
+          ) : (
+            <>
+              <form className="flex flex-col gap-3" onSubmit={(e) => void submit(e)}>
+                <Input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  aria-label={t('app.email')}
+                  placeholder={t('app.email')}
+                  className="h-12 rounded-xl px-4"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Input
+                  type="password"
+                  required
+                  minLength={6}
+                  autoComplete={creating ? 'new-password' : 'current-password'}
+                  aria-label={t('app.password')}
+                  placeholder={t('app.password')}
+                  className="h-12 rounded-xl px-4"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy}>
+                  {t(creating ? 'app.createAccount' : 'app.signInEmail')}
+                </Button>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <button type="button" className="underline-offset-4 hover:underline" onClick={() => setCreating(!creating)}>
+                    {t(creating ? 'app.haveAccount' : 'app.createAccount')}
+                  </button>
+                  {!creating && (
+                    <button type="button" className="underline-offset-4 hover:underline" onClick={() => void forgot()}>
+                      {t('app.forgotPassword')}
+                    </button>
+                  )}
+                </div>
+              </form>
+              {notice && (
+                <p role="status" className="text-sm text-muted-foreground">
+                  {notice}
+                </p>
               )}
-            </div>
-          </form>
-          {notice && (
-            <p role="status" className="text-sm text-muted-foreground">
-              {notice}
-            </p>
-          )}
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            {t('app.or')}
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <Button size="lg" variant="outline" className="h-12 rounded-xl text-base" onClick={() => void login()}>
-            <GoogleMark />
-            {t('app.signIn')}
-          </Button>
-          {passkeySupported && (
-            <Button size="lg" variant="ghost" className="h-12 rounded-xl text-base" onClick={() => void loginWithPasskey()}>
-              <KeyRoundIcon />
-              {t('app.signInPasskey')}
-            </Button>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                {t('app.or')}
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button size="lg" variant="outline" className="h-12 rounded-xl text-base" onClick={() => void login()}>
+                <GoogleMark />
+                {t('app.signIn')}
+              </Button>
+              {passkeySupported && (
+                <Button size="lg" variant="ghost" className="h-12 rounded-xl text-base" onClick={() => void loginWithPasskey()}>
+                  <KeyRoundIcon />
+                  {t('app.signInPasskey')}
+                </Button>
+              )}
+            </>
           )}
           {error && (
             <p role="alert" className="text-sm text-destructive">

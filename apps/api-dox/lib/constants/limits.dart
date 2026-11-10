@@ -45,6 +45,17 @@ const int passkeysMax = 20;
 /// A passkey challenge works once, for this long.
 const Duration passkeyChallengeTtl = Duration(minutes: 5);
 
+/// The name an authenticator app shows for a two-step sign-in entry.
+const String totpIssuer = 'Monthly Expense';
+
+/// A two-step code is remembered this long, so it works once. Longer than
+/// the 90 seconds a code can pass.
+const Duration totpCodeLife = Duration(minutes: 2);
+
+/// Code tries per user in one minute. A code has 6 digits, so guessing is
+/// hopeless at this rate.
+const int totpTriesPerMinute = 5;
+
 /// Search returns at most this many expenses, newest first.
 const int searchResultLimit = 2000;
 

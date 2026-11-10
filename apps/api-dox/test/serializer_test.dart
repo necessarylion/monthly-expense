@@ -24,7 +24,7 @@ void main() {
     test('user (GET /me)', () {
       expectJson(
         UserSerializer(SerializerSamples.user).toJson(),
-        r'{"id":1,"firebaseUid":"uid-1","email":"a@b.co","displayName":"Ann","photoUrl":null}',
+        r'{"id":1,"firebaseUid":"uid-1","email":"a@b.co","displayName":"Ann","photoUrl":null,"twoFactorEnabled":false}',
       );
     });
 

@@ -179,7 +179,7 @@ void main() {
       user: '',
     );
     login.expectStatus(200).expectJson(<String, dynamic>{
-      'data': <String, dynamic>{'token': 'custom:alice'},
+      'data': <String, dynamic>{'token': 'mfa:alice'},
     });
 
     // a challenge works once

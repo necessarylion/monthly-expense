@@ -17,9 +17,9 @@ dependencies:
   path: ^1.9.0
   dox_scheduler: ^3.1.0
   pointycastle: ^4.0.0
+  crypto: ^3.0.6
 
 dev_dependencies:
-  crypto: ^3.0.6
   dox_builder: ^3.1.2
   build_runner: ^2.4.13
   lints: ^6.1.0
