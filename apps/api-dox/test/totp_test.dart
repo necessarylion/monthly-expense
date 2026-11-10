@@ -103,6 +103,16 @@ void main() {
         body: <String, String>{'code': code},
       )).expectStatus(422);
 
+      // a refresh keeps the mark
+      TestResponse refreshed = await app.call(
+        '/api/v1/auth/token/refresh',
+        method: 'POST',
+        token: fresh,
+      );
+      String renewed =
+          refreshed.expectStatus(200).json['data']['token'] as String;
+      (await app.call('/api/v1/me', token: renewed)).expectStatus(200);
+
       // a Firebase session that has the `mfa` claim passes at sign-in
       (await app.call('/api/v1/me', user: 'mfa:tina')).expectStatus(200);
 

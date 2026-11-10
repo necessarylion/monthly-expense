@@ -30,7 +30,10 @@ monthly-expense/
 - Every API request after that sends the API token as
   `Authorization: Bearer <token>`. The API stores only its hash, so signing
   out ends it. The app keeps it across reloads, so it starts without
-  waiting for Firebase. A token unused for 30 days stops working.
+  waiting for Firebase, and signs out of Firebase right after the trade.
+- A token lasts 30 days. The app trades it for a new one once a day
+  (`POST /api/v1/auth/token/refresh`), so opening the app within 30 days
+  keeps you signed in.
 - After the first Google sign-in, a user can add a **passkey** on the Me
   page. Then they can sign in with it. The API checks the passkey and gives
   an API token, so the rest works the same.

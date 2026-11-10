@@ -23,9 +23,9 @@ class ApiSession {
 }
 
 /// The web app's own tokens. Firebase is checked once, at sign-in
-/// ([signIn]); after that each call costs one lookup by hash, not a
-/// Firebase check. Only the SHA-256 is stored, so a row can be deleted to
-/// sign that browser out.
+/// ([signIn]), and never again: each call costs one lookup by hash, and the
+/// app trades its token for a new one before it ends ([refresh]). Only the
+/// SHA-256 is stored, so a row can be deleted to sign that browser out.
 @Inject()
 class ApiTokenService {
   ApiTokenService(this.tokens, this.users, this.userService, this.firebase);
@@ -102,8 +102,26 @@ class ApiTokenService {
     }
     User? user = await users.findById(row.userId);
     if (user == null || !userService.isEmailAllowed(user.email)) return null;
-    if (_stale(row.lastUsedAt, now)) await tokens.touch(row.id!, _expiresAt());
+    if (_stale(row.lastUsedAt, now)) await tokens.touch(row.id!);
     return ApiSession(user, row);
+  }
+
+  /// A new token for the browser of [session], with the same two-step mark.
+  /// The old one ends after [apiTokenRefreshGrace].
+  Future<String> refresh(ApiSession session, {String? device}) async {
+    String token = await issue(
+      session.user,
+      secondFactor: session.secondFactor,
+      device: device ?? session.token.name,
+    );
+    String graceEnd = DateUtil.timestampText(
+      DateTime.now().toUtc().add(apiTokenRefreshGrace),
+    )!;
+    // Two refreshes at once: keep the earlier end.
+    if (graceEnd.compareTo(session.token.expiresAt) < 0) {
+      await tokens.expireAt(session.token.id!, graceEnd);
+    }
+    return token;
   }
 
   /// After the two-step code: this browser passes `TwoFactorMiddleware`.
@@ -141,7 +159,7 @@ class ApiTokenService {
     return at == null || !at.isAfter(now);
   }
 
-  /// `last_used_at` (and the end) are written at most once an hour.
+  /// `last_used_at` is written at most once an hour.
   static bool _stale(String? lastUsedAt, DateTime now) {
     DateTime? at = _parse(lastUsedAt);
     return at == null || now.difference(at) > apiTokenTouchEvery;

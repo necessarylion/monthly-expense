@@ -57,6 +57,7 @@ class ApiRouter extends Router {
       });
 
       Route.middleware(signedIn, () {
+        Route.post('/auth/token/refresh', (AuthController c) => c.refresh);
         Route.delete('/auth/token', (AuthController c) => c.destroy);
       });
 

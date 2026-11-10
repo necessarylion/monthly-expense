@@ -22,13 +22,16 @@ Read this before changing code. It captures the non-obvious bits.
   then trades the Firebase ID token for our own **API token** once:
   `POST /api/v1/auth/token` (`ApiTokenService.signIn`). Firebase is not
   checked again after that; this is what makes calls and cold starts fast.
+  Right after the trade the app signs out of Firebase, and it loads the
+  Firebase SDK only when there is no API token (the login screen).
 - `FirebaseService.verifyIdToken` refuses a token whose email is not verified.
   Invites and `ALLOWED_EMAILS` trust the email, so do not remove this check.
   The login page sends the verify link and signs the user out until then.
 - API tokens are random (`mea_` prefix), stored only as SHA-256 in
-  `api_tokens`, one row per browser. They expire after 30 days unused (each
-  use moves the end forward). `DELETE /auth/token` (sign out) deletes the
-  row. Every API request carries it as `Authorization: Bearer <token>`;
+  `api_tokens`, one row per browser. Each lasts 30 days. Once a token is a
+  day old the app trades it for a new one (`POST /auth/token/refresh`; the
+  old one works 2 more minutes), so opening the app within 30 days keeps
+  the user signed in. `DELETE /auth/token` (sign out) deletes the row. Every API request carries it as `Authorization: Bearer <token>`;
   `apps/web/src/lib/api.ts` attaches it from `lib/session.ts`.
 - The web app keeps the API token and the last `/me` in `localStorage`
   (`lib/session.ts`), so a returning user loads at once without waiting for

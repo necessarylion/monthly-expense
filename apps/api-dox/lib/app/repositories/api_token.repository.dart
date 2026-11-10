@@ -30,12 +30,19 @@ class ApiTokenRepository {
     });
   }
 
-  Future<void> touch(int id, String expiresAt) async {
+  Future<void> touch(int id) async {
     String now = DateUtil.nowSql();
     await _q().where('id', id).update(<String, dynamic>{
       'last_used_at': now,
-      'expires_at': expiresAt,
       'updated_at': now,
+    });
+  }
+
+  /// Ends the token at [expiresAt] (a refresh leaves the old one a moment).
+  Future<void> expireAt(int id, String expiresAt) async {
+    await _q().where('id', id).update(<String, dynamic>{
+      'expires_at': expiresAt,
+      'updated_at': DateUtil.nowSql(),
     });
   }
 

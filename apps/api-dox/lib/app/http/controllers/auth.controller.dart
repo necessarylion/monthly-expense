@@ -8,7 +8,8 @@ import 'package:api_dox/http/request_context.dart';
 import 'package:dox_core/dox_core.dart';
 
 /// The web app's API token. It signs in with Firebase, trades the ID token
-/// for an API token once, and sends that on every call after.
+/// for an API token once, and sends that on every call after. It renews
+/// the API token itself, so Firebase is never needed again.
 @Inject()
 @Tags(<String>['Auth'])
 class AuthController {
@@ -31,6 +32,18 @@ class AuthController {
       'token': signedIn.$1,
       'user': UserSerializer(signedIn.$2).toJson(),
     });
+  }
+
+  @Summary('Trade the API token for a new one')
+  @Description(
+    'The web app calls it about once a day, so its token never runs out. The old token still works for two minutes. No Firebase.',
+  )
+  Future<Map<String, dynamic>> refresh(DoxRequest req) async {
+    String token = await tokens.refresh(
+      ApiSession(req.authUser, req.authToken),
+      device: req.header('user-agent'),
+    );
+    return JsonResponse.ok(<String, String>{'token': token});
   }
 
   @Summary('Sign out this browser')

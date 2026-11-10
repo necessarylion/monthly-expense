@@ -1,12 +1,18 @@
 import { create } from 'zustand'
 import { api, getActiveGroupId } from '@/lib/api'
 import type { User as FirebaseUser } from 'firebase/auth'
-import { onAuthChange, resetPassword, signInWithEmail, signInWithGoogle, signOut } from '@/lib/firebase'
 import { errorMessage } from '@/lib/errors'
 import { t } from '@/lib/i18n'
 import { startLive, stopLive } from '@/lib/live'
 import { signInWithPasskeyToken } from '@/lib/passkey'
-import { clearSession, getApiToken, getCachedUser, setApiToken, setCachedUser } from '@/lib/session'
+import {
+  clearSession,
+  getApiToken,
+  getCachedUser,
+  setApiToken,
+  setCachedUser,
+  tokenNeedsRefresh,
+} from '@/lib/session'
 import type { McpClient, User } from '@/lib/types'
 import { useAccounts } from './accounts'
 import { useGroups } from './groups'
@@ -17,7 +23,22 @@ import { useGroups } from './groups'
  * gives an API token directly. Every call after sends the API token, which
  * is kept across reloads (`lib/session.ts`): a returning user's data starts
  * loading at once, with no wait for Firebase.
+ *
+ * Firebase is used only to sign in. Right after the trade the app signs out
+ * of it, and renews the API token itself (`POST /auth/token/refresh`). The
+ * Firebase SDK is loaded only when it is needed (the login screen).
  */
+
+let firebaseLoad: Promise<typeof import('@/lib/firebase')> | null = null
+
+/** The Firebase SDK, loaded on first use. Its listener trades a new sign-in. */
+function firebase() {
+  firebaseLoad ??= import('@/lib/firebase').then((fb) => {
+    fb.onAuthChange(onFirebaseUser)
+    return fb
+  })
+  return firebaseLoad
+}
 
 interface AuthState {
   user: User | null
@@ -37,7 +58,7 @@ interface AuthState {
   loginWithEmail(email: string, password: string, create: boolean): Promise<'ok' | 'verify' | 'error'>
   /** Sends a password reset link. Returns false on an error. */
   sendPasswordReset(email: string): Promise<boolean>
-  /** Sends the two-step code. The page reloads when it is right. */
+  /** Sends the two-step code. Signs in when it is right. */
   verifyMfa(code: string): Promise<void>
   logout(): Promise<void>
   refreshMe(): Promise<void>
@@ -97,31 +118,31 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   watch() {
-    // Signed in before: paint from the last /me and load right away.
+    // Keep the API token fresh while the app is open.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void refreshToken()
+    })
+    setInterval(() => void refreshToken(), 60 * 60 * 1000)
+
+    // Signed in before: paint from the last /me and load right away. No Firebase.
     if (getApiToken()) {
       const cached = getCachedUser()
       if (cached) set({ user: cached, loading: false })
       void start()
+      return
     }
 
-    // Offline or behind a blocking proxy Firebase never calls back. Give up
-    // and treat it as signed out; the listener still fires later if a session shows up.
-    const giveUp = getApiToken() ? null : setTimeout(() => set({ loading: false, booting: false }), 8000)
-
-    // Firebase only matters while there is no API token: after a Google or
-    // email sign-in, or for a Firebase session from before API tokens.
-    onAuthChange((fbUser) => {
-      if (giveUp) clearTimeout(giveUp)
-      if (getApiToken() || exchanging) return
-      if (!fbUser) return set({ user: null, mfaRequired: false, loading: false, booting: false })
-      void exchange(fbUser)
-    })
+    // Signed out: load Firebase. It may still hold a session from before
+    // API tokens; its listener trades that. Offline or behind a blocking
+    // proxy Firebase never calls back, so give up and show the login.
+    giveUp = setTimeout(() => set({ loading: false, booting: false }), 8000)
+    void firebase()
   },
 
   async login() {
     set({ error: null })
     try {
-      await signInWithGoogle()
+      await (await firebase()).signInWithGoogle()
     } catch (e: any) {
       set({ error: authError(e) })
     }
@@ -142,7 +163,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   async loginWithEmail(email, password, create) {
     set({ error: null })
     try {
-      return (await signInWithEmail(email, password, create)) ? 'ok' : 'verify'
+      return (await (await firebase()).signInWithEmail(email, password, create)) ? 'ok' : 'verify'
     } catch (e: any) {
       set({ error: authError(e) })
       return 'error'
@@ -152,7 +173,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   async sendPasswordReset(email) {
     set({ error: null })
     try {
-      await resetPassword(email)
+      await (await firebase()).resetPassword(email)
       return true
     } catch (e: any) {
       set({ error: authError(e) })
@@ -186,12 +207,40 @@ export const useAuth = create<AuthState>((set, get) => ({
     useAccounts.getState().clear()
     // End the API token on the server too. Already gone after a 401: no matter.
     if (token) void api.delete('/auth/token', { token }).catch(() => {})
-    await signOut().catch(() => {})
+    // Normally signed out of Firebase already; this also loads it for the login screen.
+    await (await firebase()).signOut().catch(() => {})
   },
 }))
 
 let started = false
 let exchanging = false
+let refreshing = false
+let giveUp: ReturnType<typeof setTimeout> | null = null
+
+/** Firebase only matters while there is no API token: right after a Google or email sign-in. */
+function onFirebaseUser(fbUser: FirebaseUser | null) {
+  if (giveUp) clearTimeout(giveUp)
+  giveUp = null
+  if (getApiToken() || exchanging) return
+  if (!fbUser) return useAuth.setState({ user: null, mfaRequired: false, loading: false, booting: false })
+  void exchange(fbUser)
+}
+
+/** Trades the API token for a new 30-day one once it is a day old. A 401 signs out (App). */
+async function refreshToken() {
+  const token = getApiToken()
+  if (!token || refreshing || !tokenNeedsRefresh()) return
+  refreshing = true
+  try {
+    const { data } = await api.post<{ data: { token: string } }>('/auth/token/refresh')
+    // Signed out meanwhile: drop it.
+    if (getApiToken() === token) setApiToken(data.data.token)
+  } catch {
+    // offline or the server is down: try again later
+  } finally {
+    refreshing = false
+  }
+}
 
 /** Signed in (an API token is stored): /me, the groups and the live socket. */
 async function start() {
@@ -206,6 +255,7 @@ async function start() {
   await auth().refreshMe()
   // The splash only waits for /me. Groups and the month fill in after.
   useAuth.setState({ loading: false, booting: false })
+  void refreshToken()
   // ponytail: first login stays serial; user provisioning on the server is not concurrency safe.
   if (!returning && auth().user && !auth().mfaRequired) await groups.load()
 }
@@ -220,6 +270,8 @@ async function exchange(fbUser: FirebaseUser) {
       token: idToken,
     })
     setApiToken(data.data.token)
+    // Done with Firebase: from now on the API token renews itself.
+    void firebase().then((fb) => fb.signOut()).catch(() => {})
     // With two-step sign-in on, /me decides first whether the code is still needed.
     if (!data.data.user.twoFactorEnabled) {
       setCachedUser(data.data.user)
@@ -229,7 +281,7 @@ async function exchange(fbUser: FirebaseUser) {
   } catch (e: any) {
     useAuth.setState({ error: errorMessage(e, 'Sign-in failed'), loading: false, booting: false })
     // Firebase said yes but the API said no (not allowed): sign out of Firebase too.
-    if (e?.response?.status === 401) await signOut().catch(() => {})
+    if (e?.response?.status === 401) await (await firebase()).signOut().catch(() => {})
   } finally {
     exchanging = false
   }

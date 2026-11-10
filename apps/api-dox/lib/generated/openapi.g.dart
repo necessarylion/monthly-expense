@@ -52,6 +52,20 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
     ),
     OpenApiOperation(
       controller: 'AuthController',
+      method: 'refresh',
+      argumentTypes: <String>['DoxRequest'],
+      summary: 'Trade the API token for a new one',
+      description: 'The web app calls it about once a day, so its token never runs out. The old token still works for two minutes. No Firebase.',
+      tags: <String>['Auth'],
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'AuthController',
       method: 'destroy',
       argumentTypes: <String>['DoxRequest'],
       summary: 'Sign out this browser',
@@ -1015,6 +1029,11 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       'POST',
       '/api/v1/me/totp/verify',
       'TotpController.verify',
+    ),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/auth/token/refresh',
+      'AuthController.refresh',
     ),
     OpenApiRouteBinding(
       'DELETE',

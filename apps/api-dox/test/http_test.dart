@@ -89,7 +89,38 @@ void main() {
       (await app.call('/api/v1/me', token: token)).expectStatus(401);
     });
 
-    test('a token unused for too long stops working', () async {
+    test('refresh gives a new token; the old one ends soon after', () async {
+      String old = await app.signIn('rita');
+      TestResponse res = await app.call(
+        '/api/v1/auth/token/refresh',
+        method: 'POST',
+        token: old,
+      );
+      String fresh = res.expectStatus(200).json['data']['token'] as String;
+      expect(fresh, isNot(old));
+      (await app.call('/api/v1/me', token: fresh)).expectStatus(200);
+      // a grace moment for calls on the way and other tabs
+      (await app.call('/api/v1/me', token: old)).expectStatus(200);
+      ApiToken? row = await ApiToken()
+          .where('token_hash', ApiTokenService.hash(old))
+          .getFirst();
+      DateTime end = DateTime.parse('${row!.expiresAt}Z');
+      expect(
+        end.difference(DateTime.now().toUtc()),
+        lessThanOrEqualTo(const Duration(minutes: 2)),
+      );
+      // the new one lasts the full time
+      ApiToken? next = await ApiToken()
+          .where('token_hash', ApiTokenService.hash(fresh))
+          .getFirst();
+      DateTime nextEnd = DateTime.parse('${next!.expiresAt}Z');
+      expect(
+        nextEnd.difference(DateTime.now().toUtc()),
+        greaterThan(const Duration(days: 29)),
+      );
+    });
+
+    test('a token past its end stops working', () async {
       String token = await app.signIn('old');
       (await app.call('/api/v1/me', token: token)).expectStatus(200);
       await ApiToken().where('token_hash', ApiTokenService.hash(token)).update(

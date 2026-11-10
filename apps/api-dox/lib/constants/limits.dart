@@ -73,9 +73,14 @@ const String tripBudgetKey = 'trip';
 /// easy to spot.
 const String apiTokenPrefix = 'mea_';
 
-/// A browser that makes no call for this long is signed out. Each use moves
-/// the end forward.
+/// An API token works this long. The web app trades it for a new one
+/// (`POST /auth/token/refresh`) well before, so a user who opens the app
+/// within this time never signs in again.
 const Duration apiTokenLife = Duration(days: 30);
 
-/// `api_tokens.last_used_at` (and the end) are written at most this often.
+/// After a refresh the old token still works this long, for calls already
+/// on the way and other tabs that have not read the new one yet.
+const Duration apiTokenRefreshGrace = Duration(minutes: 2);
+
+/// `api_tokens.last_used_at` is written at most this often.
 const Duration apiTokenTouchEvery = Duration(hours: 1);
