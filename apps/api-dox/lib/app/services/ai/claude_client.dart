@@ -57,10 +57,22 @@ class ClaudeClient {
             }),
           )
           .timeout(claudeTimeout);
-      if (res.statusCode < 200 || res.statusCode >= 300) return null;
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        Logger.warn('[claude] HTTP ${res.statusCode}: ${res.body}');
+        return null;
+      }
       // Parses the bytes directly, with no String copy in between.
-      return _answer(utf8.decoder.fuse(json.decoder).convert(res.bodyBytes));
-    } catch (_) {
+      Object? body = utf8.decoder.fuse(json.decoder).convert(res.bodyBytes);
+      if (body is Map && body['usage'] is Map) {
+        Map<dynamic, dynamic> usage = body['usage'] as Map<dynamic, dynamic>;
+        Logger.info(
+          '[claude] ${body['model']}: ${usage['input_tokens']} in, '
+          '${usage['output_tokens']} out',
+        );
+      }
+      return _answer(body);
+    } catch (error) {
+      Logger.warn('[claude] call failed: $error');
       return null;
     } finally {
       client.close();
