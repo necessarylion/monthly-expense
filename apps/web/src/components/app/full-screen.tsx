@@ -56,7 +56,7 @@ export function FullScreen({ open, onClose, title, top, fields, children, footer
           <div className="flex shrink-0 items-center gap-2 px-5 pt-3">
             <Dialog.Close
               aria-label={t('common.back')}
-              className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-transform active:scale-90"
+              className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-input bg-muted text-muted-foreground transition-transform active:scale-90"
             >
               <ChevronLeftIcon className="size-5" />
             </Dialog.Close>

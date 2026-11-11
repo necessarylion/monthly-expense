@@ -91,6 +91,7 @@ export function ExpenseSheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open
   }, [expense])
 
+  const payAccount = accounts.find((a) => a.id === payFromId)
   // Default account first, the rest keep their order.
   const payFrom = [...accounts].sort(
     (a, b) => Number(b.id === defaultAccountId) - Number(a.id === defaultAccountId)
@@ -135,7 +136,13 @@ export function ExpenseSheet() {
               size="lg"
               aria-label={t('expenseModal.payFrom')}
               className="w-full shrink-0"
-              icon={<WalletIcon className="text-muted-foreground" />}
+              icon={
+                payAccount ? (
+                  <span className="mx-0.5 size-3 shrink-0 rounded-full" style={{ backgroundColor: payAccount.color }} />
+                ) : (
+                  <WalletIcon className="text-muted-foreground" />
+                )
+              }
               value={payFromId === null ? NONE : String(payFromId)}
               onChange={(v) => setPayFromId(v === NONE ? null : Number(v))}
               options={[
