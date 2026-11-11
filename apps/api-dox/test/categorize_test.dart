@@ -91,6 +91,22 @@ void main() {
     expect(claude.calls, 0);
   });
 
+  test('a Burmese or mixed note used before: same category', () async {
+    (await add(<String, dynamic>{'categoryId': foodId, 'note': 'ထမင်း Lunch'}))
+        .expectStatus(201);
+    TestResponse res = await add(<String, dynamic>{'note': 'ထမင်း lunch'});
+    expect(res.json['data']['categoryId'], foodId);
+    expect(claude.calls, 0);
+  });
+
+  test('a new Burmese note goes to Claude as is', () async {
+    claude.answer = <String, Object?>{'categoryId': billsId};
+    TestResponse res = await add(<String, dynamic>{'note': 'မီးဖိုး'});
+    int id = res.json['data']['id'] as int;
+    expect(await settled(id), billsId);
+    expect(claude.lastPrompt, contains('မီးဖိုး'));
+  });
+
   test('an id outside the group is ignored', () async {
     claude.answer = <String, Object?>{'categoryId': 999999};
     TestResponse res = await add(<String, dynamic>{'note': 'Mystery'});

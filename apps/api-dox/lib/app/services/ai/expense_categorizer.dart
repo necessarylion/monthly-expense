@@ -10,9 +10,13 @@ const String _system =
     'You sort the expenses of an expense app into categories. You get the '
     'note the user wrote for one expense, its amount, and the categories '
     'of their group. Answer with the id of the category the expense '
-    'belongs to. The note can be short, in any language, or just a shop '
-    'or brand name. When nothing fits well, pick the category that means '
-    '"other" if there is one.';
+    'belongs to. The note is short and written by people in Myanmar: in '
+    'English, in Burmese (Myanmar script, Unicode or Zawgyi), in Burmese '
+    'written with Latin letters, or a mix of these in one note (for example '
+    '"Grab ကား", "ထမင်း lunch", "mohinga"). It can be just a shop or brand '
+    'name. The category names may be in another language than the note; '
+    'match by meaning. When nothing fits well, pick the category that '
+    'means "other" if there is one.';
 
 /// Finds the category of an expense from its note, so the app does not
 /// ask for one.
