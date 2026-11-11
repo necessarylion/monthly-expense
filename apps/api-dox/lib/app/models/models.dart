@@ -11,7 +11,6 @@ library;
 export 'account/account.model.dart';
 export 'account_entry/account_entry.model.dart';
 export 'account_member/account_member.model.dart';
-export 'api_token/api_token.model.dart';
 export 'category/category.model.dart';
 export 'expense/expense.model.dart';
 export 'group/group.model.dart';

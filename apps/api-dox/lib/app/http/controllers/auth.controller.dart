@@ -50,7 +50,7 @@ class AuthController {
   @Description('The API token stops working.')
   @Response(204, null, description: 'Done, no body')
   Future<DoxResponse> destroy(DoxRequest req) async {
-    await tokens.revoke(req.authToken);
+    await tokens.revoke(ApiSession(req.authUser, req.authToken));
     return JsonResponse.noContent();
   }
 }

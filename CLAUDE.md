@@ -27,8 +27,10 @@ Read this before changing code. It captures the non-obvious bits.
 - `FirebaseService.verifyIdToken` refuses a token whose email is not verified.
   Invites and `ALLOWED_EMAILS` trust the email, so do not remove this check.
   The login page sends the verify link and signs the user out until then.
-- API tokens are random (`mea_` prefix), stored only as SHA-256 in
-  `api_tokens`, one row per browser. Each lasts 30 days. Once a token is a
+- API tokens are `dox_auth` access tokens (`AccessTokenAuthDriver`, guard
+  `api` in `lib/config/auth.dart`): `oat_<id>.<secret>`, stored only as
+  SHA-256 in `auth_access_tokens`, one row per browser. The old
+  `api_tokens` table was dropped by a migration. Each lasts 30 days. Once a token is a
   day old the app trades it for a new one (`POST /auth/token/refresh`; the
   old one works 2 more minutes), so opening the app within 30 days keeps
   the user signed in. `DELETE /auth/token` (sign out) deletes the row. Every API request carries it as `Authorization: Bearer <token>`;
@@ -42,7 +44,7 @@ Read this before changing code. It captures the non-obvious bits.
   an API token directly. Accepted origins are `APP_URL` and
   `FRONTEND_URLS`; the rpId is the page host.
 - Two-step sign-in (TOTP) is ours, not Firebase MFA (that needs Identity
-  Platform). An API token has a `second_factor` flag. `TotpService` checks
+  Platform). An API token that passed it has the `2fa` ability. `TotpService` checks
   the code and sets it on the caller's token (`/me/totp/verify`, and
   `/me/totp/enable` for the browser that turns it on). `TwoFactorMiddleware`
   (and the live socket) refuse a user who has it on when the token is not
@@ -141,7 +143,8 @@ Read this before changing code. It captures the non-obvious bits.
   other tables reference with `ON DELETE CASCADE`.** A rebuild is copy → DROP
   old table → rename, and the DROP fires the cascade on every child table.
   This wiped all `account_entries` once. Leave retired columns in place.
-- Don't add an auth framework. API tokens (`ApiTokenService`) are custom on purpose.
+- Don't add another auth framework. API tokens go through `dox_auth`
+  (`ApiTokenService` wraps it). If `dox_auth` lacks something, add it there.
 - Don't store the Firebase ID token anywhere, and don't accept it on API
   routes: it is only for `POST /auth/token`.
 - Outgoing HTTP calls need a timeout. A provider that never answers once hung

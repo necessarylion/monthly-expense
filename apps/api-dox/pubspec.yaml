@@ -8,6 +8,7 @@ environment:
 dependencies:
   dox_core: ^3.1.2
   dox_orm: ^3.1.0
+  dox_auth: ^3.1.1
   dox_migration: ^3.1.0
   dox_mcp: ^3.1.2
   dox_socketio: ^3.1.1

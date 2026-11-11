@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:api_dox/app/models/models.dart';
-import 'package:api_dox/app/services/api_token.service.dart';
+import 'package:dox_auth/dox_auth.dart';
+import 'package:dox_orm/dox_orm.dart' show QueryBuilder;
 import 'package:crypto/crypto.dart' show sha256;
 
 import 'package:dox_core/testing.dart';
@@ -57,7 +58,7 @@ void main() {
       (await app.call('/api/v1/me', user: '')).expectStatus(401).expectJson(
         <String, dynamic>{'message': 'Missing bearer token'},
       );
-      (await app.call('/api/v1/me', token: 'mea_nope')).expectStatus(401);
+      (await app.call('/api/v1/me', token: 'oat_1.nope')).expectStatus(401);
       // a Firebase ID token only works at sign-in
       (await app.call('/api/v1/me', token: 'alice')).expectStatus(401);
       (await signIn('bad')).expectStatus(401).expectJson(<String, dynamic>{
@@ -75,7 +76,7 @@ void main() {
     test('sign-in gives an API token and the user; sign-out ends it', () async {
       TestResponse res = (await signIn('sam')).expectStatus(200);
       String token = res.json['data']['token'] as String;
-      expect(token, startsWith('mea_'));
+      expect(token, startsWith('oat_'));
       expect(
         res.json['data']['user'],
         matchesObject(<String, Object?>{'email': 'sam@gmail.com'}),
@@ -101,21 +102,16 @@ void main() {
       (await app.call('/api/v1/me', token: fresh)).expectStatus(200);
       // a grace moment for calls on the way and other tabs
       (await app.call('/api/v1/me', token: old)).expectStatus(200);
-      ApiToken? row = await ApiToken()
-          .where('token_hash', ApiTokenService.hash(old))
-          .getFirst();
-      DateTime end = DateTime.parse('${row!.expiresAt}Z');
+      User rita = (await User().where('email', 'rita@gmail.com').getFirst())!;
+      List<AccessToken> rows = await Auth().accessTokens(rita);
+      expect(rows, hasLength(2));
       expect(
-        end.difference(DateTime.now().toUtc()),
+        rows.last.expiresAt!.difference(DateTime.now().toUtc()),
         lessThanOrEqualTo(const Duration(minutes: 2)),
       );
       // the new one lasts the full time
-      ApiToken? next = await ApiToken()
-          .where('token_hash', ApiTokenService.hash(fresh))
-          .getFirst();
-      DateTime nextEnd = DateTime.parse('${next!.expiresAt}Z');
       expect(
-        nextEnd.difference(DateTime.now().toUtc()),
+        rows.first.expiresAt!.difference(DateTime.now().toUtc()),
         greaterThan(const Duration(days: 29)),
       );
     });
@@ -123,9 +119,9 @@ void main() {
     test('a token past its end stops working', () async {
       String token = await app.signIn('old');
       (await app.call('/api/v1/me', token: token)).expectStatus(200);
-      await ApiToken().where('token_hash', ApiTokenService.hash(token)).update(
-        <String, dynamic>{'expires_at': '2000-01-01 00:00:00'},
-      );
+      await QueryBuilder.table(AccessTokenTables.defaultTable)
+          .where('id', int.parse(token.substring(4).split('.').first))
+          .update(<String, dynamic>{'expires_at': DateTime.utc(2000)});
       (await app.call('/api/v1/me', token: token)).expectStatus(401);
     });
 

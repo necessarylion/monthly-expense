@@ -179,7 +179,7 @@ void main() {
       user: '',
     );
     String token = login.expectStatus(200).json['data']['token'] as String;
-    expect(token, startsWith('mea_'));
+    expect(token, startsWith('oat_'));
     TestResponse me = await app.call('/api/v1/me', token: token);
     expect(me.expectStatus(200).json['data']['email'], 'alice@gmail.com');
 
