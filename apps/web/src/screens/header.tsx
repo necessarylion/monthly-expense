@@ -87,7 +87,7 @@ export function Header() {
     // Without `sticky` (or with a translucent bg) it blurs the page under it instead.
     // The bg is a solid 3% mix (not an alpha tint), so it stays opaque for Safari.
     // On desktop the sidebar carries the tinted color, so the header goes plain with a line.
-    <header className="sticky top-0 z-30 shrink-0 bg-[color-mix(in_oklab,var(--background),var(--foreground)_3%)] pt-safe lg:border-b lg:bg-background">
+    <header className="sticky top-0 z-30 shrink-0 bg-chrome pt-safe lg:border-b lg:bg-background">
       {/* Same width as the page below: Home and Wallet are wide on desktop. */}
       <div className={`mx-auto flex h-14 max-w-2xl items-center justify-between gap-3 px-4 lg:h-16 lg:px-8 ${tab === 'home' || tab === 'accounts' ? 'lg:max-w-6xl' : ''}`}>
         {tab === 'home' ? (

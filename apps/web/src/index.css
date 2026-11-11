@@ -417,6 +417,11 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* The app header color. The phone paints the strip behind the clock with it, so the full screen forms use it too. */
+@utility bg-chrome {
+  background-color: color-mix(in oklab, var(--background), var(--foreground) 3%);
+}
+
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
 }

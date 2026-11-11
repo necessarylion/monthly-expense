@@ -73,6 +73,7 @@ export function NumberPad({ onKey, onEnter, onEscape, flat, className }: NumberP
             className={cn(
               'flex items-center justify-center text-2xl font-medium tabular-nums select-none',
               flat
+                // The page background: a bit darker than the form in the dark themes.
                 ? 'bg-background transition-colors duration-75 active:bg-muted'
                 : [
                     // A solid key (no shadow) that darkens and shrinks a little when pressed.

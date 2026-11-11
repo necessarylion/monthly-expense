@@ -50,7 +50,7 @@ export function FullScreen({ open, onClose, title, top, fields, children, footer
           aria-describedby={undefined}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
-          className="fixed inset-0 z-50 mx-auto flex max-w-md flex-col overflow-hidden bg-background pt-safe text-foreground outline-none duration-200 data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom sm:inset-y-4 sm:rounded-lg sm:border sm:shadow-2xl"
+          className="fixed inset-0 z-50 mx-auto flex max-w-md flex-col overflow-hidden bg-chrome pt-safe text-foreground outline-none duration-200 data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom sm:inset-y-4 sm:rounded-lg sm:border sm:shadow-2xl"
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
           <div className="flex shrink-0 items-center gap-2 px-5 pt-3">
