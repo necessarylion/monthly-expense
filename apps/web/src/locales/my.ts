@@ -95,7 +95,7 @@ export default {
     amount: 'ပမာဏ',
     date: 'ရက်စွဲ',
     note: 'မှတ်စု',
-    notePlaceholder: 'မှတ်စု ထည့်ရန်',
+    notePlaceholder: 'ဘာအတွက် သုံးခဲ့လဲ',
     saveNew: 'အသုံးစရိတ်ကို သိမ်းရန်',
     saveEdit: 'ပြင်ဆင်မှုများကို သိမ်းရန်',
     failedToSave: 'သိမ်းဆည်း၍ မရပါ',

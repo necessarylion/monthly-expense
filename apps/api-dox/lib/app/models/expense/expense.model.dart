@@ -35,6 +35,10 @@ class Expense extends ExpenseGenerator {
   /// retired and stays unused.
   int? walletOwnerId;
 
+  /// The wallet it was paid from. Not a column: filled together with
+  /// [walletOwnerId].
+  int? walletAccountId;
+
   /// Who paid: the owner of the wallet it was paid from, else the person
   /// who added it.
   int? get payerId => walletOwnerId ?? createdByUserId;

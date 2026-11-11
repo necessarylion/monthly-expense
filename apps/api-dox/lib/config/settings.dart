@@ -32,10 +32,11 @@ class AppSettings {
   final String? firebaseAuthDomain;
   final String? firebaseAppId;
 
-  /// Claude API key for the quick-add list. Null: plain list.
+  /// Claude API key for expense categories and the quick-add list. Null:
+  /// no AI.
   final String? anthropicApiKey;
 
-  /// The Claude model for the quick-add list.
+  /// The Claude model for the AI features.
   final String anthropicModel;
 
   /// The settings from the env of this process.

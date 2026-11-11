@@ -108,6 +108,10 @@ Read this before changing code. It captures the non-obvious bits.
   and API keep `accounts`), List (`list`: the shopping list), Me (`settings`:
   a settings list with drill-in pages, `useUi.settingsTab`; Rates is one of
   them). The middle bar button opens the expense sheet; it is not a tab.
+- Add expense asks for no category; the note is required. The API finds the
+  category (`ExpenseCategorizer`): the group's last expense with the same note,
+  else Claude, after the answer is sent (a `changed` event updates the app).
+  A new note on edit sorts it again. MCP and quick-add may still send `categoryId`.
 - Home's quick-add chips come from `GET /expenses/frequent`; the wallet cards'
   trend lines from `GET /accounts/history?days=30`.
 - Stores live in `src/stores/` (Zustand). `useAuth` owns the Firebase listener

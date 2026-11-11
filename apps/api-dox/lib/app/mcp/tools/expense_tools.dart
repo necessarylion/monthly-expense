@@ -21,8 +21,9 @@ class AddExpenseTool extends AppTool<CreateExpense> {
 
   @override
   String get description =>
-      'Record a new expense in the given group. Find the categoryId with '
-      'list_categories. Amount is in dollars (e.g. 12.50). The money also '
+      'Record a new expense in the given group. Give a note; categoryId '
+      '(see list_categories) is optional: left out, it is picked from the '
+      'note shortly after. Amount is in dollars (e.g. 12.50). The money also '
       'leaves a wallet: your default one, unless accountId is given. '
       'Returns the expense; amountCents is in cents.';
 
@@ -128,11 +129,17 @@ class UpdateExpenseTool extends AppTool<UpdateExpense> {
     if (input.categoryId == null &&
         input.amount == null &&
         input.occurredOn == null &&
-        !input.note.isPresent) {
+        !input.note.isPresent &&
+        !input.accountId.isPresent) {
       return AppTool.text('No changes provided for expense $id.');
     }
 
-    ExpenseWithCategory row = await expenses.update(group, expense, input);
+    ExpenseWithCategory row = await expenses.update(
+      user,
+      group,
+      expense,
+      input,
+    );
     return AppTool.json(<String, dynamic>{
       'currency': group.currency,
       'expense': ExpenseSerializer(row).toJson(),

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/expense.repository.dart';
 import 'package:api_dox/app/services/account.service.dart';
+import 'package:api_dox/app/services/ai/expense_categorizer.dart';
 import 'package:api_dox/app/services/ai/quick_add_picker.dart';
 import 'package:api_dox/app/services/budget.service.dart';
 import 'package:api_dox/app/services/category.service.dart';
@@ -73,6 +76,7 @@ class ExpenseService {
     this.accounts,
     this.live,
     this.quickAdds,
+    this.categorizer,
   );
 
   final ExpenseRepository expenses;
@@ -81,6 +85,7 @@ class ExpenseService {
   final AccountService accounts;
   final LiveService live;
   final QuickAddPicker quickAdds;
+  final ExpenseCategorizer categorizer;
 
   /// The month's expenses with their category, newest first.
   Future<List<ExpenseWithCategory>> listForMonth(
@@ -170,7 +175,15 @@ class ExpenseService {
     Group group,
     CreateExpense input,
   ) async {
-    Category category = await categories.assertInGroup(group, input.categoryId);
+    String? note = input.note;
+    if (input.categoryId == null && note == null) {
+      throw HttpError.unprocessable('Write a note, or pick a category.');
+    }
+    // No category: the same note's category from before, else Claude's
+    // pick, made after the answer is sent.
+    Category? category = input.categoryId != null
+        ? await categories.assertInGroup(group, input.categoryId)
+        : await _fromHistory(group, note!);
     // Fail on a bad account before the expense row exists.
     int? accountId = input.accountId.isPresent ? input.accountId.value : null;
     if (accountId != null) await accounts.find(user, accountId);
@@ -178,10 +191,10 @@ class ExpenseService {
     Expense expense = await expenses.create(
       groupId: group.id!,
       createdByUserId: user.id,
-      categoryId: category.id,
+      categoryId: category?.id,
       amountCents: MoneyUtil.toCents(input.amount),
       occurredOn: input.occurredOn,
-      note: input.note,
+      note: note,
     );
     await accounts.recordExpenseOutflow(
       user,
@@ -192,20 +205,38 @@ class ExpenseService {
     );
     await expenses.attachWalletOwners(<Expense>[expense]);
     await _changed(expense);
+    if (category == null) _sortLater(group, expense);
     return ExpenseWithCategory(expense, category);
   }
 
   Future<ExpenseWithCategory> update(
+    User user,
     Group group,
     Expense expense,
     UpdateExpense input,
   ) async {
+    // First, so a bad wallet fails before anything is saved. The entry's
+    // amount, date and note are set by the sync below.
+    int? oldAccountId = await live.accountOfExpense(expense.id!);
+    if (input.accountId.isPresent) {
+      await accounts.moveExpenseOutflow(user, expense, input.accountId.value);
+    }
     Map<String, dynamic> changes = <String, dynamic>{};
+    bool sort = false;
+    String? newNote = input.note.isPresent ? input.note.value : null;
     if (input.categoryId != null) {
       changes['category_id'] = (await categories.assertInGroup(
         group,
         input.categoryId,
       )).id;
+    } else if (newNote != null && newNote != expense.note) {
+      // A new note with no category: sort it again, like a new expense.
+      Category? known = await _fromHistory(group, newNote);
+      if (known != null) {
+        changes['category_id'] = known.id;
+      } else {
+        sort = true;
+      }
     }
     if (input.amount != null) {
       changes['amount_cents'] = MoneyUtil.toCents(input.amount!);
@@ -222,6 +253,11 @@ class ExpenseService {
     await accounts.syncExpenseOutflow(updated, category);
     await expenses.attachWalletOwners(<Expense>[updated]);
     await _changed(updated);
+    // The wallet it left shows a new balance too.
+    if (oldAccountId != null && oldAccountId != updated.walletAccountId) {
+      await live.accountChanged(oldAccountId);
+    }
+    if (sort) _sortLater(group, updated);
     return ExpenseWithCategory(updated, category);
   }
 
@@ -267,6 +303,45 @@ class ExpenseService {
     int? accountId = await live.accountOfExpense(expense.id!);
     await expenses.delete(expense.id!);
     await live.expenseChanged(expense.groupId, accountId);
+  }
+
+  /// The category of the group's last expense with this note.
+  Future<Category?> _fromHistory(Group group, String note) async {
+    int? id = await categorizer.fromHistory(group.id!, note);
+    return id == null ? null : categories.findInGroup(group, id);
+  }
+
+  /// Asks Claude for the expense's category without holding up the answer.
+  /// The app gets a `changed` event when it is set.
+  void _sortLater(Group group, Expense expense) {
+    if (!categorizer.enabled || expense.note == null) return;
+    unawaited(sortWithAi(group, expense.id!, expense.note!));
+  }
+
+  /// Sets the category Claude picks for the note. It keeps the expense as
+  /// it is when the note or the category changed in the meantime.
+  Future<void> sortWithAi(Group group, int id, String note) async {
+    try {
+      Expense? before = await expenses.findById(id);
+      if (before == null || before.note != note) return;
+      int? pick = await categorizer.ask(
+        note,
+        before.amountCents,
+        await categories.list(group),
+      );
+      if (pick == null || pick == before.categoryId) return;
+      Expense? now = await expenses.findById(id);
+      if (now == null ||
+          now.note != note ||
+          now.categoryId != before.categoryId) {
+        return;
+      }
+      await _changed(
+        await expenses.update(id, <String, dynamic>{'category_id': pick}),
+      );
+    } catch (error) {
+      Logger.warn('[categorize] expense $id: $error');
+    }
   }
 
   /// Tell the group, and the wallet the expense is booked in.

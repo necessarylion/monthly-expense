@@ -54,10 +54,10 @@ export function NumberPad({ onKey, onEnter, onEscape, flat, className }: NumberP
     <div
       className={cn(
         'grid grid-cols-3',
-        // The 1px gaps show the border color behind the keys: those are the lines.
+        // The hairline (half pixel) gaps show the border color behind the keys: those are the lines.
         // A fixed height (svh does not change when the browser bar or the keyboard moves),
         // so the pad never grows, shrinks or moves when the fields above it change.
-        flat ? 'h-[clamp(15rem,40svh,23rem)] shrink-0 grid-rows-4 gap-px border-t bg-border' : 'gap-2',
+        flat ? 'h-[clamp(15rem,40svh,23rem)] shrink-0 grid-rows-4 gap-[0.5px] border-t-[0.5px] bg-border' : 'gap-2',
         className
       )}
       data-vaul-no-drag=""

@@ -152,7 +152,7 @@ export function EntrySheet({
             })}
           </ChipRail>
 
-          <div role="group" className="flex shrink-0 gap-1 rounded-lg bg-muted p-1">
+          <div role="group" className="flex shrink-0 gap-1 rounded-lg border border-input bg-muted p-[3px]">
             {modes.map(({ value, label, Icon }) => (
               <button
                 key={value}

@@ -5,6 +5,7 @@
 import 'package:dox_core/dox_core.dart';
 import 'package:api_dox/app/dtos/account/account.dto.dart';
 import 'package:api_dox/app/dtos/category/category.dto.dart';
+import 'package:api_dox/app/dtos/category_pick/category_pick.dto.dart';
 import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/dtos/group/group.dto.dart';
 import 'package:api_dox/app/dtos/oauth/oauth.dto.dart';
@@ -21,6 +22,7 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $AddPasskeyDto,
   $AdjustBalanceDto,
   $ApproveOauthDto,
+  $CategoryPickDto,
   $CreateAccountDto,
   $CreateCategoryDto,
   $CreateEntryDto,

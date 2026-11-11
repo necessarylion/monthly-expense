@@ -1,4 +1,5 @@
-/// Claude (Anthropic Messages API). Used to clean up the quick-add list.
+/// Claude (Anthropic Messages API). Picks expense categories and cleans up
+/// the quick-add list.
 const String claudeMessagesUrl = 'https://api.anthropic.com/v1/messages';
 const String claudeApiVersion = '2026-10-21';
 

@@ -53,6 +53,8 @@ export interface Expense {
   /** Who paid: the creator unless someone else was picked. */
   paidByUserId: number | null
   categoryId: number | null
+  /** The wallet it was paid from. It can be a wallet of someone else. */
+  accountId?: number | null
   amountCents: number
   occurredOn: string
   note: string | null

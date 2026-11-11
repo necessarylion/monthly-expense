@@ -2003,9 +2003,9 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'description': 'Group ID (see list_groups). Needed by the MCP tools; HTTP uses the X-Group-Id header.',
         },
         'categoryId': <String, dynamic>{
-          'type': 'integer',
+          'type': <dynamic>['integer', 'null'],
           'exclusiveMinimum': 0,
-          'description': 'Category ID (see list_categories).',
+          'description': 'Category ID (see list_categories). Leave it out to have it picked from the note; the note is then required.',
         },
         'amount': <String, dynamic>{
           'type': 'number',
@@ -2020,7 +2020,8 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
         'note': <String, dynamic>{
           'type': <dynamic>['string', 'null'],
           'maxLength': 500,
-          'description': 'Optional note.',
+          'description':
+              'What the money was for. Required when categoryId is left out.',
         },
         'accountId': <String, dynamic>{
           'type': <dynamic>['integer', 'null'],
@@ -2028,7 +2029,7 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'description': 'Wallet to pay from (see list_wallets). Leave it out to use your default wallet of the group. Pass null to record no wallet entry.',
         },
       },
-      'required': <dynamic>['categoryId', 'amount', 'occurredOn'],
+      'required': <dynamic>['amount', 'occurredOn'],
     },
     'UpdateExpense': <String, dynamic>{
       'type': 'object',
@@ -2063,6 +2064,11 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'type': <dynamic>['string', 'null'],
           'maxLength': 500,
           'description': 'New note. Pass null to clear it.',
+        },
+        'accountId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Wallet to pay from (see list_wallets). Pass null to remove the wallet entry. Leave it out to keep the wallet.',
         },
       },
     },
