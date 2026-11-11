@@ -138,7 +138,15 @@ export function ExpenseSheet() {
               icon={<WalletIcon className="text-muted-foreground" />}
               value={payFromId === null ? NONE : String(payFromId)}
               onChange={(v) => setPayFromId(v === NONE ? null : Number(v))}
-              options={[{ value: NONE, label: t('accounts.none') }, ...payFrom.map((a) => ({ value: String(a.id), label: a.name }))]}
+              options={[
+                { value: NONE, label: t('accounts.none') },
+                ...payFrom.map((a) => ({
+                  value: String(a.id),
+                  label: a.name,
+                  hint: a.currency,
+                  icon: <span className="size-3 rounded-full" style={{ backgroundColor: a.color }} />
+                }))
+              ]}
             />
           )}
 
@@ -146,7 +154,7 @@ export function ExpenseSheet() {
             value={note}
             maxLength={500}
             onChange={(e) => setNote(e.target.value)}
-            rows={2}
+            rows={3}
             // Enter saves. It does not add a new line.
             onKeyDown={(e) => {
               if (e.key !== 'Enter') return
@@ -155,7 +163,7 @@ export function ExpenseSheet() {
             }}
             aria-label={t('expenseModal.note')}
             placeholder={t('expenseModal.notePlaceholder')}
-            className="field-sizing-fixed h-16 min-h-0 shrink-0 resize-none text-base sm:text-sm"
+            className="field-sizing-fixed h-22 min-h-0 shrink-0 resize-none text-base sm:text-sm"
           />
         </>
       }

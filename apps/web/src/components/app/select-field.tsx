@@ -8,6 +8,8 @@ export interface SelectFieldOption {
   label: string
   /** Extra text in the sheet only (e.g. the currency name next to its code). */
   hint?: string
+  /** Shown before the label in the sheet only (e.g. a wallet color dot). */
+  icon?: ReactNode
 }
 
 export interface SelectFieldProps {
@@ -26,7 +28,7 @@ export interface SelectFieldProps {
 export function SelectField({ value, onChange, options, size = 'default', icon, className, ...rest }: SelectFieldProps) {
   const [open, setOpen] = useState(false)
   const current = options.find((o) => o.value === value)
-  const items = options.map((o) => ({ value: o.value, label: o.label, hint: o.hint }))
+  const items = options.map((o) => ({ value: o.value, label: o.label, hint: o.hint, icon: o.icon }))
   return (
     <>
       <button
