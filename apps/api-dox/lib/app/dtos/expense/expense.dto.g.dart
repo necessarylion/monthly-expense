@@ -37,7 +37,7 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
       'groupId',
       _m,
     );
-    // categoryId: int
+    // categoryId: int?
     Object? c1;
     c1 = s.integer(
       s.read(input, 'categoryId', emptyToNull: true),
@@ -45,7 +45,6 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
       'categoryId',
       _m,
     );
-    if (c1 == null || c1 is Undefined) s.required(p, 'categoryId', _m);
     // amount: num
     Object? c2;
     c2 = s.number(s.read(input, 'amount', emptyToNull: true), p, 'amount', _m);
@@ -161,7 +160,7 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
     if (s.issues.length != e) return null;
     return CreateExpense(
       groupId: c0 is Undefined ? null : c0 as int?,
-      categoryId: c1 as int,
+      categoryId: c1 is Undefined ? null : c1 as int?,
       amount: c2 as num,
       occurredOn: c3 as String,
       note: c4 is Undefined ? null : c4 as String?,
@@ -175,7 +174,9 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
   CreateExpense fromMap(Map<String, dynamic> m) {
     return CreateExpense(
       groupId: m['groupId'] == null ? null : ((m['groupId'] as num).toInt()),
-      categoryId: (m['categoryId'] as num).toInt(),
+      categoryId: m['categoryId'] == null
+          ? null
+          : ((m['categoryId'] as num).toInt()),
       amount: m['amount'] as num,
       occurredOn: m['occurredOn'] as String,
       note: m['note'] == null ? null : (m['note'] as String),
@@ -190,7 +191,7 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
   @override
   Map<String, dynamic> toMap(CreateExpense o) {
     int? f0 = o.groupId;
-    int f1 = o.categoryId;
+    int? f1 = o.categoryId;
     num f2 = o.amount;
     String f3 = o.occurredOn;
     String? f4 = o.note;
@@ -217,9 +218,9 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
           'description': 'Group ID (see list_groups). Needed by the MCP tools; HTTP uses the X-Group-Id header.',
         },
         'categoryId': <String, dynamic>{
-          'type': 'integer',
+          'type': <dynamic>['integer', 'null'],
           'exclusiveMinimum': 0,
-          'description': 'Category ID (see list_categories).',
+          'description': 'Category ID (see list_categories). Leave it out to have it picked from the note; the note is then required.',
         },
         'amount': <String, dynamic>{
           'type': 'number',
@@ -234,7 +235,8 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
         'note': <String, dynamic>{
           'type': <dynamic>['string', 'null'],
           'maxLength': 500,
-          'description': 'Optional note.',
+          'description':
+              'What the money was for. Required when categoryId is left out.',
         },
         'accountId': <String, dynamic>{
           'type': <dynamic>['integer', 'null'],
@@ -242,7 +244,7 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
           'description': 'Wallet to pay from (see list_wallets). Leave it out to use your default wallet of the group. Pass null to record no wallet entry.',
         },
       },
-      'required': <dynamic>['categoryId', 'amount', 'occurredOn'],
+      'required': <dynamic>['amount', 'occurredOn'],
     };
     JsonSchemaTools.merge(j, <String>[
       'properties',

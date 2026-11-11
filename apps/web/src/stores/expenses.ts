@@ -18,7 +18,8 @@ interface ExpensesState {
   loadCategories(): Promise<void>
   loadMonth(key?: string): Promise<void>
   addExpense(payload: {
-    categoryId: number
+    /** Left out: the API picks it from the note. */
+    categoryId?: number
     amount: number
     occurredOn: string
     note?: string

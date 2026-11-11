@@ -94,7 +94,7 @@ export default {
     amount: 'Amount',
     date: 'Date',
     note: 'Note',
-    notePlaceholder: 'Add a note',
+    notePlaceholder: 'What was it for?',
     saveNew: 'Save Expense',
     saveEdit: 'Save changes',
     failedToSave: 'Failed to save',

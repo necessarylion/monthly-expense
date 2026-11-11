@@ -159,6 +159,20 @@ class ExpenseRepository {
     ];
   }
 
+  /// The category of the group's newest expense with this note (case is
+  /// ignored). Null when there is none.
+  Future<int?> categoryOfNote(int groupId, String note) async {
+    Expense? row = await _q()
+        .where('group_id', groupId)
+        .whereNotNull('category_id')
+        .whereRaw('lower(note) = @note', <String, dynamic>{
+          'note': note.toLowerCase(),
+        })
+        .orderBy('id', 'desc')
+        .getFirst();
+    return row?.categoryId;
+  }
+
   Future<Expense> create({
     required int groupId,
     required int? createdByUserId,

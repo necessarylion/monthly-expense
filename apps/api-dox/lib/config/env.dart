@@ -63,10 +63,11 @@ abstract class AppEnv {
 
   String? get firebaseAppId;
 
-  /// Claude API key. Cleans up the quick-add list. Empty: plain list.
+  /// Claude API key. Picks expense categories and cleans up the quick-add
+  /// list. Empty: no AI.
   String? get anthropicApiKey;
 
-  /// The Claude model for the quick-add list.
+  /// The Claude model for the AI features.
   String get anthropicModel => 'claude-opus-5-5';
 
   String get logLevel => 'info';
