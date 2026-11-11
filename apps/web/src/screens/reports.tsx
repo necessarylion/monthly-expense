@@ -40,11 +40,11 @@ function useMemberName(): (userId: number, email: string) => string {
 function Stepper({ label, onPrev, onNext, prevLabel, nextLabel }: { label: string; onPrev(): void; onNext(): void; prevLabel: string; nextLabel: string }) {
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button variant="ghost" size="icon" className="rounded-full" aria-label={prevLabel} onClick={onPrev}>
+      <Button variant="ghost" size="icon" className="rounded-lg" aria-label={prevLabel} onClick={onPrev}>
         <ChevronLeftIcon />
       </Button>
       <span className="min-w-24 text-center text-base font-semibold tabular-nums">{label}</span>
-      <Button variant="ghost" size="icon" className="rounded-full" aria-label={nextLabel} onClick={onNext}>
+      <Button variant="ghost" size="icon" className="rounded-lg" aria-label={nextLabel} onClick={onNext}>
         <ChevronRightIcon />
       </Button>
     </div>
@@ -154,14 +154,14 @@ export function RecurringPage() {
       <Section title={t('reports.newRecurring')}>
         <SelectField
           size="lg"
-          className="w-full rounded-xl"
+          className="w-full rounded-lg"
           aria-label={t('expenseModal.category')}
           value={categoryId}
           onChange={setCategoryId}
           options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
         />
         <div className="flex gap-2">
-          <InputGroup className="h-11 flex-1 rounded-xl">
+          <InputGroup className="h-11 flex-1 rounded-lg">
             <InputGroupAddon>
               <InputGroupText>{currencySymbol(currency)}</InputGroupText>
             </InputGroupAddon>
@@ -174,7 +174,7 @@ export function RecurringPage() {
               className="text-base tabular-nums"
             />
           </InputGroup>
-          <InputGroup className="h-11 w-32 rounded-xl">
+          <InputGroup className="h-11 w-32 rounded-lg">
             <InputGroupAddon>
               <InputGroupText>{t('reports.day')}</InputGroupText>
             </InputGroupAddon>
@@ -196,7 +196,7 @@ export function RecurringPage() {
         {accounts.length > 0 && (
           <SelectField
             size="lg"
-            className="w-full rounded-xl"
+            className="w-full rounded-lg"
             aria-label={t('expenseModal.payFrom')}
             value={wallet}
             onChange={setWallet}
@@ -210,10 +210,10 @@ export function RecurringPage() {
           onKeyDown={(e) => e.key === 'Enter' && void add()}
           placeholder={t('expenseModal.notePlaceholder')}
           aria-label={t('expenseModal.note')}
-          className="h-11 rounded-xl text-base sm:text-sm"
+          className="h-11 rounded-lg text-base sm:text-sm"
         />
         <ErrorText>{error}</ErrorText>
-        <Button className="self-end rounded-xl" disabled={!valid || saving} onClick={() => void add()}>
+        <Button className="self-end rounded-lg" disabled={!valid || saving} onClick={() => void add()}>
           <PlusIcon />
           {saving ? t('common.saving') : t('reports.addRecurring')}
         </Button>
@@ -298,7 +298,7 @@ export function SearchPage() {
   return (
     <>
       <div className="flex flex-col gap-2">
-        <InputGroup className="h-11 rounded-xl">
+        <InputGroup className="h-11 rounded-lg">
           <InputGroupAddon>
             <SearchIcon />
           </InputGroupAddon>
@@ -314,7 +314,7 @@ export function SearchPage() {
         </InputGroup>
         <SelectField
           size="lg"
-          className="w-full rounded-xl"
+          className="w-full rounded-lg"
           aria-label={t('expenseModal.category')}
           value={categoryId}
           onChange={setCategoryId}
@@ -339,7 +339,7 @@ export function SearchPage() {
           <span className="text-sm text-muted-foreground tabular-nums">
             {t('reports.results', { n: rows.length, amount: formatMoneyFromCents(total, currency) })}
           </span>
-          <Button variant="outline" size="sm" className="rounded-full" disabled={rows.length === 0} onClick={exportCsv}>
+          <Button variant="outline" size="sm" className="rounded-lg" disabled={rows.length === 0} onClick={exportCsv}>
             <DownloadIcon />
             {t('reports.exportCsv')}
           </Button>
@@ -347,9 +347,9 @@ export function SearchPage() {
       )}
       {rows && rows.length >= SEARCH_LIMIT && <p className="px-1 text-xs text-muted-foreground">{t('reports.limitHit', { n: SEARCH_LIMIT })}</p>}
 
-      {rows && rows.length === 0 && <p className="rounded-2xl bg-muted/60 p-6 text-center text-sm text-muted-foreground">{t('reports.noResults')}</p>}
+      {rows && rows.length === 0 && <p className="rounded-lg bg-muted/60 p-6 text-center text-sm text-muted-foreground">{t('reports.noResults')}</p>}
       {rows && rows.length > 0 && (
-        <ul className="flex flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+        <ul className="flex flex-col overflow-hidden rounded-lg bg-card ring-1 ring-border">
           {rows.map((e) => {
             const category = e.categoryId === null ? undefined : categoryById.get(e.categoryId)
             return (
@@ -422,7 +422,7 @@ export function YearPage() {
       <ErrorText>{error}</ErrorText>
       {data && (
         <>
-          <div className="flex flex-col gap-1 rounded-2xl bg-card p-4 ring-1 ring-border">
+          <div className="flex flex-col gap-1 rounded-lg bg-card p-4 ring-1 ring-border">
             <span className="text-sm text-muted-foreground">{t('reports.yearTotal', { year })}</span>
             <span className="num text-3xl font-semibold tracking-tight">{formatMoneyFromCents(data.totalCents, currency)}</span>
             {activeMonths > 0 && (
@@ -516,9 +516,9 @@ export function SettleCard() {
     <section className="flex flex-col gap-3">
       <h2 className="font-display text-lg font-semibold">{t('reports.settle')}</h2>
       {data.members.length < 2 ? (
-        <p className="rounded-2xl bg-muted/60 p-4 text-sm text-muted-foreground">{t('reports.soloGroup')}</p>
+        <p className="rounded-lg bg-muted/60 p-4 text-sm text-muted-foreground">{t('reports.soloGroup')}</p>
       ) : (
-        <div className="flex flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+        <div className="flex flex-col overflow-hidden rounded-lg bg-card ring-1 ring-border">
           {data.transfers.length === 0 ? (
             <p className="border-b border-border/70 px-3 py-3 text-sm text-muted-foreground">{t('reports.allSettled')}</p>
           ) : (

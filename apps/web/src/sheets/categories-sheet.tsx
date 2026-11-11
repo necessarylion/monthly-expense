@@ -35,7 +35,7 @@ export function IconPicker({ value, color, onChange }: { value: string; color: s
             aria-pressed={active}
             onClick={() => onChange(key)}
             className={cn(
-              'flex aspect-square items-center justify-center rounded-xl border transition-colors',
+              'flex aspect-square items-center justify-center rounded-lg border transition-colors',
               active ? 'border-transparent text-white' : 'bg-background text-muted-foreground hover:bg-muted'
             )}
             style={active ? { background: color } : undefined}
@@ -72,7 +72,7 @@ function CategoryForm({ draft, onChange, onSubmit }: { draft: Draft; onChange(d:
   const t = useT()
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+      <div className="flex items-center gap-3 rounded-lg bg-muted/60 p-3">
         <CategoryIcon iconKey={draft.iconKey} color={draft.color} size={44} />
         <Input
           autoFocus
@@ -81,7 +81,7 @@ function CategoryForm({ draft, onChange, onSubmit }: { draft: Draft; onChange(d:
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
           onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
           placeholder={t('categories.namePlaceholder')}
-          className="h-11 flex-1 rounded-xl bg-background text-base"
+          className="h-11 flex-1 rounded-lg bg-background text-base"
         />
       </div>
       <div className="flex flex-col gap-2">
@@ -174,7 +174,7 @@ export function CategoriesSheet() {
       title={view === 'list' ? t('categories.title') : view === 'add' ? t('categories.addCategory') : t('categories.editTitle')}
       leading={
         inForm && (
-          <Button variant="ghost" size="icon" className="-ml-2 rounded-full" aria-label={t('common.back')} onClick={() => setView('list')}>
+          <Button variant="ghost" size="icon" className="-ml-2 rounded-lg" aria-label={t('common.back')} onClick={() => setView('list')}>
             <ChevronLeftIcon />
           </Button>
         )
@@ -189,13 +189,13 @@ export function CategoriesSheet() {
             )}
             <div className="flex items-center gap-2">
               {editing && <DeleteButton onConfirm={() => void remove()} className="shrink-0" />}
-              <Button size="lg" className="h-12 flex-1 rounded-2xl text-base" disabled={!draft.name.trim() || saving} onClick={() => void save()}>
+              <Button size="lg" className="h-12 flex-1 rounded-lg text-base" disabled={!draft.name.trim() || saving} onClick={() => void save()}>
                 {saving ? t('common.saving') : editing ? t('categories.saveChanges') : t('categories.add')}
               </Button>
             </div>
           </div>
         ) : (
-          <Button size="lg" variant="secondary" className="h-12 w-full rounded-2xl text-base" onClick={startAdd}>
+          <Button size="lg" variant="secondary" className="h-12 w-full rounded-lg text-base" onClick={startAdd}>
             <PlusIcon />
             {t('categories.addCategory')}
           </Button>
@@ -212,7 +212,7 @@ export function CategoriesSheet() {
                 type="button"
                 onClick={() => startEdit(c)}
                 aria-label={t('categories.editAria', { name: c.name })}
-                className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-muted"
+                className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted"
               >
                 <CategoryIcon iconKey={c.iconKey} color={c.color} size={36} />
                 <span className="flex-1 truncate text-[15px] font-medium">{c.name}</span>

@@ -39,7 +39,7 @@ function AccountChips({
             disabled={a.id === disabledId}
             onClick={() => onChange(a.id)}
             className={cn(
-              'flex shrink-0 items-center gap-2 rounded-full border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-35',
+              'flex shrink-0 items-center gap-2 rounded-lg border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-35',
               active ? 'font-semibold' : 'bg-background'
             )}
             style={active ? { background: tintBg(a.color, 14), borderColor: a.color } : undefined}
@@ -70,7 +70,7 @@ function AmountField({
   return (
     <div className="flex flex-col gap-2">
       <Label>{label}</Label>
-      <InputGroup className="h-12 rounded-xl">
+      <InputGroup className="h-12 rounded-lg">
         <InputGroupAddon>
           <InputGroupText className="text-base">{currencySymbol(currency)}</InputGroupText>
         </InputGroupAddon>
@@ -161,7 +161,7 @@ export function TransferSheet({ open, onClose }: { open: boolean; onClose(): voi
       onClose={onClose}
       title={t('accounts.transfer')}
       footer={
-        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!valid || submitting} onClick={() => void submit()}>
+        <Button size="lg" className="h-12 w-full rounded-lg text-base" disabled={!valid || submitting} onClick={() => void submit()}>
           {submitting ? t('common.working') : t('accounts.transfer')}
         </Button>
       }
@@ -203,7 +203,7 @@ export function TransferSheet({ open, onClose }: { open: boolean; onClose(): voi
           onChange={(e) => setNote(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void submit()}
           placeholder={t('accounts.notePlaceholder')}
-          className="h-11 rounded-full px-4 text-base sm:text-sm"
+          className="h-11 text-base sm:text-sm"
         />
         {error && (
           <p role="alert" className="text-sm text-destructive">

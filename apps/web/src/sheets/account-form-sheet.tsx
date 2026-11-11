@@ -30,7 +30,7 @@ export function CurrencySelect({
     <SelectField
       size="lg"
       aria-label={label}
-      className="w-full rounded-xl"
+      className="w-full rounded-lg"
       value={value}
       onChange={onChange}
       options={CURRENCIES.map((c) => ({ value: c.code, label: `${c.code} · ${c.name} (${currencySymbol(c.code)})` }))}
@@ -91,13 +91,13 @@ export function AccountFormSheet({ open, account, onClose }: { open: boolean; ac
       onClose={onClose}
       title={account ? t('accounts.editTitle') : t('accounts.addAccount')}
       footer={
-        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!valid} onClick={() => void submit()}>
+        <Button size="lg" className="h-12 w-full rounded-lg text-base" disabled={!valid} onClick={() => void submit()}>
           {submitting ? t('common.saving') : account ? t('common.save') : t('accounts.add')}
         </Button>
       }
     >
       <div className="flex flex-col gap-5">
-        <div className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+        <div className="flex items-center gap-3 rounded-lg bg-muted/60 p-3">
           <span
             className="flex size-11 shrink-0 items-center justify-center rounded-[30%] text-base font-semibold text-white"
             style={{ background: color }}
@@ -111,7 +111,7 @@ export function AccountFormSheet({ open, account, onClose }: { open: boolean; ac
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void submit()}
             placeholder={t('accounts.namePlaceholder')}
-            className="h-11 flex-1 rounded-xl bg-background text-base"
+            className="h-11 flex-1 rounded-lg bg-background text-base"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -122,7 +122,7 @@ export function AccountFormSheet({ open, account, onClose }: { open: boolean; ac
           <Label>{t('categories.color')}</Label>
           <ColorPicker value={color} onChange={setColor} />
         </div>
-        <Label className="flex items-center justify-between gap-3 rounded-xl border p-3">
+        <Label className="flex items-center justify-between gap-3 rounded-lg border p-3">
           <span>{t('accounts.includeInTotal')}</span>
           <Switch checked={includeInTotal} onCheckedChange={setIncludeInTotal} />
         </Label>
@@ -224,7 +224,7 @@ function AccountSharing({ account, onLeft }: { account: Account; onLeft(): void 
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  className="rounded-full text-muted-foreground"
+                  className="rounded-lg text-muted-foreground"
                   aria-label={label}
                   title={label}
                   onClick={() => void remove(m)}
@@ -244,9 +244,9 @@ function AccountSharing({ account, onLeft }: { account: Account; onLeft(): void 
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void invite()}
           placeholder={t('groups.invitePlaceholder')}
-          className="h-10 rounded-xl text-base sm:text-sm"
+          className="h-10 rounded-lg text-base sm:text-sm"
         />
-        <Button className="h-10 rounded-xl" disabled={inviting || !email.trim()} onClick={() => void invite()}>
+        <Button className="h-10 rounded-lg" disabled={inviting || !email.trim()} onClick={() => void invite()}>
           {inviting ? t('groups.inviting') : t('groups.invite')}
         </Button>
       </div>

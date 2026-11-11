@@ -13,7 +13,7 @@ export interface FullScreenProps {
   top?: ReactNode
   /** The form fields. This part scrolls when the screen is short. */
   fields: ReactNode
-  /** Under the fields, down to the footer (the amount and the number pad). */
+  /** Under the fields, down to the footer: the amount (in the middle of the free height) and the number pad. */
   children: ReactNode
   /** Flush on the bottom edge (the save bar). */
   footer: ReactNode
@@ -50,22 +50,23 @@ export function FullScreen({ open, onClose, title, top, fields, children, footer
           aria-describedby={undefined}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
-          className="fixed inset-0 z-50 mx-auto flex max-w-md flex-col overflow-hidden bg-popover pt-safe text-popover-foreground outline-none duration-200 data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom sm:inset-y-4 sm:rounded-[28px] sm:border sm:shadow-2xl"
+          className="fixed inset-0 z-50 mx-auto flex max-w-md flex-col overflow-hidden bg-popover pt-safe text-popover-foreground outline-none duration-200 data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom sm:inset-y-4 sm:rounded-lg sm:border sm:shadow-2xl"
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
-          <div className="flex shrink-0 items-center gap-2 px-5 pt-3 pb-1">
+          <div className="flex shrink-0 items-center gap-2 px-5 pt-3">
             <Dialog.Close
               aria-label={t('common.back')}
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform active:scale-90"
+              className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-transform active:scale-90"
             >
               <ChevronLeftIcon className="size-5" />
             </Dialog.Close>
             <div className="min-w-0 flex-1">{top}</div>
           </div>
-          <div className="no-scrollbar flex min-h-0 shrink flex-col gap-3 overflow-y-auto overscroll-contain px-5 pt-2 pb-1 *:shrink-0">
+          {/* The gaps grow with the screen height: about 11px on a small phone, up to 24px on a tall one. */}
+          <div className="no-scrollbar flex min-h-0 shrink flex-col gap-[clamp(0.5rem,calc(4svh-1rem),1.5rem)] overflow-y-auto overscroll-contain px-5 pt-[clamp(0.5rem,calc(4svh-1rem),1.5rem)] pb-1 *:shrink-0">
             {fields}
           </div>
-          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+          <div className="flex flex-1 flex-col">{children}</div>
           <div className="shrink-0">{footer}</div>
         </Dialog.Content>
       </Dialog.Portal>
@@ -81,17 +82,13 @@ export function FullScreenSave({
   label,
   disabled,
   onClick,
-  leading,
 }: {
   label: string
   disabled: boolean
   onClick(): void
-  /** Left of the bar (the delete button when editing). */
-  leading?: ReactNode
 }) {
   return (
     <div className="flex items-stretch border-t">
-      {leading && <div className="flex items-center px-3">{leading}</div>}
       <button
         type="button"
         disabled={disabled}

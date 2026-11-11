@@ -74,10 +74,10 @@ function MfaForm() {
         }}
         onComplete={(value) => void send(value)}
       />
-      <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy || code.length !== CODE_LENGTH}>
+      <Button type="submit" size="lg" className="h-12 rounded-lg text-base" disabled={busy || code.length !== CODE_LENGTH}>
         {busy ? t('common.working') : t('app.mfaVerify')}
       </Button>
-      <Button type="button" size="lg" variant="ghost" className="h-12 rounded-xl text-base" onClick={() => void logout()}>
+      <Button type="button" size="lg" variant="ghost" className="h-12 rounded-lg text-base" onClick={() => void logout()}>
         {t('common.back')}
       </Button>
     </form>
@@ -125,7 +125,7 @@ export function LoginScreen() {
       />
       <div className="relative mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-10">
         <div className="flex flex-col gap-5">
-          <img src="/icon.svg" alt="" className="size-14 rounded-2xl shadow-sm" />
+          <img src="/icon.svg" alt="" className="size-14 rounded-lg shadow-sm" />
           <div className="flex flex-col gap-2">
             <h1 className="text-4xl font-semibold tracking-tight">Monthly Expense</h1>
             <p className="text-lg text-muted-foreground">{t('app.tagline')}</p>
@@ -143,7 +143,7 @@ export function LoginScreen() {
                   autoComplete="email"
                   aria-label={t('app.email')}
                   placeholder={t('app.email')}
-                  className="h-12 rounded-xl px-4"
+                  className="h-12 rounded-lg px-4"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -154,11 +154,11 @@ export function LoginScreen() {
                   autoComplete={creating ? 'new-password' : 'current-password'}
                   aria-label={t('app.password')}
                   placeholder={t('app.password')}
-                  className="h-12 rounded-xl px-4"
+                  className="h-12 rounded-lg px-4"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                <Button type="submit" size="lg" className="h-12 rounded-xl text-base" disabled={busy}>
+                <Button type="submit" size="lg" className="h-12 rounded-lg text-base" disabled={busy}>
                   {t(creating ? 'app.createAccount' : 'app.signInEmail')}
                 </Button>
                 <div className="flex justify-between text-sm text-muted-foreground">
@@ -182,12 +182,12 @@ export function LoginScreen() {
                 {t('app.or')}
                 <span className="h-px flex-1 bg-border" />
               </div>
-              <Button size="lg" variant="outline" className="h-12 rounded-xl text-base" onClick={() => void login()}>
+              <Button size="lg" variant="outline" className="h-12 rounded-lg text-base" onClick={() => void login()}>
                 <GoogleMark />
                 {t('app.signIn')}
               </Button>
               {passkeySupported && (
-                <Button size="lg" variant="ghost" className="h-12 rounded-xl text-base" onClick={() => void loginWithPasskey()}>
+                <Button size="lg" variant="ghost" className="h-12 rounded-lg text-base" onClick={() => void loginWithPasskey()}>
                   <KeyRoundIcon />
                   {t('app.signInPasskey')}
                 </Button>

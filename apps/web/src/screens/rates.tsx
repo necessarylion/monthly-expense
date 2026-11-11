@@ -70,7 +70,7 @@ function Converter({ code, base, table, onBack }: { code: string; base: string; 
   return (
     <>
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="-ml-2 rounded-full" aria-label={t('common.back')} onClick={onBack}>
+        <Button variant="ghost" size="icon" className="-ml-2 rounded-lg" aria-label={t('common.back')} onClick={onBack}>
           <ChevronLeftIcon />
         </Button>
         <h2 className="text-lg font-semibold">
@@ -90,7 +90,7 @@ function Converter({ code, base, table, onBack }: { code: string; base: string; 
                 </div>
               )}
               <Label>{nameOf(row.c)}</Label>
-              <InputGroup className="h-14 rounded-xl">
+              <InputGroup className="h-14 rounded-lg">
                 <InputGroupAddon>
                   <InputGroupText className="text-base">
                     {row.c === 'GLD' ? <GoldBar className="size-5" /> : currencySymbol(row.c)}
@@ -168,7 +168,7 @@ export function RatesScreen() {
     <Page className="gap-3">
       <div className="flex items-center justify-between gap-3 px-1">
         <span className="text-sm text-muted-foreground">{t('rates.perUnit')}</span>
-        <SelectField size="sm" aria-label={t('settings.currency')} className="rounded-full" value={base} onChange={setBase} options={CURRENCIES.map((c) => ({ value: c.code, label: c.code, hint: c.name }))} />
+        <SelectField size="sm" aria-label={t('settings.currency')} className="rounded-lg" value={base} onChange={setBase} options={CURRENCIES.map((c) => ({ value: c.code, label: c.code, hint: c.name }))} />
       </div>
 
       {failed ? (
@@ -176,7 +176,7 @@ export function RatesScreen() {
       ) : !table ? (
         <div className="flex flex-col gap-2">
           {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-16 rounded-2xl" />
+            <Skeleton key={i} className="h-16 rounded-lg" />
           ))}
         </div>
       ) : (
@@ -185,7 +185,7 @@ export function RatesScreen() {
             <button
               type="button"
               onClick={() => setConverting('GLD')}
-              className="flex flex-col gap-3 rounded-2xl border bg-gradient-to-br from-amber-500/15 to-amber-500/0 p-4 text-left transition-colors hover:bg-amber-500/10"
+              className="flex flex-col gap-3 rounded-lg border bg-gradient-to-br from-amber-500/15 to-amber-500/0 p-4 text-left transition-colors hover:bg-amber-500/10"
             >
               <div className="flex items-center gap-3">
                 <CurrencyBadge code="GLD" />
@@ -194,13 +194,13 @@ export function RatesScreen() {
               </div>
               {gold && thb && (
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <span className="rounded-xl bg-background/70 px-3 py-2">
+                  <span className="rounded-lg bg-background/70 px-3 py-2">
                     <span className="block text-xs text-muted-foreground">{t('rates.buy')}</span>
                     <span className="num font-semibold">
                       {currencySymbol(base)} {fmtAmount(gold.buyOrnament / thb)}
                     </span>
                   </span>
-                  <span className="rounded-xl bg-background/70 px-3 py-2">
+                  <span className="rounded-lg bg-background/70 px-3 py-2">
                     <span className="block text-xs text-muted-foreground">{t('rates.sell')}</span>
                     <span className="num font-semibold">
                       {currencySymbol(base)} {fmtAmount(gold.sellOrnament / thb)}
@@ -210,7 +210,7 @@ export function RatesScreen() {
               )}
             </button>
           )}
-          <ul className="overflow-hidden rounded-2xl border bg-card">
+          <ul className="overflow-hidden rounded-lg border bg-card">
             {rows.map((c) => (
               <li key={c.code} className="border-b last:border-b-0">
                 <button

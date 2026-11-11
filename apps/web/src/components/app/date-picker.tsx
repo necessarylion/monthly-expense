@@ -22,7 +22,7 @@ function yesterdayIso(): string {
 }
 
 const SEGMENT =
-  'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors'
+  'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors'
 
 /** Today | Yesterday | a calendar for any other past day. Future days are blocked. */
 export function DatePicker({ value, onChange }: { value: string; onChange(v: string): void }) {
@@ -41,7 +41,7 @@ export function DatePicker({ value, onChange }: { value: string; onChange(v: str
   }
 
   return (
-    <div role="group" aria-label={t('expenseModal.date')} className="flex gap-1 rounded-full bg-muted p-1" data-vaul-no-drag="">
+    <div role="group" aria-label={t('expenseModal.date')} className="flex gap-1 rounded-lg bg-muted p-1" data-vaul-no-drag="">
       <button type="button" className={segment(value === today)} onClick={() => onChange(today)}>
         {t('expenseModal.today')}
       </button>
@@ -95,7 +95,7 @@ function CalendarDialog({
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-[2px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed top-1/2 left-1/2 z-[60] -translate-x-1/2 -translate-y-1/2 rounded-3xl border bg-popover p-3 text-popover-foreground shadow-2xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+          className="fixed top-1/2 left-1/2 z-[60] -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-popover p-3 text-popover-foreground shadow-2xl outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
         >
           <Dialog.Title className="sr-only">{t('expenseModal.pickDate')}</Dialog.Title>
           <Calendar
@@ -137,7 +137,7 @@ export function DateField({
         type="button"
         aria-label={ariaLabel}
         onClick={() => setOpen(true)}
-        className="flex h-11 w-full items-center gap-2 rounded-xl border bg-transparent px-3 text-left text-base transition-colors hover:bg-muted sm:text-sm dark:bg-input/30"
+        className="flex h-11 w-full items-center gap-2 rounded-lg border bg-transparent px-3 text-left text-base transition-colors hover:bg-muted sm:text-sm dark:bg-input/30"
       >
         <CalendarDaysIcon className="size-4 shrink-0 text-muted-foreground" />
         <span className="truncate tabular-nums">{label}</span>

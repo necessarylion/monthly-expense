@@ -39,7 +39,7 @@ const SIZES = {
     radius: 12,
   },
   lg: {
-    box: "size-14 rounded-2xl",
+    box: "size-14 rounded-lg",
     text: "text-xl",
     caret: "h-7",
     gap: "gap-2.5",

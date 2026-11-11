@@ -45,7 +45,7 @@ export function EntryDetailSheet({ entry, onClose }: { entry: AccountEntry | nul
       footer={
         <div className="flex items-center gap-2">
           <DeleteButton onConfirm={remove} className="shrink-0" />
-          <Button size="lg" variant="secondary" className="h-12 flex-1 rounded-2xl text-base" onClick={onClose}>
+          <Button size="lg" variant="secondary" className="h-12 flex-1 rounded-lg text-base" onClick={onClose}>
             {t('common.close')}
           </Button>
         </div>
@@ -76,7 +76,7 @@ export function EntryDetailSheet({ entry, onClose }: { entry: AccountEntry | nul
             {shown.note && <p className="max-w-full text-center text-base break-words text-muted-foreground">{shown.note}</p>}
           </div>
 
-          <dl className="overflow-hidden rounded-2xl bg-muted/60 text-sm">
+          <dl className="overflow-hidden rounded-lg bg-muted/60 text-sm">
             <Row label={t('accounts.entryType')}>{isIn ? t('accounts.money_in') : t('accounts.money_out')}</Row>
             <Row label={t('accounts.account')}>
               {account ? (

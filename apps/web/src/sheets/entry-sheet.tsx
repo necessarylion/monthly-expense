@@ -4,7 +4,7 @@ import { ChipRail } from '@/components/app/chip-rail'
 import { DatePicker } from '@/components/app/date-picker'
 import { NumberPad } from '@/components/app/number-pad'
 import { FullScreen, FullScreenSave } from '@/components/app/full-screen'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { useAmountInput } from '@/hooks/use-amount-input'
 import { errorMessage } from '@/lib/errors'
@@ -140,7 +140,7 @@ export function EntrySheet({
                   aria-pressed={active}
                   onClick={() => chooseAccount(a.id)}
                   className={cn(
-                    'flex items-center gap-2 rounded-full border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-40',
+                    'flex items-center gap-2 rounded-lg border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-40',
                     active ? 'font-semibold' : 'bg-background'
                   )}
                   style={active ? { background: tintBg(a.color, 14), borderColor: a.color } : undefined}
@@ -152,7 +152,7 @@ export function EntrySheet({
             })}
           </ChipRail>
 
-          <div role="group" className="flex shrink-0 gap-1 rounded-full bg-muted p-1">
+          <div role="group" className="flex shrink-0 gap-1 rounded-lg bg-muted p-1">
             {modes.map(({ value, label, Icon }) => (
               <button
                 key={value}
@@ -160,7 +160,7 @@ export function EntrySheet({
                 aria-pressed={mode === value}
                 onClick={() => chooseMode(value)}
                 className={cn(
-                  'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors',
+                  'flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors',
                   mode === value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
                 )}
               >
@@ -170,14 +170,20 @@ export function EntrySheet({
             ))}
           </div>
 
-          <Input
+          <Textarea
             value={note}
             maxLength={500}
             onChange={(e) => setNote(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && void submit()}
+            rows={2}
+            // Enter saves. It does not add a new line.
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return
+              e.preventDefault()
+              void submit()
+            }}
             aria-label={t('expenseModal.note')}
             placeholder={t('expenseModal.notePlaceholder')}
-            className="h-11 shrink-0 rounded-full px-4 text-base sm:text-sm"
+            className="field-sizing-fixed h-16 min-h-0 shrink-0 resize-none text-base sm:text-sm"
           />
         </>
       }
@@ -189,7 +195,7 @@ export function EntrySheet({
         />
       }
     >
-      <div className="flex shrink-0 flex-col items-center pb-2">
+      <div className="my-auto flex shrink-0 flex-col items-center pb-2">
         <AmountDisplay
           symbol={currencySymbol(currency)}
           display={input.display}

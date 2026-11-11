@@ -60,7 +60,7 @@ function ActionButton({ icon, label, ...props }: ComponentProps<'button'> & { ic
       type="button"
       {...props}
       // Phone: a round icon over a label. Desktop: a pill button with the icon inline.
-      className="flex flex-1 flex-col items-center gap-1.5 text-xs font-medium transition-opacity active:opacity-60 disabled:opacity-35 lg:h-10 lg:flex-none lg:flex-row lg:gap-2 lg:rounded-full lg:bg-secondary lg:px-4 lg:text-sm lg:transition-colors lg:enabled:hover:bg-secondary/70"
+      className="flex flex-1 flex-col items-center gap-1.5 text-xs font-medium transition-opacity active:opacity-60 disabled:opacity-35 lg:h-10 lg:flex-none lg:flex-row lg:gap-2 lg:rounded-lg lg:bg-secondary lg:px-4 lg:text-sm lg:transition-colors lg:enabled:hover:bg-secondary/70"
     >
       <span className="flex size-13 items-center justify-center rounded-full bg-secondary text-foreground lg:size-auto lg:bg-transparent [&_svg]:size-[22px] lg:[&_svg]:size-4">{icon}</span>
       {label}
@@ -105,7 +105,7 @@ function EntryRow({ entry, currency, account, onOpen }: { entry: AccountEntry; c
 /* ---------- Cards ---------- */
 
 const CARD =
-  'relative flex h-48 w-[86%] shrink-0 snap-center flex-col justify-between overflow-hidden rounded-2xl p-5 lg:w-[360px] lg:cursor-pointer lg:snap-start'
+  'relative flex h-48 w-[86%] shrink-0 snap-center flex-col justify-between overflow-hidden rounded-lg p-5 lg:w-[360px] lg:cursor-pointer lg:snap-start'
 /** Desktop picks by click, not by the middle card, so the picked one gets a ring. */
 const PICKED = 'lg:ring-2 lg:ring-foreground lg:ring-offset-2 lg:ring-offset-background'
 
@@ -130,12 +130,12 @@ function TotalCard({ total, failed, refreshing, onRefresh, count, picked }: {
           <SelectField
             size="sm"
             aria-label={t('settings.currency')}
-            className="rounded-full border-primary-foreground/25 bg-transparent text-primary-foreground dark:bg-transparent [&_svg]:text-primary-foreground/70"
+            className="rounded-lg border-primary-foreground/25 bg-transparent text-primary-foreground dark:bg-transparent [&_svg]:text-primary-foreground/70"
             value={code}
             onChange={setCode}
             options={CURRENCIES.map((c) => ({ value: c.code, label: c.code, hint: c.name }))}
           />
-          <button type="button" aria-label={t('common.refresh')} onClick={onRefresh} className="flex size-7 items-center justify-center rounded-full active:bg-primary-foreground/10">
+          <button type="button" aria-label={t('common.refresh')} onClick={onRefresh} className="flex size-7 items-center justify-center rounded-lg active:bg-primary-foreground/10">
             <RefreshCwIcon className={cn('size-4', refreshing && 'animate-spin')} />
           </button>
         </div>
@@ -173,7 +173,7 @@ function WalletCard({ account, equivalent, sub, history, picked }: {
           <span className="truncate text-base font-semibold">{account.name}</span>
           {account.shared && <UsersIcon className="size-4 shrink-0 opacity-80" aria-label={t('accounts.shared')} />}
         </span>
-        <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">{account.currency}</span>
+        <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs font-semibold">{account.currency}</span>
       </div>
       {history && <Sparkline values={history} className="absolute inset-x-0 bottom-16 h-14 w-full text-white/40" />}
       <div className="relative flex flex-col">
@@ -354,12 +354,12 @@ export function AccountsScreen() {
     <Page className="gap-5 px-0 lg:max-w-6xl lg:gap-6 lg:px-8">
       <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
       {loaded && accounts.length === 0 ? (
-        <div className="mx-4 flex flex-col items-center gap-4 rounded-2xl border border-dashed p-8 text-center lg:mx-0">
+        <div className="mx-4 flex flex-col items-center gap-4 rounded-lg border border-dashed p-8 text-center lg:mx-0">
           <span className="flex size-14 items-center justify-center rounded-full bg-primary/20">
             <WalletIcon className="size-7" />
           </span>
           <p className="text-muted-foreground">{t('accounts.empty')}</p>
-          <button type="button" onClick={() => setSheet({ kind: 'form', account: null })} className="rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground active:opacity-80">
+          <button type="button" onClick={() => setSheet({ kind: 'form', account: null })} className="rounded-lg bg-primary px-5 py-2.5 font-semibold text-primary-foreground active:opacity-80">
             {t('accounts.addAccount')}
           </button>
         </div>
@@ -425,10 +425,10 @@ export function AccountsScreen() {
             )}
             {/* A mouse can't swipe: arrows move the carousel on desktop. */}
             <div className="ml-auto hidden gap-2 lg:flex">
-              <Button variant="secondary" size="icon" className="size-10 rounded-full" aria-label={t('common.back')} onClick={() => scrollCards(-1)}>
+              <Button variant="secondary" size="icon" className="size-10 rounded-lg" aria-label={t('common.back')} onClick={() => scrollCards(-1)}>
                 <ChevronLeftIcon />
               </Button>
-              <Button variant="secondary" size="icon" className="size-10 rounded-full" aria-label={t('common.next')} onClick={() => scrollCards(1)}>
+              <Button variant="secondary" size="icon" className="size-10 rounded-lg" aria-label={t('common.next')} onClick={() => scrollCards(1)}>
                 <ChevronRightIcon />
               </Button>
             </div>
@@ -443,9 +443,9 @@ export function AccountsScreen() {
         <section className="flex min-w-0 flex-col gap-2 px-4 lg:px-0">
           <h2 className="font-display text-lg font-semibold">{selected ? t('accounts.history') : t('accounts.recent')}</h2>
           {list.length === 0 ? (
-            <p className="rounded-2xl bg-muted/60 p-6 text-center text-sm text-muted-foreground">{t('accounts.noEntries')}</p>
+            <p className="rounded-lg bg-muted/60 p-6 text-center text-sm text-muted-foreground">{t('accounts.noEntries')}</p>
           ) : (
-            <ul className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+            <ul className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
               {list.map((e) => (
                 <EntryRow
                   key={e.id}

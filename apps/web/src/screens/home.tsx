@@ -176,7 +176,7 @@ function MonthCalendar({
   }, [locale])
 
   return (
-    <section className="rounded-3xl bg-card p-3 ring-1 ring-border">
+    <section className="rounded-lg bg-card p-3 ring-1 ring-border">
       <div className="grid grid-cols-7 gap-1 pb-1 text-center text-[11px] font-medium text-muted-foreground">
         {weekdays.map((w, i) => (
           <span key={i}>{w}</span>
@@ -201,7 +201,7 @@ function MonthCalendar({
               aria-label={`${day}: ${formatMoneyFromCents(value, currency)}`}
               onClick={() => onSelect(selected ? null : day)}
               className={cn(
-                'relative flex h-12 flex-col items-center justify-center rounded-xl tabular-nums transition-[box-shadow,transform] active:scale-95 disabled:opacity-35',
+                'relative flex h-12 flex-col items-center justify-center rounded-lg tabular-nums transition-[box-shadow,transform] active:scale-95 disabled:opacity-35',
                 selected && 'ring-2 ring-ink ring-offset-2 ring-offset-card'
               )}
               style={{
@@ -328,7 +328,7 @@ function WeekStrip({
           onSelect={(day) => onSelect(day === null ? null : `${calendarMonth}-${String(day).padStart(2, '0')}`)}
           currency={currency}
         />
-        <Button variant="ghost" size="sm" className="self-center rounded-full" onClick={() => setExpanded(false)}>
+        <Button variant="ghost" size="sm" className="self-center rounded-lg" onClick={() => setExpanded(false)}>
           {t('home.showWeek')}
         </Button>
       </div>
@@ -336,7 +336,7 @@ function WeekStrip({
   }
 
   return (
-    <section className="flex items-center gap-1 rounded-3xl bg-card p-2 ring-1 ring-border">
+    <section className="flex items-center gap-1 rounded-lg bg-card p-2 ring-1 ring-border">
       <button type="button" aria-label={t('home.previousWeek')} disabled={!canPrev} onClick={() => move(-1)} className="flex h-16 w-6 items-center justify-center text-muted-foreground disabled:opacity-25">
         <ChevronLeftIcon className="size-4" />
       </button>
@@ -359,7 +359,7 @@ function WeekStrip({
               aria-label={`${formatShortDate(iso)}: ${formatMoneyFromCents(value, currency)}`}
               onClick={() => onSelect(isSelected ? null : iso)}
               className={cn(
-                'flex h-16 flex-col items-center justify-between rounded-2xl py-1.5 transition-colors disabled:opacity-30',
+                'flex h-16 flex-col items-center justify-between rounded-lg py-1.5 transition-colors disabled:opacity-30',
                 isSelected ? 'bg-ink text-ink-foreground' : 'active:bg-muted'
               )}
             >
@@ -459,7 +459,7 @@ function QuickAddChip({ q, category, currency }: { q: QuickAdd; category?: Categ
       onContextMenu={(e) => e.preventDefault()}
       onClick={tap}
       disabled={busy}
-      className="flex shrink-0 items-center gap-2 rounded-2xl bg-card py-2 pr-3.5 pl-2 text-left ring-1 ring-border transition-transform select-none active:scale-95 disabled:opacity-60"
+      className="flex shrink-0 items-center gap-2 rounded-lg bg-card py-2 pr-3.5 pl-2 text-left ring-1 ring-border transition-transform select-none active:scale-95 disabled:opacity-60"
     >
       <CategoryIcon iconKey={category?.iconKey ?? null} color={category?.color ?? null} size={32} />
       <span className="flex flex-col leading-tight">
@@ -556,7 +556,7 @@ function CategoryBar({
                 type="button"
                 aria-pressed={active}
                 onClick={() => onSelect(active ? null : r.id)}
-                className={cn('-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors', active ? 'bg-accent' : 'hover:bg-muted/60')}
+                className={cn('-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors', active ? 'bg-accent' : 'hover:bg-muted/60')}
               >
                 <CategoryIcon iconKey={r.iconKey} color={r.color} size={34} />
                 <span className="flex min-w-0 flex-1 flex-col">
@@ -578,7 +578,7 @@ function CategoryBar({
         })}
       </ul>
       {rows.length > 4 && (
-        <Button variant="ghost" size="sm" className="self-start rounded-full" onClick={() => setShowAll(!showAll)}>
+        <Button variant="ghost" size="sm" className="self-start rounded-lg" onClick={() => setShowAll(!showAll)}>
           {showAll ? t('home.showLess') : t('home.showAll', { n: rows.length })}
         </Button>
       )}
@@ -622,14 +622,14 @@ function ExpenseList({
         <h2 className="font-display text-lg font-semibold">{t('transactions.title')}</h2>
         {filters}
       </div>
-      {groups.length === 0 && <p className="rounded-2xl bg-muted/60 p-6 text-center text-sm text-muted-foreground">{t('home.nothingHere')}</p>}
+      {groups.length === 0 && <p className="rounded-lg bg-muted/60 p-6 text-center text-sm text-muted-foreground">{t('home.nothingHere')}</p>}
       {groups.map((g) => (
         <div key={g.date} className="flex flex-col">
           <div className="flex items-baseline justify-between px-1 pt-2 pb-1 text-sm text-muted-foreground">
             <span className="font-medium">{formatShortDate(g.date)}</span>
             <span className="tabular-nums">{formatMoneyFromCents(g.total, currency)}</span>
           </div>
-          <ul className="flex flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+          <ul className="flex flex-col overflow-hidden rounded-lg bg-card ring-1 ring-border">
             {g.items.map((e) => {
               const category = e.categoryId === null ? undefined : categoryById.get(e.categoryId)
               return (
@@ -658,7 +658,7 @@ function ExpenseList({
 
 function FilterChip({ label, onClear }: { label: string; onClear(): void }) {
   return (
-    <button type="button" onClick={onClear} className="flex items-center gap-1 rounded-full bg-ink py-1 pr-2 pl-3 text-xs font-medium text-ink-foreground">
+    <button type="button" onClick={onClear} className="flex items-center gap-1 rounded-md bg-ink py-1 pr-2 pl-3 text-xs font-medium text-ink-foreground">
       {label}
       <XIcon className="size-3.5" />
     </button>

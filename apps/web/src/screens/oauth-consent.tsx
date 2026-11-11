@@ -85,7 +85,7 @@ export function OAuthConsentScreen() {
     <main className="flex min-h-dvh flex-col bg-background px-6 pt-safe pb-safe">
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6">
         <div className="flex flex-col items-center gap-3 text-center">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <span className="flex size-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <ShieldCheckIcon className="size-7" />
           </span>
           <h1 className="text-xl font-semibold">
@@ -94,7 +94,7 @@ export function OAuthConsentScreen() {
           {user && <p className="text-sm text-muted-foreground">{t('oauth.signedInAs', { email: user.email })}</p>}
         </div>
 
-        {error && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+        {error && <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
 
         {client && !error && (
           <>
@@ -103,16 +103,16 @@ export function OAuthConsentScreen() {
               <li>{t('oauth.canWrite')}</li>
               <li className="text-muted-foreground">{t('oauth.revokeNote')}</li>
             </ul>
-            <div className="rounded-xl border p-3 text-sm">
+            <div className="rounded-lg border p-3 text-sm">
               <p className="text-muted-foreground">{t('oauth.returnsTo')}</p>
               <p className="font-mono font-medium break-all">{client.redirectHost}</p>
             </div>
             {client.full && <p className="text-sm text-destructive">{t('oauth.full')}</p>}
             <div className="flex gap-2">
-              <Button variant="outline" className="h-12 flex-1 rounded-2xl" disabled={busy} onClick={() => void answer(false)}>
+              <Button variant="outline" className="h-12 flex-1 rounded-lg" disabled={busy} onClick={() => void answer(false)}>
                 {t('oauth.deny')}
               </Button>
-              <Button className="h-12 flex-1 rounded-2xl" disabled={busy || client.full} onClick={() => void answer(true)}>
+              <Button className="h-12 flex-1 rounded-lg" disabled={busy || client.full} onClick={() => void answer(true)}>
                 {t('oauth.allow')}
               </Button>
             </div>

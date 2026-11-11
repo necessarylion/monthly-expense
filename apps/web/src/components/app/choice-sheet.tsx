@@ -46,7 +46,7 @@ export function ChoiceSheet({ open, onClose, title, items, value, onSelect }: Ch
                 aria-current={selected || undefined}
                 onClick={() => choose(item.value)}
                 className={cn(
-                  'flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-[15px] transition-colors active:bg-muted hover:bg-muted/60 [&_svg]:size-5 [&_svg]:shrink-0',
+                  'flex min-h-12 w-full items-center gap-3 rounded-lg px-3 text-left text-[15px] transition-colors active:bg-muted hover:bg-muted/60 [&_svg]:size-5 [&_svg]:shrink-0',
                   item.destructive && 'text-destructive',
                   selected && 'font-semibold'
                 )}

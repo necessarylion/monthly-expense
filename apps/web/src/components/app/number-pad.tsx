@@ -10,7 +10,7 @@ export interface NumberPadProps {
   onKey(key: string): void
   onEnter?(): void
   onEscape?(): void
-  /** A flat grid with thin lines that fills the height it gets (the full screen forms). */
+  /** A flat grid with thin lines and a fixed height (the full screen forms). */
   flat?: boolean
   className?: string
 }
@@ -55,7 +55,9 @@ export function NumberPad({ onKey, onEnter, onEscape, flat, className }: NumberP
       className={cn(
         'grid grid-cols-3',
         // The 1px gaps show the border color behind the keys: those are the lines.
-        flat ? 'min-h-48 flex-1 grid-rows-4 gap-px border-t bg-border' : 'gap-2',
+        // A fixed height (svh does not change when the browser bar or the keyboard moves),
+        // so the pad never grows, shrinks or moves when the fields above it change.
+        flat ? 'h-[clamp(15rem,40svh,23rem)] shrink-0 grid-rows-4 gap-px border-t bg-border' : 'gap-2',
         className
       )}
       data-vaul-no-drag=""
@@ -74,7 +76,7 @@ export function NumberPad({ onKey, onEnter, onEscape, flat, className }: NumberP
                 ? 'bg-popover transition-colors duration-75 active:bg-muted'
                 : [
                     // A solid key (no shadow) that darkens and shrinks a little when pressed.
-                    'h-[clamp(2.5rem,6.2dvh,3.25rem)] rounded-2xl',
+                    'h-[clamp(2.5rem,6.2dvh,3.25rem)] rounded-lg',
                     'bg-secondary transition-[transform,background-color] duration-75',
                     'hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_6%)]',
                     'active:scale-95 active:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_12%)]',

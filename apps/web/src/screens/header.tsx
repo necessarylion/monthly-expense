@@ -35,7 +35,7 @@ function GroupSwitcher() {
         type="button"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
-        className="flex min-w-0 items-center gap-2 rounded-full py-1 pr-2.5 pl-1 transition-colors hover:bg-muted"
+        className="flex min-w-0 items-center gap-2 rounded-lg py-1 pr-2.5 pl-1 transition-colors hover:bg-muted"
       >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
           {(active?.name ?? '?').slice(0, 1).toUpperCase()}
@@ -59,12 +59,12 @@ function MonthSwitcher() {
   const month = useExpenses((s) => s.month)
   const loadMonth = useExpenses((s) => s.loadMonth)
   return (
-    <div className="flex shrink-0 items-center rounded-full border bg-background">
-      <Button variant="ghost" size="icon" className="rounded-full" aria-label="Previous month" onClick={() => void loadMonth(shiftMonth(month, -1))}>
+    <div className="flex shrink-0 items-center rounded-lg border bg-background">
+      <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Previous month" onClick={() => void loadMonth(shiftMonth(month, -1))}>
         <ChevronLeftIcon />
       </Button>
       <span className="min-w-[4.75rem] text-center text-sm font-semibold tabular-nums">{monthLabel(month)}</span>
-      <Button variant="ghost" size="icon" className="rounded-full" aria-label="Next month" onClick={() => void loadMonth(shiftMonth(month, 1))}>
+      <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Next month" onClick={() => void loadMonth(shiftMonth(month, 1))}>
         <ChevronRightIcon />
       </Button>
     </div>
@@ -97,7 +97,7 @@ export function Header() {
           </>
         ) : subPage ? (
           <div className="flex min-w-0 items-center gap-1">
-            <Button variant="ghost" size="icon-lg" className="-ml-2 rounded-full" aria-label={t('common.back')} onClick={() => setSettingsPage('root')}>
+            <Button variant="ghost" size="icon-lg" className="-ml-2 rounded-lg" aria-label={t('common.back')} onClick={() => setSettingsPage('root')}>
               <ChevronLeftIcon className="size-6" />
             </Button>
             <h1 className="truncate font-display text-xl font-semibold">{t(trip && subPage === 'budget' ? 'reports.tripBudget' : SETTINGS_TITLES[subPage])}</h1>

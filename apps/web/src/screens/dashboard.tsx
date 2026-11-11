@@ -131,7 +131,7 @@ function Sidebar() {
         <img src="/icon.svg" alt="" className="size-8 rounded-lg" />
         <span className="font-display text-lg font-bold tracking-tight">Monthly Expense</span>
       </div>
-      <Button className="mb-4 h-11 rounded-xl text-sm" onClick={() => openExpense(null)}>
+      <Button className="mb-4 h-11 rounded-lg text-sm" onClick={() => openExpense(null)}>
         <PlusIcon />
         {t('expenseModal.titleNew')}
       </Button>
@@ -145,7 +145,7 @@ function Sidebar() {
             aria-current={active ? 'page' : undefined}
             onClick={() => setTab(item)}
             className={cn(
-              'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
               active ? 'bg-primary/15 text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >

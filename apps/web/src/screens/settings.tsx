@@ -166,7 +166,7 @@ function GroupNameField() {
           <Button
             variant="outline"
             size="sm"
-            className="rounded-full"
+            className="rounded-lg"
             onClick={() => {
               setValue(active.name)
               setError(null)
@@ -192,12 +192,12 @@ function GroupNameField() {
             if (e.key === 'Enter') void save()
             if (e.key === 'Escape') setEditing(false)
           }}
-          className="h-10 rounded-xl text-base"
+          className="h-10 rounded-lg text-base"
         />
-        <Button variant="ghost" size="icon-lg" className="rounded-xl" aria-label={t('common.cancel')} onClick={() => setEditing(false)}>
+        <Button variant="ghost" size="icon-lg" className="rounded-lg" aria-label={t('common.cancel')} onClick={() => setEditing(false)}>
           <XIcon />
         </Button>
-        <Button size="icon-lg" className="rounded-xl" aria-label={t('common.save')} disabled={saving || !value.trim()} onClick={() => void save()}>
+        <Button size="icon-lg" className="rounded-lg" aria-label={t('common.save')} disabled={saving || !value.trim()} onClick={() => void save()}>
           <CheckIcon />
         </Button>
       </div>
@@ -236,7 +236,7 @@ function CurrencyField() {
     <Section title={t('settings.currency')} description={t('settings.currencyNote')}>
       <CurrencySelect value={draft} onChange={setDraft} label={t('settings.currency')} />
       <ErrorText>{error}</ErrorText>
-      <Button className="self-end rounded-xl" disabled={saving || !active || draft === active.currency} onClick={() => void save()}>
+      <Button className="self-end rounded-lg" disabled={saving || !active || draft === active.currency} onClick={() => void save()}>
         {saving ? t('common.saving') : t('settings.saveCurrency')}
       </Button>
     </Section>
@@ -289,7 +289,7 @@ function BudgetField() {
       title={trip ? t('reports.tripBudget') : t('settings.budgetFor', { month: monthLabel(month) })}
       description={trip ? t('reports.tripBudgetNote') : t('settings.budgetNote')}
     >
-      <InputGroup className="h-11 rounded-xl">
+      <InputGroup className="h-11 rounded-lg">
         <InputGroupAddon>
           <InputGroupText>{currencySymbol(active?.currency ?? 'USD')}</InputGroupText>
         </InputGroupAddon>
@@ -303,7 +303,7 @@ function BudgetField() {
         />
       </InputGroup>
       <ErrorText>{error}</ErrorText>
-      <Button className="self-end rounded-xl" disabled={saving || !changed} onClick={() => void save()}>
+      <Button className="self-end rounded-lg" disabled={saving || !changed} onClick={() => void save()}>
         {saving ? t('common.saving') : t('settings.saveBudget')}
       </Button>
     </Section>
@@ -343,7 +343,7 @@ function CategoryBudgetRow({ category, currency }: { category: Category; currenc
       <div className="flex items-center gap-3">
         <CategoryIcon iconKey={category.iconKey} color={category.color} size={32} />
         <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{category.name}</span>
-        <InputGroup className="h-10 w-36 rounded-xl">
+        <InputGroup className="h-10 w-36 rounded-lg">
           <InputGroupAddon>
             <InputGroupText>{currencySymbol(currency)}</InputGroupText>
           </InputGroupAddon>
@@ -390,7 +390,7 @@ function DefaultAccountField() {
     <Section title={t('accounts.defaultForExpenses')} description={t('accounts.defaultForExpensesNote')}>
       <SelectField
         size="lg"
-        className="w-full rounded-xl"
+        className="w-full rounded-lg"
         aria-label={t('accounts.defaultForExpenses')}
         value={defaultAccountId === null ? 'none' : String(defaultAccountId)}
         onChange={(v) => void useAccounts.getState().setDefaultAccount(v === 'none' ? null : Number(v)).catch(() => {})}
@@ -448,7 +448,7 @@ function Members() {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="rounded-full text-muted-foreground"
+                className="rounded-lg text-muted-foreground"
                 aria-label={m.pending ? t('groups.cancelInvite') : t('groups.remove')}
                 title={m.pending ? t('groups.cancelInvite') : t('groups.remove')}
                 onClick={() => void useGroups.getState().removeMember(active.id, m.id).catch(() => {})}
@@ -468,9 +468,9 @@ function Members() {
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void invite()}
           placeholder={t('groups.invitePlaceholder')}
-          className="h-10 rounded-xl text-base sm:text-sm"
+          className="h-10 rounded-lg text-base sm:text-sm"
         />
-        <Button className="h-10 rounded-xl" disabled={inviting || !email.trim()} onClick={() => void invite()}>
+        <Button className="h-10 rounded-lg" disabled={inviting || !email.trim()} onClick={() => void invite()}>
           {inviting ? t('groups.inviting') : t('groups.invite')}
         </Button>
       </div>
@@ -485,7 +485,7 @@ function GroupKindSelect({ value, onChange }: { value: GroupKind; onChange(kind:
   return (
     <SelectField
       size="lg"
-      className="w-full rounded-xl"
+      className="w-full rounded-lg"
       aria-label={t('reports.groupKind')}
       value={value}
       onChange={(v) => onChange(v as GroupKind)}
@@ -515,7 +515,7 @@ function TripDatesInputs({ start, days, onStart, onDays }: { start: string; days
           inputMode="numeric"
           value={days}
           onChange={(e) => onDays(e.target.value)}
-          className="h-11 rounded-xl text-center text-base sm:text-sm"
+          className="h-11 rounded-lg text-center text-base sm:text-sm"
         />
       </label>
     </div>
@@ -564,7 +564,7 @@ function TripDatesField() {
       <p className="text-sm text-muted-foreground">{t('reports.tripDaysNote')}</p>
       <TripDatesInputs start={start} days={days} onStart={setStart} onDays={setDays} />
       <ErrorText>{error}</ErrorText>
-      <Button className="self-end rounded-xl" disabled={saving || n === null || !start || !changed} onClick={() => void save()}>
+      <Button className="self-end rounded-lg" disabled={saving || n === null || !start || !changed} onClick={() => void save()}>
         {saving ? t('common.saving') : t('reports.saveTripDates')}
       </Button>
     </>
@@ -666,7 +666,7 @@ function GroupKindToggle({ value, onChange }: { value: GroupKind; onChange(kind:
             aria-checked={on}
             onClick={() => onChange(v)}
             className={cn(
-              'flex flex-col items-start gap-2 rounded-2xl border p-3 text-left transition-colors',
+              'flex flex-col items-start gap-2 rounded-lg border p-3 text-left transition-colors',
               on ? 'border-primary bg-primary/10' : 'bg-background active:bg-muted'
             )}
           >
@@ -738,7 +738,7 @@ function NewGroupSheet({ open, onClose }: { open: boolean; onClose(): void }) {
       title={t('groups.titleCreate')}
       centerOnDesktop
       footer={
-        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!valid || busy} onClick={() => void create()}>
+        <Button size="lg" className="h-12 w-full rounded-lg text-base" disabled={!valid || busy} onClick={() => void create()}>
           {busy ? t('groups.creating') : t('groups.create')}
         </Button>
       }
@@ -756,7 +756,7 @@ function NewGroupSheet({ open, onClose }: { open: boolean; onClose(): void }) {
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void create()}
             placeholder={t('groups.namePlaceholder')}
-            className="h-12 rounded-2xl px-4 text-base"
+            className="h-12 rounded-lg px-4 text-base"
           />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -810,7 +810,7 @@ function RenameGroupSheet({ group, onClose }: { group: Group | null; onClose(): 
       title={t('groups.renameTitle')}
       centerOnDesktop
       footer={
-        <Button size="lg" className="h-12 w-full rounded-2xl text-base" disabled={!value.trim() || busy} onClick={() => void save()}>
+        <Button size="lg" className="h-12 w-full rounded-lg text-base" disabled={!value.trim() || busy} onClick={() => void save()}>
           {busy ? t('common.saving') : t('common.save')}
         </Button>
       }
@@ -823,7 +823,7 @@ function RenameGroupSheet({ group, onClose }: { group: Group | null; onClose(): 
           autoComplete="off"
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void save()}
-          className="h-12 rounded-2xl px-4 text-base"
+          className="h-12 rounded-lg px-4 text-base"
         />
         <ErrorText>{error}</ErrorText>
       </div>
@@ -853,7 +853,7 @@ function GroupsList() {
     <>
       <section className="flex flex-col gap-1.5">
         <h2 className="px-3 text-sm font-medium text-muted-foreground">{t('groups.yourGroups')}</h2>
-        <ul className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+        <ul className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
           {groups.map((g) => {
             const isActive = g.id === activeId
             return (
@@ -879,7 +879,7 @@ function GroupsList() {
                     </span>
                   </span>
                   {isActive && (
-                    <span className="flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+                    <span className="flex items-center gap-1 rounded-md bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
                       <CheckIcon className="size-3.5" />
                       {t('groups.active')}
                     </span>
@@ -985,8 +985,8 @@ function Mcp() {
   return (
     <>
       <Section title={t('settings.mcpUrl')} description={t('settings.mcpNote')}>
-        <code className="rounded-xl bg-muted p-3 font-mono text-xs break-all">{url ?? t('common.loading')}</code>
-        <Button className="rounded-xl" disabled={!url} aria-label={t('settings.copyAria')} onClick={() => void copy()}>
+        <code className="rounded-lg bg-muted p-3 font-mono text-xs break-all">{url ?? t('common.loading')}</code>
+        <Button className="rounded-lg" disabled={!url} aria-label={t('settings.copyAria')} onClick={() => void copy()}>
           {copied ? <CheckIcon /> : <CopyIcon />}
           {copied ? t('settings.copied') : t('settings.copyUrl')}
         </Button>
@@ -1012,7 +1012,7 @@ function Mcp() {
           </ul>
         )}
         {clients.length > 1 && (
-          <Button variant="outline" className="rounded-xl" onClick={() => setConfirmAll(true)}>
+          <Button variant="outline" className="rounded-lg" onClick={() => setConfirmAll(true)}>
             <LogOutIcon />
             {t('settings.mcpRemoveAll')}
           </Button>
@@ -1104,7 +1104,7 @@ function Passkeys() {
         </ul>
       )}
       {passkeySupported ? (
-        <Button className="rounded-xl" disabled={adding} onClick={() => void add()}>
+        <Button className="rounded-lg" disabled={adding} onClick={() => void add()}>
           <PlusIcon />
           {adding ? t('common.working') : t('settings.passkeyAdd')}
         </Button>
@@ -1189,7 +1189,7 @@ function TwoFactor() {
         >
           <p className="text-sm text-muted-foreground">{t('settings.twoFactorScan')}</p>
           {/* White box: a scanner needs dark on light, in every theme. */}
-          <div className="self-center rounded-xl bg-white p-3">
+          <div className="self-center rounded-lg bg-white p-3">
             <QRCodeSVG value={setup.uri} size={176} />
           </div>
           <p className="text-sm text-muted-foreground">{t('settings.twoFactorKey')}</p>
@@ -1207,13 +1207,13 @@ function TwoFactor() {
             }}
             onComplete={confirm}
           />
-          <Button type="submit" className="rounded-xl" disabled={busy || code.length !== 6}>
+          <Button type="submit" className="rounded-lg" disabled={busy || code.length !== 6}>
             {busy ? t('common.working') : t('common.confirm')}
           </Button>
           <Button
             type="button"
             variant="ghost"
-            className="rounded-xl"
+            className="rounded-lg"
             onClick={() => {
               setSetup(null)
               setCode('')
@@ -1224,7 +1224,7 @@ function TwoFactor() {
           </Button>
         </form>
       ) : (
-        <Button className="rounded-xl" disabled={busy} onClick={start}>
+        <Button className="rounded-lg" disabled={busy} onClick={start}>
           <ShieldCheckIcon />
           {busy ? t('common.working') : t('settings.twoFactorTurnOn')}
         </Button>
@@ -1268,7 +1268,7 @@ function RowGroup({ title, children }: { title?: string; children: React.ReactNo
   return (
     <section className="flex flex-col gap-1.5">
       {title && <h2 className="px-3 text-sm font-medium text-muted-foreground">{title}</h2>}
-      <ul className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">{children}</ul>
+      <ul className="overflow-hidden rounded-lg bg-card ring-1 ring-border">{children}</ul>
     </section>
   )
 }
@@ -1291,7 +1291,7 @@ function SettingsRoot() {
 
   return (
     <>
-      <div className="flex items-center gap-4 rounded-2xl bg-card p-4 ring-1 ring-border">
+      <div className="flex items-center gap-4 rounded-lg bg-card p-4 ring-1 ring-border">
         <Avatar className="size-14">
           {user?.photoUrl && <AvatarImage src={user.photoUrl} alt="" referrerPolicy="no-referrer" />}
           <AvatarFallback className="text-lg">{(user?.displayName ?? user?.email ?? '?').slice(0, 1).toUpperCase()}</AvatarFallback>

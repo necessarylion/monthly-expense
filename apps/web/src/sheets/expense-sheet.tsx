@@ -5,8 +5,7 @@ import { CategoryIcon } from '@/components/app/category-icon'
 import { DatePicker } from '@/components/app/date-picker'
 import { NumberPad } from '@/components/app/number-pad'
 import { FullScreen, FullScreenSave } from '@/components/app/full-screen'
-import { DeleteButton } from '@/components/ui/delete-button'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { SelectField } from '@/components/app/select-field'
 import { toast } from '@/components/ui/toast'
 import { useAmountInput } from '@/hooks/use-amount-input'
@@ -37,7 +36,7 @@ export function AmountDisplay({
   sign?: { text: string; className: string }
 }) {
   return (
-    <output aria-live="polite" className="flex h-20 shrink-0 items-center justify-center gap-1.5 overflow-hidden">
+    <output aria-live="polite" className="my-auto flex h-20 shrink-0 items-center justify-center gap-1.5 overflow-hidden">
       {sign && <span className={cn('text-4xl font-semibold', sign.className)}>{sign.text}</span>}
       <span className="text-3xl font-medium text-muted-foreground">{symbol}</span>
       <span
@@ -131,17 +130,6 @@ export function ExpenseSheet() {
     }
   }
 
-  async function remove() {
-    if (!expense) return
-    try {
-      await useExpenses.getState().deleteExpense(expense.id)
-      toast.success(t('toast.expenseDeleted'))
-      close()
-    } catch (e) {
-      setError(errorMessage(e, t('common.delete')))
-    }
-  }
-
   return (
     <FullScreen
       open={open}
@@ -154,7 +142,7 @@ export function ExpenseSheet() {
             <SelectField
               size="lg"
               aria-label={t('expenseModal.payFrom')}
-              className="w-full shrink-0 rounded-full px-3.5"
+              className="w-full shrink-0"
               icon={<WalletIcon className="text-muted-foreground" />}
               value={payFromId === null ? NONE : String(payFromId)}
               onChange={(v) => setPayFromId(v === NONE ? null : Number(v))}
@@ -177,26 +165,32 @@ export function ExpenseSheet() {
                   aria-pressed={active}
                   onClick={() => setCategoryId(c.id)}
                   className={cn(
-                    'flex items-center gap-2 rounded-full border py-1 pr-3.5 pl-1 text-sm transition-colors',
+                    'flex items-center gap-2 rounded-lg border py-1 pr-3.5 pl-1 text-sm transition-colors',
                     active ? 'font-semibold' : 'bg-background'
                   )}
                   style={active ? { background: tintBg(c.color, 14), borderColor: c.color } : undefined}
                 >
-                  <CategoryIcon iconKey={c.iconKey} color={c.color} size={28} className="rounded-full" />
+                  <CategoryIcon iconKey={c.iconKey} color={c.color} size={28} />
                   <span className="max-w-28 truncate">{c.name}</span>
                 </button>
               )
             })}
           </ChipRail>
 
-          <Input
+          <Textarea
             value={note}
             maxLength={500}
             onChange={(e) => setNote(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && void submit()}
+            rows={2}
+            // Enter saves. It does not add a new line.
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return
+              e.preventDefault()
+              void submit()
+            }}
             aria-label={t('expenseModal.note')}
             placeholder={t('expenseModal.notePlaceholder')}
-            className="h-11 shrink-0 rounded-full px-4 text-base sm:text-sm"
+            className="field-sizing-fixed h-16 min-h-0 shrink-0 resize-none text-base sm:text-sm"
           />
         </>
       }
@@ -205,7 +199,6 @@ export function ExpenseSheet() {
           label={submitting ? t('common.saving') : isEdit ? t('expenseModal.saveEdit') : t('expenseModal.saveNew')}
           disabled={!valid || submitting}
           onClick={() => void submit()}
-          leading={isEdit ? <DeleteButton onConfirm={() => void remove()} /> : undefined}
         />
       }
     >

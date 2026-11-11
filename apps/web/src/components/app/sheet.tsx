@@ -62,10 +62,10 @@ export function Sheet({ open, onClose, title, view = 'main', footer, leading, hi
               ? 'inset-y-0 right-0 w-[440px] max-w-full border-y-0 border-r-0 pt-4'
               : centered
                 ? // m-auto + h-fit centers it without a transform (vaul animates the transform).
-                  'inset-0 m-auto h-fit w-full max-w-md rounded-[28px] pt-2'
+                  'inset-0 m-auto h-fit w-full max-w-md rounded-lg pt-2'
                 : docked
-                ? 'inset-x-0 bottom-0 mx-auto max-w-md rounded-t-[28px] border-b-0 pb-safe'
-                : 'inset-x-2 bottom-2 mx-auto max-w-md rounded-[28px] sm:bottom-6',
+                ? 'inset-x-0 bottom-0 mx-auto max-w-md rounded-t-lg border-b-0 pb-safe'
+                : 'inset-x-2 bottom-2 mx-auto max-w-md rounded-lg sm:bottom-6',
             className
           )}
           style={
@@ -98,7 +98,7 @@ export function Sheet({ open, onClose, title, view = 'main', footer, leading, hi
                   <Drawer.Close
                     data-vaul-no-drag=""
                     aria-label={t('common.close')}
-                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-transform active:scale-90"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-transform active:scale-90"
                   >
                     <XIcon className="size-4" />
                   </Drawer.Close>

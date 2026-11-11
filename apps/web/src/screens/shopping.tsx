@@ -38,7 +38,7 @@ function ItemRow({
       <Button
         variant="ghost"
         size="icon"
-        className="shrink-0 rounded-full text-muted-foreground"
+        className="shrink-0 rounded-lg text-muted-foreground"
         aria-label={t('shopping.remove', { name: item.name })}
         onClick={onRemove}
       >
@@ -121,15 +121,15 @@ export function ShoppingScreen() {
           placeholder={t('shopping.addPlaceholder')}
           aria-label={t('shopping.addPlaceholder')}
           enterKeyHint="done"
-          className="h-12 flex-1 rounded-2xl px-4 text-base"
+          className="h-12 flex-1 rounded-lg px-4 text-base"
         />
-        <Button type="submit" size="icon-lg" className="size-12 rounded-2xl" aria-label={t('shopping.add')} disabled={!name.trim() || adding}>
+        <Button type="submit" size="icon-lg" className="size-12 rounded-lg" aria-label={t('shopping.add')} disabled={!name.trim() || adding}>
           <PlusIcon className="size-5" />
         </Button>
       </form>
 
       {loaded && items.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed p-8 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
           <span className="flex size-14 items-center justify-center rounded-full bg-primary/20">
             <ListChecksIcon className="size-7" />
           </span>
@@ -143,7 +143,7 @@ export function ShoppingScreen() {
           <SectionTitle>
             {t('shopping.toBuy')} · {todo.length}
           </SectionTitle>
-          <ul className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+          <ul className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
             {todo.map((item) => (
               <ItemRow
                 key={item.id}
@@ -161,14 +161,14 @@ export function ShoppingScreen() {
         <section className="flex flex-col gap-2">
           <SectionTitle
             action={
-              <Button variant="ghost" size="sm" className="h-7 rounded-full text-muted-foreground" onClick={() => void run(() => useShopping.getState().clearBought())}>
+              <Button variant="ghost" size="sm" className="h-7 rounded-lg text-muted-foreground" onClick={() => void run(() => useShopping.getState().clearBought())}>
                 {t('shopping.clearBought')}
               </Button>
             }
           >
             {t('shopping.bought')} · {bought.length}
           </SectionTitle>
-          <ul className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+          <ul className="overflow-hidden rounded-lg bg-card ring-1 ring-border">
             {bought.map((item) => (
               <ItemRow key={item.id} item={item} onToggle={() => void toggle(item)} onRemove={() => void run(() => useShopping.getState().remove(item.id))} />
             ))}

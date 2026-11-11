@@ -64,7 +64,7 @@ export function ExpenseDetailSheet() {
       footer={
         <div className="flex items-center gap-2">
           <DeleteButton onConfirm={remove} className="shrink-0" />
-          <Button size="lg" className="h-12 flex-1 rounded-2xl text-base" onClick={edit}>
+          <Button size="lg" className="h-12 flex-1 rounded-lg text-base" onClick={edit}>
             <PencilIcon />
             {t('expenseModal.edit')}
           </Button>
@@ -79,7 +79,7 @@ export function ExpenseDetailSheet() {
             {shown.note && <p className="max-w-full text-center text-base break-words text-muted-foreground">{shown.note}</p>}
           </div>
 
-          <dl className="overflow-hidden rounded-2xl bg-muted/60 text-sm">
+          <dl className="overflow-hidden rounded-lg bg-muted/60 text-sm">
             <Row label={t('expenseModal.category')}>
               <span className="flex min-w-0 items-center gap-2">
                 {category && <span className="size-2.5 shrink-0 rounded-full" style={{ background: category.color }} />}
