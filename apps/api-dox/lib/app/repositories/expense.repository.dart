@@ -58,7 +58,10 @@ class ExpenseRepository {
     if (ids.isEmpty) return;
     List<Map<String, dynamic>> owners =
         await QueryBuilder.table('account_entries')
-            .select('account_entries.expense_id, accounts.user_id')
+            .select(
+              'account_entries.expense_id, account_entries.account_id, '
+              'accounts.user_id',
+            )
             .join('accounts', 'accounts.id', 'account_entries.account_id')
             .whereIn('account_entries.expense_id', ids)
             .get();
@@ -78,7 +81,12 @@ class ExpenseRepository {
       for (Map<String, dynamic> row in owners)
         DbRow.toInt(row['expense_id'])!: DbRow.toInt(row['user_id'])!,
     };
+    Map<int, int> accountByExpense = <int, int>{
+      for (Map<String, dynamic> row in owners)
+        DbRow.toInt(row['expense_id'])!: DbRow.toInt(row['account_id'])!,
+    };
     for (Expense e in rows) {
+      e.walletAccountId = accountByExpense[e.id];
       int? owner = byExpense[e.id];
       bool member = owner != null && isMember.contains('${e.groupId}:$owner');
       e.walletOwnerId = member ? owner : null;

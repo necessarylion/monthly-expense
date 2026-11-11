@@ -2065,6 +2065,11 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'maxLength': 500,
           'description': 'New note. Pass null to clear it.',
         },
+        'accountId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Wallet to pay from (see list_wallets). Pass null to remove the wallet entry. Leave it out to keep the wallet.',
+        },
       },
     },
     'CreateRecurring': <String, dynamic>{

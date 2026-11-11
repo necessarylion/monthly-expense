@@ -376,6 +376,90 @@ void main() {
       expect(created.json['data']['paidByUserId'], aliceId);
     });
 
+    test('an edit moves the expense to another wallet, or to none', () async {
+      Future<int> wallet(String name) async {
+        TestResponse res = await app.call(
+          '/api/v1/accounts',
+          method: 'POST',
+          body: <String, dynamic>{
+            'name': name,
+            'currency': 'THB',
+            'color': '#445566',
+          },
+        );
+        return res.json['data']['id'] as int;
+      }
+
+      Future<int> balance(int id) async {
+        TestResponse res = await app.call('/api/v1/accounts');
+        return (res.json['data'] as List<dynamic>).firstWhere(
+              (dynamic a) => a['id'] == id,
+            )['balanceCents']
+            as int;
+      }
+
+      Future<TestResponse> patch(int id, Map<String, dynamic> body) {
+        return app.call(
+          '/api/v1/expenses/$id',
+          method: 'PATCH',
+          group: groupId,
+          body: body,
+        );
+      }
+
+      int first = await wallet('First');
+      int second = await wallet('Second');
+      TestResponse created = await post('/api/v1/expenses', <String, dynamic>{
+        'categoryId': foodId,
+        'amount': 7,
+        'occurredOn': '2024-07-02',
+        'accountId': first,
+      });
+      int id = created.json['data']['id'] as int;
+      expect(created.json['data']['accountId'], first);
+
+      // Another wallet, and a new amount in the same edit.
+      TestResponse moved = await patch(id, <String, dynamic>{
+        'accountId': second,
+        'amount': 9,
+      });
+      expect(moved.json['data']['accountId'], second);
+      expect(await balance(first), 0);
+      expect(await balance(second), -900);
+
+      // No accountId: the wallet stays.
+      TestResponse kept = await patch(id, <String, dynamic>{'amount': 8});
+      expect(kept.json['data']['accountId'], second);
+      expect(await balance(second), -800);
+
+      TestResponse none = await patch(id, <String, dynamic>{'accountId': null});
+      expect(none.json['data']['accountId'], isNull);
+      expect(await balance(second), 0);
+
+      TestResponse back = await patch(id, <String, dynamic>{
+        'accountId': first,
+      });
+      expect(back.json['data']['accountId'], first);
+      expect(await balance(first), -800);
+
+      // A wallet that is not Alice's.
+      await app.call('/api/v1/me', user: 'carol');
+      TestResponse carol = await app.call(
+        '/api/v1/accounts',
+        method: 'POST',
+        user: 'carol',
+        body: <String, dynamic>{
+          'name': 'Private',
+          'currency': 'THB',
+          'color': '#445566',
+        },
+      );
+      (await patch(id, <String, dynamic>{
+        'accountId': carol.json['data']['id'],
+      })).expectStatus(404);
+      expect(await balance(first), -800);
+    });
+
     test('a trip ignores old monthly budgets, so clearing works', () async {
       TestResponse created = await app.call(
         '/api/v1/groups',

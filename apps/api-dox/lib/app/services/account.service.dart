@@ -385,6 +385,38 @@ class AccountService {
     );
   }
 
+  /// Books the expense to another wallet, or to none ([accountId] null).
+  /// The user must be able to use the old wallet and the new one.
+  Future<void> moveExpenseOutflow(
+    User user,
+    Expense expense,
+    int? accountId,
+  ) async {
+    AccountEntry? entry = await entries.findByExpenseId(expense.id!);
+    if (entry?.accountId == accountId) return;
+    if (entry != null) await find(user, entry.accountId);
+    if (accountId == null) {
+      await entries.delete(entry!.id!);
+      return;
+    }
+    Account account = await find(user, accountId);
+    if (entry != null) {
+      await entries.update(entry.id!, <String, dynamic>{
+        'account_id': account.id,
+      });
+      return;
+    }
+    await entries.create(
+      NewEntry(
+        accountId: account.id!,
+        expenseId: expense.id,
+        amountCents: -expense.amountCents,
+        occurredOn: expense.occurredOn,
+        note: expense.note,
+      ),
+    );
+  }
+
   /// Keep the booked entry in step when its expense changes.
   Future<void> syncExpenseOutflow(Expense expense, Category? category) async {
     AccountEntry? entry = await entries.findByExpenseId(expense.id!);

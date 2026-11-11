@@ -314,6 +314,14 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
       _m,
       trim: true,
     );
+    // accountId: Maybe<int?>
+    Object? c6;
+    c6 = s.integer(
+      s.read(input, 'accountId', emptyToNull: true),
+      p,
+      'accountId',
+      _m,
+    );
     if (s.issues.length != e) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
@@ -396,6 +404,19 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
         );
       }
     }
+    if (c6 is int) {
+      if (!(c6 > 0)) {
+        s.fail(
+          p,
+          'accountId',
+          IssueCodes.greaterThan,
+          DefaultMessages.greaterThan,
+          c6,
+          params: const <String, Object?>{'min': 0},
+          messages: _m,
+        );
+      }
+    }
     if (s.issues.length != e) return null;
     return UpdateExpense(
       groupId: c0 is Undefined ? null : c0 as int?,
@@ -406,6 +427,9 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
       note: c5 is Undefined
           ? const Maybe<String?>.missing()
           : Maybe<String?>(c5 as String?),
+      accountId: c6 is Undefined
+          ? const Maybe<int?>.missing()
+          : Maybe<int?>(c6 as int?),
     );
   }
 
@@ -422,6 +446,11 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
       note: m.containsKey('note')
           ? Maybe<String?>(m['note'] == null ? null : (m['note'] as String))
           : const Maybe<String?>.missing(),
+      accountId: m.containsKey('accountId')
+          ? Maybe<int?>(
+              m['accountId'] == null ? null : ((m['accountId'] as num).toInt()),
+            )
+          : const Maybe<int?>.missing(),
     );
   }
 
@@ -433,6 +462,7 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
     num? f3 = o.amount;
     String? f4 = o.occurredOn;
     Maybe<String?> f5 = o.note;
+    Maybe<int?> f6 = o.accountId;
     return <String, dynamic>{
       'groupId': f0,
       'id': f1,
@@ -441,6 +471,7 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
       'occurredOn': f4,
       if (f5 case Maybe<String?>(isPresent: true, value: String? g5))
         'note': g5,
+      if (f6 case Maybe<int?>(isPresent: true, value: int? g6)) 'accountId': g6,
     };
   }
 
@@ -479,6 +510,11 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
           'type': <dynamic>['string', 'null'],
           'maxLength': 500,
           'description': 'New note. Pass null to clear it.',
+        },
+        'accountId': <String, dynamic>{
+          'type': <dynamic>['integer', 'null'],
+          'exclusiveMinimum': 0,
+          'description': 'Wallet to pay from (see list_wallets). Pass null to remove the wallet entry. Leave it out to keep the wallet.',
         },
       },
     };

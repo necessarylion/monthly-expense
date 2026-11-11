@@ -58,7 +58,7 @@ export function ExpenseSheet() {
   const input = useAmountInput()
   const [date, setDate] = useState(todayIso())
   const [note, setNote] = useState('')
-  /** Account the money-out entry books to; null = none. New expenses only. */
+  /** Account the money-out entry books to; null = none. */
   const [payFromId, setPayFromId] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -70,7 +70,10 @@ export function ExpenseSheet() {
   useEffect(() => {
     if (expense === undefined) return
     setError(null)
+    const acc = useAccounts.getState()
+    if (!acc.loaded) acc.load().catch(() => {})
     if (expense) {
+      setPayFromId(expense.accountId ?? null)
       input.set((expense.amountCents / 100).toString(), true) // the first key replaces it
       setDate(expense.occurredOn)
       setNote(expense.note ?? '')
@@ -80,8 +83,6 @@ export function ExpenseSheet() {
       input.set(amount === null ? '' : String(amount), amount !== null) // a draft amount is replaced by the first key
       setDate(todayIso())
       setNote(draft?.note ?? '')
-      const acc = useAccounts.getState()
-      if (!acc.loaded) acc.load().catch(() => {})
       setPayFromId(acc.defaultAccountId)
       acc
         .loadDefaultAccount()
@@ -92,6 +93,9 @@ export function ExpenseSheet() {
   }, [expense])
 
   const payAccount = accounts.find((a) => a.id === payFromId)
+  // An expense paid from someone else's wallet: this user cannot move it.
+  const bookedId = expense?.accountId ?? null
+  const canPickWallet = accounts.length > 0 && (bookedId === null || accounts.some((a) => a.id === bookedId))
   // Default account first, the rest keep their order.
   const payFrom = [...accounts].sort(
     (a, b) => Number(b.id === defaultAccountId) - Number(a.id === defaultAccountId)
@@ -109,7 +113,13 @@ export function ExpenseSheet() {
     try {
       const store = useExpenses.getState()
       if (expense) {
-        await store.updateExpense(expense.id, { amount, occurredOn: date, note: text })
+        await store.updateExpense(expense.id, {
+          amount,
+          occurredOn: date,
+          note: text,
+          // Only when it changed: an untouched wallet is not sent.
+          ...(canPickWallet && payFromId !== bookedId && { accountId: payFromId }),
+        })
         toast.success(t('toast.expenseSaved'))
       } else {
         await store.addExpense({ amount, occurredOn: date, note: text, accountId: payFromId })
@@ -131,7 +141,7 @@ export function ExpenseSheet() {
       top={<DatePicker value={date} onChange={setDate} />}
       fields={
         <>
-          {!isEdit && accounts.length > 0 && (
+          {canPickWallet && (
             <SelectField
               size="lg"
               aria-label={t('expenseModal.payFrom')}

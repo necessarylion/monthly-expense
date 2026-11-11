@@ -129,11 +129,17 @@ class UpdateExpenseTool extends AppTool<UpdateExpense> {
     if (input.categoryId == null &&
         input.amount == null &&
         input.occurredOn == null &&
-        !input.note.isPresent) {
+        !input.note.isPresent &&
+        !input.accountId.isPresent) {
       return AppTool.text('No changes provided for expense $id.');
     }
 
-    ExpenseWithCategory row = await expenses.update(group, expense, input);
+    ExpenseWithCategory row = await expenses.update(
+      user,
+      group,
+      expense,
+      input,
+    );
     return AppTool.json(<String, dynamic>{
       'currency': group.currency,
       'expense': ExpenseSerializer(row).toJson(),

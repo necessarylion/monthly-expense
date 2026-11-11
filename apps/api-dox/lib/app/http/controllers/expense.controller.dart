@@ -108,6 +108,7 @@ class ExpenseController {
   ) async {
     Expense expense = await expenses.find(req.activeGroup, id);
     ExpenseWithCategory row = await expenses.update(
+      req.authUser,
       req.activeGroup,
       expense,
       body,

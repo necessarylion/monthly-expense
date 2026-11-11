@@ -210,10 +210,17 @@ class ExpenseService {
   }
 
   Future<ExpenseWithCategory> update(
+    User user,
     Group group,
     Expense expense,
     UpdateExpense input,
   ) async {
+    // First, so a bad wallet fails before anything is saved. The entry's
+    // amount, date and note are set by the sync below.
+    int? oldAccountId = await live.accountOfExpense(expense.id!);
+    if (input.accountId.isPresent) {
+      await accounts.moveExpenseOutflow(user, expense, input.accountId.value);
+    }
     Map<String, dynamic> changes = <String, dynamic>{};
     bool sort = false;
     String? newNote = input.note.isPresent ? input.note.value : null;
@@ -246,6 +253,10 @@ class ExpenseService {
     await accounts.syncExpenseOutflow(updated, category);
     await expenses.attachWalletOwners(<Expense>[updated]);
     await _changed(updated);
+    // The wallet it left shows a new balance too.
+    if (oldAccountId != null && oldAccountId != updated.walletAccountId) {
+      await live.accountChanged(oldAccountId);
+    }
     if (sort) _sortLater(group, updated);
     return ExpenseWithCategory(updated, category);
   }

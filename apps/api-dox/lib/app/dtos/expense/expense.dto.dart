@@ -88,6 +88,14 @@ class UpdateExpense {
   @Describe(clearNoteHint)
   final Maybe<String?> note;
 
+  /// Missing: the wallet entry stays where it is. `null`: remove it.
+  @Positive()
+  @Describe(
+    'Wallet to pay from (see list_wallets). Pass null to remove the '
+    'wallet entry. Leave it out to keep the wallet.',
+  )
+  final Maybe<int?> accountId;
+
   const UpdateExpense({
     this.groupId,
     this.id,
@@ -95,6 +103,7 @@ class UpdateExpense {
     this.amount,
     this.occurredOn,
     this.note = const Maybe<String?>.missing(),
+    this.accountId = const Maybe<int?>.missing(),
   });
 
   static const DtoSchema<UpdateExpense> schema = $UpdateExpenseDto;
