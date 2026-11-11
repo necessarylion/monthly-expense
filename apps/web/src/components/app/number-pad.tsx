@@ -73,7 +73,7 @@ export function NumberPad({ onKey, onEnter, onEscape, flat, className }: NumberP
             className={cn(
               'flex items-center justify-center text-2xl font-medium tabular-nums select-none',
               flat
-                ? 'bg-popover transition-colors duration-75 active:bg-muted'
+                ? 'bg-background transition-colors duration-75 active:bg-muted'
                 : [
                     // A solid key (no shadow) that darkens and shrinks a little when pressed.
                     'h-[clamp(2.5rem,6.2dvh,3.25rem)] rounded-lg',
