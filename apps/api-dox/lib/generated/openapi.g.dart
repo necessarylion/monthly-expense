@@ -899,6 +899,52 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       },
     ),
     OpenApiOperation(
+      controller: 'InsightController',
+      method: 'month',
+      argumentTypes: <String>['DoxRequest', 'InsightQuery'],
+      summary: 'Explain a month',
+      description: 'Claude explains `?month=YYYY-MM` as A2UI v0.9 messages, for `@a2ui/react`. `?lang=en|my` picks the language.',
+      tags: <String>['Insights'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/InsightQuery'},
+      requestIn: 'query',
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'SmartAddController',
+      method: 'read',
+      argumentTypes: <String>['DoxRequest', 'SmartAddText'],
+      summary: 'Read expenses from text',
+      description: 'Claude splits `text` (like "lunch 5000, taxi 3000") into expenses. The answer is A2UI v0.9 messages: a card per expense with a Save button.',
+      tags: <String>['Insights'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/SmartAddText'},
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
+      controller: 'SmartAddController',
+      method: 'action',
+      argumentTypes: <String>['DoxRequest', 'SmartAddAction'],
+      summary: 'Save a smart add card',
+      description: 'The A2UI action of a tapped Save button. Its `context` is checked like POST /expenses. The answer is the A2UI update that marks it saved.',
+      tags: <String>['Insights'],
+      schema: <String, dynamic>{'\$ref': '#/components/schemas/SmartAddAction'},
+      responses: <int, ResponseDoc>{
+        200: ResponseDoc(
+          description: 'Successful response',
+          schema: <String, dynamic>{'type': 'object'},
+        ),
+      },
+    ),
+    OpenApiOperation(
       controller: 'RecurringController',
       method: 'index',
       argumentTypes: <String>['DoxRequest'],
@@ -1251,6 +1297,17 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
       'GET',
       '/api/v1/balances',
       'ExpenseController.balances',
+    ),
+    OpenApiRouteBinding(
+      'GET',
+      '/api/v1/insights/month',
+      'InsightController.month',
+    ),
+    OpenApiRouteBinding('POST', '/api/v1/smart-add', 'SmartAddController.read'),
+    OpenApiRouteBinding(
+      'POST',
+      '/api/v1/smart-add/actions',
+      'SmartAddController.action',
     ),
     OpenApiRouteBinding(
       'GET',
@@ -2071,6 +2128,63 @@ const OpenApiRegistry openApiRegistry = OpenApiRegistry(
           'description': 'Wallet to pay from (see list_wallets). Pass null to remove the wallet entry. Leave it out to keep the wallet.',
         },
       },
+    },
+    'InsightQuery': <String, dynamic>{
+      'type': 'object',
+      'title': 'InsightQuery',
+      'properties': <String, dynamic>{
+        'month': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+        },
+        'lang': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'enum': <dynamic>['en', 'my'],
+          'description': 'The app language, so Claude writes in it.',
+        },
+      },
+    },
+    'SmartAddText': <String, dynamic>{
+      'type': 'object',
+      'title': 'SmartAddText',
+      'properties': <String, dynamic>{
+        'text': <String, dynamic>{
+          'type': 'string',
+          'minLength': 1,
+          'maxLength': 500,
+        },
+        'today': <String, dynamic>{
+          'type': 'string',
+          'description':
+              'The user\'s today, so a late-night add lands on their day.',
+        },
+        'lang': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'enum': <dynamic>['en', 'my'],
+        },
+      },
+      'required': <dynamic>['text', 'today'],
+    },
+    'SmartAddAction': <String, dynamic>{
+      'type': 'object',
+      'title': 'SmartAddAction',
+      'properties': <String, dynamic>{
+        'name': <String, dynamic>{
+          'type': 'string',
+          'enum': <dynamic>['save_expense'],
+        },
+        'sourceComponentId': <String, dynamic>{
+          'type': 'string',
+          'pattern': '^(?:^save_[0-9]{1,2}\$)\$',
+        },
+        'context': <String, dynamic>{
+          '\$ref': '#/components/schemas/CreateExpense',
+        },
+        'lang': <String, dynamic>{
+          'type': <dynamic>['string', 'null'],
+          'enum': <dynamic>['en', 'my'],
+        },
+      },
+      'required': <dynamic>['name', 'sourceComponentId', 'context'],
     },
     'CreateRecurring': <String, dynamic>{
       'type': 'object',

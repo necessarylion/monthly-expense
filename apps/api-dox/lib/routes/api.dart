@@ -5,6 +5,7 @@ import 'package:api_dox/app/http/controllers/config.controller.dart';
 import 'package:api_dox/app/http/controllers/expense.controller.dart';
 import 'package:api_dox/app/http/controllers/group.controller.dart';
 import 'package:api_dox/app/http/controllers/health.controller.dart';
+import 'package:api_dox/app/http/controllers/insight.controller.dart';
 import 'package:api_dox/app/http/controllers/mcp.controller.dart';
 import 'package:api_dox/app/http/controllers/me.controller.dart';
 import 'package:api_dox/app/http/controllers/oauth.controller.dart';
@@ -12,6 +13,7 @@ import 'package:api_dox/app/http/controllers/passkey.controller.dart';
 import 'package:api_dox/app/services/mcp_oauth.service.dart';
 import 'package:api_dox/app/http/controllers/recurring.controller.dart';
 import 'package:api_dox/app/http/controllers/shopping_item.controller.dart';
+import 'package:api_dox/app/http/controllers/smart_add.controller.dart';
 import 'package:api_dox/app/http/controllers/totp.controller.dart';
 import 'package:api_dox/app/http/middleware/auth.middleware.dart';
 import 'package:api_dox/app/http/middleware/group.middleware.dart';
@@ -37,6 +39,12 @@ class ApiRouter extends Router {
       key: (DoxRequest req) => '${req.authUser.id}',
     );
     List<dynamic> member = <dynamic>[...user, ioc.get<GroupMiddleware>()];
+    // Each one is a Claude call that costs money.
+    RateLimit insightTries = RateLimit(
+      max: insightsPerMinute,
+      name: 'insight',
+      key: (DoxRequest req) => '${req.authUser.id}',
+    );
 
     Route.get('/healthz', (HealthController c) => c.show);
     Route.get('/config.js', (ConfigController c) => c.script);
@@ -156,6 +164,13 @@ class ApiRouter extends Router {
         Route.get('/summary', (ExpenseController c) => c.summary);
         Route.get('/summary/year', (ExpenseController c) => c.year);
         Route.get('/balances', (ExpenseController c) => c.balances);
+        Route.middleware(<dynamic>[insightTries], () {
+          Route.get('/insights/month', (InsightController c) => c.month);
+          Route.post('/smart-add', (SmartAddController c) => c.read);
+        });
+
+        // A tapped Save card of smart add: a normal write, so no AI limit.
+        Route.post('/smart-add/actions', (SmartAddController c) => c.action);
 
         Route.get('/recurring', (RecurringController c) => c.index);
         Route.post('/recurring', (RecurringController c) => c.store);
