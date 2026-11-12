@@ -70,7 +70,7 @@ function MonthInsightSheet({ month, open, onClose }: { month: string; open: bool
         )}
         {messages && (
           <>
-            <A2uiView messages={messages} />
+            <A2uiView messages={messages} className="a2ui-insight" />
             <p className="text-xs text-muted-foreground">{t('insight.note')}</p>
           </>
         )}

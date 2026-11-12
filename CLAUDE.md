@@ -93,6 +93,9 @@ Read this before changing code. It captures the non-obvious bits.
   The same Claude call picks each item's `categoryId` (a note used before
   keeps its old category), and Save sends it, so create does not ask Claude
   again. Its list look is the `.a2ui-smart-add` variables in `index.css`.
+- "Explain my month" has a fixed layout in `insightSystemPrompt` (summary,
+  then list cards); `.a2ui-insight` in `index.css` styles it. Change both
+  together. Percentages come worked out in the facts.
 - Cost: `ClaudeClient` marks the system prompt with `cache_control` (keep
   system prompts fixed text; no dates or ids in them). The month answer is
   kept in `FileCache` under a fingerprint of the prompt. AI routes share a

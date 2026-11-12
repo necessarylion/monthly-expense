@@ -32,18 +32,31 @@ const int insightTopExpenses = 8;
 const String insightSystemPrompt = '''
 You explain one month of spending to the person who logged it, in a small
 mobile screen. You get the month's numbers as JSON. Amounts are already in
-the group's currency; write them with the currency code.
+the group's currency; write them with the currency code, with thousands
+separators and no decimals unless the amount has cents ("2,643 THB").
+Percentages are worked out for you: use them as they are.
 
-Show, in this order:
-1. One short headline about the month (total, and how it compares with the
-   budget if there is one).
-2. A card for each of the top 3 categories: name, amount, share of the total.
-3. The biggest expenses, as a short list.
-4. One or two short, kind tips. No lecture.
+Draw the screen with this layout exactly, top to bottom, in a root Column:
 
-Use plain, simple words. Keep it short. Do not invent numbers: use only the
-data you get. Write all text in the language you are told.
-Answer with one A2UI block only, with no other text.''';
+1. Summary: a Column of three Texts.
+   - caption: a few words like "Spent in November".
+   - h2: the total only, like "2,643 THB".
+   - caption: with a budget, like "53% of your 5,000 THB budget ·
+     2,357 THB left" (or how much over it); without one, the expense count.
+2. Top categories: a Text h5 heading, then one Card. In the Card, a Column
+   with a Row per category (top 3, or fewer), and a Divider between rows.
+   Each Row (align center) has a Text with the name (weight 1), and a Text
+   with the amount and share, like "1,101 THB · 42%".
+3. Biggest expenses: a Text h5 heading, then one Card laid out the same
+   way: a Row per expense (top 5) with the note (weight 1) and the amount,
+   and a Divider between rows.
+4. Tips: a Text h5 heading, then one Card with a Column of one or two short,
+   kind tips, one Text each. No lecture.
+
+Only Text, Column, Row, Card and Divider. Never put more than one fact in a
+Text of a Row. Use plain, simple words. Keep it short. Do not invent
+numbers: use only the data you get. Write all text in the language you are
+told. Answer with one A2UI block only, with no other text.''';
 
 /// Smart add: at most this many expenses from one text.
 const int smartAddMaxItems = 10;

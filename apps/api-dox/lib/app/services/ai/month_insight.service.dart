@@ -110,6 +110,7 @@ class MonthInsightService {
       return byAmount != 0 ? byAmount : a.expense.id!.compareTo(b.expense.id!);
     });
     int? budget = summary.monthlyBudgetCents;
+    int total = summary.totalCents;
     return <String, Object?>{
       'language': lang == 'my' ? 'Burmese' : 'English',
       'month': summary.month,
@@ -117,11 +118,18 @@ class MonthInsightService {
       'total': MoneyUtil.fromCents(summary.totalCents),
       'expenseCount': summary.count,
       'budget': budget == null ? null : MoneyUtil.fromCents(budget),
+      'budgetUsedPercent': budget == null || budget == 0
+          ? null
+          : _percent(total, budget),
+      'budgetLeft': budget == null ? null : MoneyUtil.fromCents(budget - total),
       'byCategory': <Map<String, Object?>>[
         for (CategoryTotal row in summary.byCategory)
           <String, Object?>{
             'category': names[row.categoryId]?.name ?? 'No category',
             'total': MoneyUtil.fromCents(row.totalCents),
+            'shareOfTotalPercent': total == 0
+                ? 0
+                : _percent(row.totalCents, total),
             'count': row.count,
           },
       ],
@@ -136,4 +144,7 @@ class MonthInsightService {
       ],
     };
   }
+
+  /// [part] of [whole], as a whole percent.
+  static int _percent(int part, int whole) => (part * 100 / whole).round();
 }
