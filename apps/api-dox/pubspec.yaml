@@ -15,7 +15,7 @@ dependencies:
   http: ^1.6.0
   mime: ^2.0.0
   path: ^1.9.0
-  dox_scheduler: ^3.1.0
+  dox_scheduler: ^3.1.1
   pointycastle: ^4.0.0
   crypto: ^3.0.6
   a2ui_agent: ^0.3.0

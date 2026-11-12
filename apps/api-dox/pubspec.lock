@@ -333,10 +333,10 @@ packages:
     dependency: "direct main"
     description:
       name: dox_scheduler
-      sha256: dd7c0bee0cb61b10b3ea88ef131143eb160a40a98cd75d7df300cb1428c3039f
+      sha256: bb0f639acd35a7f6a9d9f10e6ca77ca858c8854ca8fc88f54620504f069edc5c
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.1.1"
   dox_socketio:
     dependency: "direct main"
     description:
