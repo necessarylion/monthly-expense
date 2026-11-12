@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { type A2uiAction, A2uiView } from '@/components/app/a2ui-view'
 import { Sheet } from '@/components/app/sheet'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
 import { errorMessage } from '@/lib/errors'
@@ -73,10 +73,23 @@ function SmartAddSheet({ open, onClose }: { open: boolean; onClose(): void }) {
 
   return (
     <Sheet open={open} onClose={close} title={t('smartAdd.title')} view={messages ? 'cards' : 'form'}>
-      <div className="flex flex-col gap-3 px-4 pb-4">
-        <form onSubmit={read} className="flex gap-2">
-          <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={t('smartAdd.placeholder')} maxLength={500} autoFocus />
-          <Button type="submit" disabled={reading || !text.trim()}>
+      {/* pt-1: room for the focus ring; the sheet body clips what sits outside it. */}
+      <div className="flex flex-col gap-3 pt-1">
+        <form onSubmit={read} className="flex flex-col gap-2">
+          <Textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            // Enter adds a line (one expense per line is fine); Cmd/Ctrl+Enter reads.
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void read(e)
+            }}
+            placeholder={t('smartAdd.placeholder')}
+            maxLength={500}
+            rows={3}
+            className="field-sizing-fixed resize-none"
+            autoFocus
+          />
+          <Button type="submit" className="self-end" disabled={reading || !text.trim()}>
             {reading ? t('smartAdd.reading') : t('smartAdd.read')}
           </Button>
         </form>
