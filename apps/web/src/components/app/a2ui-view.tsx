@@ -3,6 +3,7 @@ import { A2uiSurface, MarkdownContext } from '@a2ui/react/v0_9'
 import { MessageProcessor } from '@a2ui/web_core/v0_9'
 import { basicCatalog } from '@a2ui/web_core/v0_9/basic_catalog'
 import { useEffect, useMemo, useRef } from 'react'
+import { cn } from '@/lib/utils'
 
 type Surface = Parameters<typeof A2uiSurface>[0]['surface']
 type Messages = Parameters<MessageProcessor['processMessages']>[0]
@@ -14,13 +15,15 @@ interface A2uiViewProps {
   messages: unknown[]
   /** A tapped button. Return the API's reply messages to apply them. */
   onAction?(action: A2uiAction): Promise<unknown[] | undefined>
+  /** Extra classes on the host, for a screen's own A2UI variables. */
+  className?: string
 }
 
 /**
  * Draws A2UI v0.9 messages with `@a2ui/react`, in our theme (`.a2ui-host` in
  * `index.css`). A button tap goes to `onAction`; its reply updates the screen.
  */
-export function A2uiView({ messages, onAction }: A2uiViewProps) {
+export function A2uiView({ messages, onAction, className }: A2uiViewProps) {
   const handler = useRef(onAction)
   useEffect(() => {
     handler.current = onAction
@@ -53,7 +56,7 @@ export function A2uiView({ messages, onAction }: A2uiViewProps) {
   if (view.error) return <p className="text-sm text-destructive">{view.error}</p>
   return (
     <MarkdownContext.Provider value={renderMarkdown}>
-      <div className="a2ui-host flex flex-col gap-3">
+      <div className={cn('a2ui-host flex flex-col gap-3', className)}>
         {view.surfaces.map((surface) => (
           <A2uiSurface key={surface.id} surface={surface} />
         ))}

@@ -546,6 +546,8 @@ void registerContainer(IocContainer c) {
       c.get<i41.ClaudeClient>(),
       c.get<i39.AccountService>(),
       c.get<i49.ExpenseService>(),
+      c.get<i48.CategoryService>(),
+      c.get<i42.ExpenseCategorizer>(),
     ),
   );
   c.singleton<i46.ApiTokenService>(

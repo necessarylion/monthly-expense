@@ -11,6 +11,7 @@ void main() {
   late TestApp app;
   late int groupId;
   late int? defaultWallet;
+  late int foodId;
   late FakeClaudeClient claude;
 
   Future<TestResponse> read(Object? answer) {
@@ -47,6 +48,11 @@ void main() {
       group: groupId,
     );
     defaultWallet = wallet.json['data']?['accountId'] as int?;
+    TestResponse categories = await app.call(
+      '/api/v1/categories',
+      group: groupId,
+    );
+    foodId = (categories.json['data'] as List<dynamic>).first['id'] as int;
   });
 
   tearDownAll(() => app.close());
@@ -54,13 +60,25 @@ void main() {
   test('keeps good items only, and a made-up wallet is the default', () async {
     TestResponse res = await read(<String, dynamic>{
       'items': <Map<String, dynamic>>[
-        <String, dynamic>{'note': ' lunch ', 'amount': 5000, 'walletId': 999},
+        <String, dynamic>{
+          'note': ' lunch ',
+          'amount': 5000,
+          'walletId': 999,
+          'categoryId': foodId,
+        },
+        <String, dynamic>{
+          'note': 'taxi',
+          'amount': 3000,
+          'walletId': null,
+          'categoryId': 999999,
+        },
         <String, dynamic>{'note': '', 'amount': 10, 'walletId': null},
         <String, dynamic>{'note': 'gift', 'amount': -5, 'walletId': null},
       ],
     });
     expect(res.status, 200);
     expect(claude.lastPrompt, contains('lunch 5000, taxi 3000'));
+    expect(claude.lastPrompt, contains('"categories"'));
     List<dynamic> messages = res.json['data']['messages'] as List<dynamic>;
     Map<String, dynamic> model =
         messages.firstWhere(
@@ -68,10 +86,13 @@ void main() {
             )['updateDataModel']
             as Map<String, dynamic>;
     List<dynamic> items = model['value']['items'] as List<dynamic>;
-    expect(items, hasLength(1));
+    expect(items, hasLength(2));
     expect(items.first['note'], 'lunch');
     expect(items.first['occurredOn'], '2026-11-12');
     expect(items.first['accountId'], defaultWallet);
+    expect(items.first['categoryId'], foodId);
+    // A made-up category is none: POST /expenses sorts it then.
+    expect(items.last['categoryId'], isNull);
     List<dynamic> components =
         messages.firstWhere(
               (dynamic m) => m['updateComponents'] != null,
@@ -84,6 +105,10 @@ void main() {
     expect(button['action']['event']['context']['amount'], <String, dynamic>{
       'path': '/items/0/amount',
     });
+    expect(
+      button['action']['event']['context']['categoryId'],
+      <String, dynamic>{'path': '/items/0/categoryId'},
+    );
   });
 
   test('a broken answer is a 502', () async {
@@ -92,6 +117,9 @@ void main() {
   });
 
   test('Save stores the expense and turns the button into a label', () async {
+    claude
+      ..on = true
+      ..calls = 0;
     TestResponse res = await act(<String, dynamic>{
       'name': 'save_expense',
       'sourceComponentId': 'save_0',
@@ -100,6 +128,7 @@ void main() {
         'amount': 5000,
         'occurredOn': '2026-11-12',
         'accountId': defaultWallet,
+        'categoryId': foodId,
       },
     });
     expect(res.status, 200);
@@ -120,6 +149,9 @@ void main() {
           (dynamic e) => e['note'] == 'smart lunch',
         ) as Map<String, dynamic>;
     expect(saved['amountCents'], 500000);
+    expect(saved['categoryId'], foodId);
+    // The category came with the card: no second Claude call.
+    expect(claude.calls, 0);
   });
 
   test('a bad action is refused like a bad POST /expenses', () async {

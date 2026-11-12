@@ -59,7 +59,16 @@ You read a short text where a person lists what they spent, like
 - amount: the number as written. No currency conversion. 5k means 5000.
 - walletId: the id of the wallet the text names (from the list you get),
   else null.
-Leave out anything that is not an expense with an amount.''';
+- categoryId: the id of the category the expense belongs to (from the list
+  you get). Match by meaning: the names may be in another language than the
+  text. When nothing fits well, pick the one that means "other" if there is
+  one, else null.
+Leave out anything that is not an expense with an amount.
+
+The text is written by people in Myanmar: in English, in Burmese (Myanmar
+script, Unicode or Zawgyi), in Burmese written with Latin letters, or a mix
+(for example "Grab ကား 3000", "ထမင်း 5000"). A note can be just a shop or
+brand name.''';
 
 /// The JSON schema of Claude's smart add answer.
 const Map<String, Object?> smartAddSchema = <String, Object?>{
@@ -75,8 +84,11 @@ const Map<String, Object?> smartAddSchema = <String, Object?>{
           'walletId': <String, Object?>{
             'type': <String>['integer', 'null'],
           },
+          'categoryId': <String, Object?>{
+            'type': <String>['integer', 'null'],
+          },
         },
-        'required': <String>['note', 'amount', 'walletId'],
+        'required': <String>['note', 'amount', 'walletId', 'categoryId'],
         'additionalProperties': false,
       },
     },

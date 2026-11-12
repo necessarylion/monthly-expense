@@ -11,13 +11,35 @@ class SmartAddItem {
   final int? accountId;
   final String walletName;
 
+  /// Null: none found; POST /expenses sorts it then.
+  final int? categoryId;
+  final String? categoryName;
+
   const SmartAddItem({
     required this.note,
     required this.amount,
     required this.occurredOn,
     required this.accountId,
     required this.walletName,
+    this.categoryId,
+    this.categoryName,
   });
+
+  SmartAddItem withCategory(int? id, String? name) {
+    return SmartAddItem(
+      note: note,
+      amount: amount,
+      occurredOn: occurredOn,
+      accountId: accountId,
+      walletName: walletName,
+      categoryId: id,
+      categoryName: id == null ? null : name,
+    );
+  }
+
+  /// "Food · Kbank", or the wallet alone.
+  String get details =>
+      categoryName == null ? walletName : '$categoryName · $walletName';
 }
 
 /// The A2UI v0.9 messages of smart add. The server writes them, not Claude:
@@ -30,7 +52,9 @@ class SmartAddScreen {
 
   final Map<String, String> text;
 
-  /// A card per item, each with a Save button (`save_<index>`).
+  /// One card that lists the items, a row each: the note and its category
+  /// and wallet on the left, the amount and a Save button (`save_<index>`)
+  /// on the right.
   List<Map<String, Object?>> cards(List<SmartAddItem> items, String currency) {
     if (items.isEmpty) {
       return <Map<String, Object?>>[
@@ -43,14 +67,26 @@ class SmartAddScreen {
       ];
     }
     List<Map<String, Object?>> components = <Map<String, Object?>>[
+      <String, Object?>{'id': 'root', 'component': 'Card', 'child': 'list'},
       <String, Object?>{
-        'id': 'root',
+        'id': 'list',
         'component': 'Column',
-        'children': <String>[for (int i = 0; i < items.length; i++) 'card_$i'],
+        'children': <String>[
+          for (int i = 0; i < items.length; i++) ...<String>[
+            if (i > 0) 'divider_$i',
+            'item_$i',
+          ],
+        ],
       },
     ];
     for (int i = 0; i < items.length; i++) {
-      components.addAll(_card(i));
+      if (i > 0) {
+        components.add(<String, Object?>{
+          'id': 'divider_$i',
+          'component': 'Divider',
+        });
+      }
+      components.addAll(_row(i));
     }
     return <Map<String, Object?>>[
       _message('createSurface', <String, Object?>{
@@ -66,8 +102,9 @@ class SmartAddScreen {
                 'amount': item.amount,
                 'occurredOn': item.occurredOn,
                 'accountId': item.accountId,
+                'categoryId': item.categoryId,
                 'amountText': '${_number(item.amount)} $currency',
-                'wallet': item.walletName,
+                'details': item.details,
               },
           ],
         },
@@ -88,26 +125,22 @@ class SmartAddScreen {
     ];
   }
 
-  List<Map<String, Object?>> _card(int i) {
+  List<Map<String, Object?>> _row(int i) {
     Map<String, Object?> at(String key) => <String, Object?>{
       'path': '/items/$i/$key',
     };
     return <Map<String, Object?>>[
       <String, Object?>{
-        'id': 'card_$i',
-        'component': 'Card',
-        'child': 'col_$i',
-      },
-      <String, Object?>{
-        'id': 'col_$i',
-        'component': 'Column',
-        'children': <String>['row_$i', 'wallet_$i', 'save_$i'],
-      },
-      <String, Object?>{
-        'id': 'row_$i',
+        'id': 'item_$i',
         'component': 'Row',
-        'justify': 'spaceBetween',
-        'children': <String>['note_$i', 'amount_$i'],
+        'align': 'center',
+        'children': <String>['info_$i', 'amount_$i', 'save_$i'],
+      },
+      <String, Object?>{
+        'id': 'info_$i',
+        'component': 'Column',
+        'weight': 1,
+        'children': <String>['note_$i', 'details_$i'],
       },
       <String, Object?>{
         'id': 'note_$i',
@@ -115,15 +148,16 @@ class SmartAddScreen {
         'text': at('note'),
       },
       <String, Object?>{
-        'id': 'amount_$i',
-        'component': 'Text',
-        'text': at('amountText'),
-      },
-      <String, Object?>{
-        'id': 'wallet_$i',
+        'id': 'details_$i',
         'component': 'Text',
         'variant': 'caption',
-        'text': at('wallet'),
+        'text': at('details'),
+      },
+      <String, Object?>{
+        'id': 'amount_$i',
+        'component': 'Text',
+        'variant': 'h5',
+        'text': at('amountText'),
       },
       <String, Object?>{
         'id': 'save_$i',
@@ -138,6 +172,7 @@ class SmartAddScreen {
               'amount': at('amount'),
               'occurredOn': at('occurredOn'),
               'accountId': at('accountId'),
+              'categoryId': at('categoryId'),
             },
           },
         },

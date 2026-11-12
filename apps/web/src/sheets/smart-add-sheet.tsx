@@ -11,8 +11,8 @@ import { todayIso } from '@/lib/format'
 import { useLocale, useT } from '@/lib/i18n'
 
 /**
- * Smart add: type "lunch 5000, taxi 3000", get a card per expense
- * (`POST /smart-add`, A2UI), and tap Save on each. A tap sends the A2UI
+ * Smart add: type "lunch 5000, taxi 3000", get a list of the expenses with
+ * their category and wallet (`POST /smart-add`, A2UI), and tap Save on each. A tap sends the A2UI
  * action to `POST /smart-add/actions`, which saves it and marks it saved.
  */
 export function SmartAddButton() {
@@ -93,7 +93,7 @@ function SmartAddSheet({ open, onClose }: { open: boolean; onClose(): void }) {
             {reading ? t('smartAdd.reading') : t('smartAdd.read')}
           </Button>
         </form>
-        {messages && <A2uiView messages={messages} onAction={save} />}
+        {messages && <A2uiView messages={messages} onAction={save} className="a2ui-smart-add" />}
       </div>
     </Sheet>
   )
