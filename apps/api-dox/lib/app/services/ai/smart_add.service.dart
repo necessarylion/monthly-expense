@@ -4,7 +4,9 @@ import 'package:api_dox/app/dtos/smart_add/smart_add.dto.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/services/account.service.dart';
 import 'package:api_dox/app/services/ai/claude_client.dart';
+import 'package:api_dox/app/services/ai/expense_categorizer.dart';
 import 'package:api_dox/app/services/ai/smart_add_screen.dart';
+import 'package:api_dox/app/services/category.service.dart';
 import 'package:api_dox/app/services/expense.service.dart';
 import 'package:api_dox/constants/ai.dart';
 import 'package:api_dox/http/http_error.dart';
@@ -16,13 +18,25 @@ import 'package:dox_core/dox_core.dart';
 ///
 /// Claude only reads the text. The server checks every item and draws the
 /// cards itself ([SmartAddScreen]), since they save money.
+///
+/// The same call picks each item's category, and the card saves it, so the
+/// expense is not sent to Claude again. A note the group used before keeps
+/// its old category, like POST /expenses.
 @Inject()
 class SmartAddService {
-  SmartAddService(this.claude, this.accounts, this.expenses);
+  SmartAddService(
+    this.claude,
+    this.accounts,
+    this.expenses,
+    this.categories,
+    this.categorizer,
+  );
 
   final ClaudeClient claude;
   final AccountService accounts;
   final ExpenseService expenses;
+  final CategoryService categories;
+  final ExpenseCategorizer categorizer;
 
   /// The A2UI messages of the cards for [input].
   Future<List<Map<String, Object?>>> read(
@@ -34,6 +48,9 @@ class SmartAddService {
       for (AccountWithBalance row in await accounts.withBalances(user))
         row.account.id!: row.account.name,
     };
+    Map<int, String> categoryNames = <int, String>{
+      for (Category c in await categories.list(group)) c.id!: c.name,
+    };
     Object? answer = await claude.askJson(
       system: smartAddSystemPrompt,
       prompt: jsonEncode(<String, Object?>{
@@ -41,6 +58,10 @@ class SmartAddService {
         'wallets': <Map<String, Object?>>[
           for (MapEntry<int, String> w in wallets.entries)
             <String, Object?>{'id': w.key, 'name': w.value},
+        ],
+        'categories': <Map<String, Object?>>[
+          for (MapEntry<int, String> c in categoryNames.entries)
+            <String, Object?>{'id': c.key, 'name': c.value},
         ],
       }),
       schema: smartAddSchema,
@@ -53,7 +74,12 @@ class SmartAddService {
     List<SmartAddItem> items = <SmartAddItem>[];
     for (Object? raw in answer['items'] as List<dynamic>) {
       SmartAddItem? item = _item(raw, input.today, wallets, fallback, screen);
-      if (item != null) items.add(item);
+      if (item == null) continue;
+      int? before = await categorizer.fromHistory(group.id!, item.note);
+      int? picked = categoryNames.containsKey(before)
+          ? before
+          : _id((raw as Map<dynamic, dynamic>)['categoryId'], categoryNames);
+      items.add(item.withCategory(picked, categoryNames[picked]));
       if (items.length == smartAddMaxItems) break;
     }
     return screen.cards(items, group.currency);
@@ -87,8 +113,7 @@ class SmartAddService {
     // The limits of CreateExpense.
     if (text.isEmpty || text.length > 500) return null;
     if (amount < 0.01 || amount > 10000000) return null;
-    Object? walletId = raw['walletId'];
-    int? accountId = wallets.containsKey(walletId) ? walletId as int : fallback;
+    int? accountId = _id(raw['walletId'], wallets) ?? fallback;
     return SmartAddItem(
       note: text,
       amount: (amount * 100).round() / 100,
@@ -96,5 +121,10 @@ class SmartAddService {
       accountId: accountId,
       walletName: wallets[accountId] ?? screen.text['noWallet']!,
     );
+  }
+
+  /// [raw] when it is one of the ids of [known], else null.
+  static int? _id(Object? raw, Map<int, String> known) {
+    return raw is int && known.containsKey(raw) ? raw : null;
   }
 }
