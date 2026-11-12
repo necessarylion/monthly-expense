@@ -83,6 +83,17 @@ class FakeClaudeClient extends ClaudeClient {
     lastPrompt = prompt;
     return answer;
   }
+
+  @override
+  Future<String?> askText({
+    required String system,
+    required String prompt,
+    Duration timeout = Duration.zero,
+  }) async {
+    calls++;
+    lastPrompt = prompt;
+    return answer as String?;
+  }
 }
 
 /// The app on a real HTTP server, with an empty database.

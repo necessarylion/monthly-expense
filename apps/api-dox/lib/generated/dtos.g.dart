@@ -8,11 +8,13 @@ import 'package:api_dox/app/dtos/category/category.dto.dart';
 import 'package:api_dox/app/dtos/category_pick/category_pick.dto.dart';
 import 'package:api_dox/app/dtos/expense/expense.dto.dart';
 import 'package:api_dox/app/dtos/group/group.dto.dart';
+import 'package:api_dox/app/dtos/insight_query/insight_query.dto.dart';
 import 'package:api_dox/app/dtos/oauth/oauth.dto.dart';
 import 'package:api_dox/app/dtos/passkey/passkey.dto.dart';
 import 'package:api_dox/app/dtos/quick_add_pick/quick_add_pick.dto.dart';
 import 'package:api_dox/app/dtos/recurring/recurring.dto.dart';
 import 'package:api_dox/app/dtos/shopping_item/shopping_item.dto.dart';
+import 'package:api_dox/app/dtos/smart_add/smart_add.dto.dart';
 import 'package:api_dox/app/dtos/totp_code/totp_code.dto.dart';
 
 /// Every DTO of the app. Use it in `AppConfig(dtos: dtos)`.
@@ -37,6 +39,7 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $GroupMemberRefDto,
   $GroupRefDto,
   $HistoryQueryDto,
+  $InsightQueryDto,
   $InviteDto,
   $MonthQueryDto,
   $NoInputDto,
@@ -47,6 +50,8 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $SearchQueryDto,
   $SetBudgetDto,
   $SetDefaultAccountDto,
+  $SmartAddActionDto,
+  $SmartAddTextDto,
   $TotalQueryDto,
   $TotpCodeDto,
   $TransferDto,

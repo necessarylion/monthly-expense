@@ -445,3 +445,20 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .splash-dot { animation: none; opacity: 0.6; }
 }
+
+/* "Explain my month": A2UI parts (`@a2ui/react`) take our theme colors, so they
+   follow every palette and dark mode. */
+.a2ui-host {
+  --a2ui-color-background: transparent;
+  --a2ui-color-on-background: var(--foreground);
+  --a2ui-color-surface: var(--card);
+  --a2ui-color-on-surface: var(--card-foreground);
+  --a2ui-color-border: var(--border);
+  --a2ui-color-primary: var(--primary);
+  --a2ui-color-on-primary: var(--primary-foreground);
+  --a2ui-text-caption-color: var(--muted-foreground);
+  --a2ui-border-radius: var(--radius);
+  --a2ui-card-border-radius: var(--radius);
+  --a2ui-card-margin: 0;
+  --a2ui-font-family: inherit;
+}

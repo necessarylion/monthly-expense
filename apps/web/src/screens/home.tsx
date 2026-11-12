@@ -18,6 +18,8 @@ import { useCategoryById, useExpenses } from '@/stores/expenses'
 import { useAuth } from '@/stores/auth'
 import { useActiveGroup, useGroups } from '@/stores/groups'
 import { useUi } from '@/stores/ui'
+import { MonthInsightButton } from '@/sheets/month-insight-sheet'
+import { SmartAddButton } from '@/sheets/smart-add-sheet'
 import { Page } from './page'
 import { SettleCard } from './reports'
 
@@ -726,6 +728,10 @@ export function HomeScreen() {
       <div className="flex min-w-0 flex-col gap-6 lg:flex-1">
         <Allowance currency={currency} group={group} />
         {!trip && <CompareLine compare={compare} currency={currency} />}
+        <div className="flex flex-wrap gap-2">
+          <SmartAddButton />
+          {!trip && <MonthInsightButton month={month} />}
+        </div>
         {lastError && <p className="text-sm text-destructive">{lastError}</p>}
         <QuickAdds currency={currency} />
         <CategoryBar selected={category} onSelect={setCategory} currency={currency} compare={compare} />

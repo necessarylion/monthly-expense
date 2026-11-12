@@ -458,4 +458,20 @@ export default {
     showLess: 'Show less',
     nothingHere: 'No expenses here yet.',
   },
+  insight: {
+    open: 'Explain my month',
+    title: 'Your month',
+    loading: 'Claude is looking at your month…',
+    failed: 'Could not explain the month.',
+    retry: 'Try again',
+    note: 'Written by AI. Check the numbers before you act on them.',
+  },
+  smartAdd: {
+    open: 'Smart add',
+    title: 'Smart add',
+    placeholder: 'lunch 5000, taxi 3000',
+    read: 'Read',
+    reading: 'Reading…',
+    failed: 'Could not read that.',
+  },
 } as const

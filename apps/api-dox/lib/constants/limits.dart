@@ -84,3 +84,6 @@ const Duration apiTokenRefreshGrace = Duration(minutes: 2);
 
 /// `api_tokens.last_used_at` is written at most this often.
 const Duration apiTokenTouchEvery = Duration(hours: 1);
+
+/// "Explain my month" calls per user per minute. Each one is a Claude call.
+const int insightsPerMinute = 3;
