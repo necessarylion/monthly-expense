@@ -12,8 +12,16 @@ import type { AccountEntry } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAccounts } from '@/stores/accounts'
 
-/** Read-only view of one wallet transaction. It can only be deleted, not edited. */
-export function EntryDetailSheet({ entry, onClose }: { entry: AccountEntry | null; onClose(): void }) {
+/** One wallet transaction, with Edit (opens `EntrySheet`) and Delete. */
+export function EntryDetailSheet({
+  entry,
+  onClose,
+  onEdit,
+}: {
+  entry: AccountEntry | null
+  onClose(): void
+  onEdit(entry: AccountEntry): void
+}) {
   const t = useT()
   const accounts = useAccounts((s) => s.accounts)
   // Keep the last entry while the sheet animates closed.
@@ -45,8 +53,12 @@ export function EntryDetailSheet({ entry, onClose }: { entry: AccountEntry | nul
       footer={
         <div className="flex items-center gap-2">
           <DeleteButton onConfirm={remove} className="shrink-0" />
-          <Button size="lg" variant="secondary" className="h-12 flex-1 rounded-lg text-base" onClick={onClose}>
-            {t('common.close')}
+          <Button
+            size="lg"
+            className="h-12 flex-1 rounded-lg text-base"
+            onClick={() => shown && onEdit(shown)}
+          >
+            {t('expenseModal.edit')}
           </Button>
         </div>
       }

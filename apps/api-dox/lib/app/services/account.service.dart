@@ -4,6 +4,7 @@ import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/repositories/account.repository.dart';
 import 'package:api_dox/app/repositories/account_entry.repository.dart';
 import 'package:api_dox/app/repositories/account_member.repository.dart';
+import 'package:api_dox/app/repositories/expense.repository.dart';
 import 'package:api_dox/app/repositories/group_member.repository.dart';
 import 'package:api_dox/app/services/account_share.service.dart';
 import 'package:api_dox/app/services/live.service.dart';
@@ -79,6 +80,7 @@ class AccountService {
     this.accountMembers,
     this.shares,
     this.live,
+    this.expenses,
   );
 
   final AccountRepository accounts;
@@ -87,6 +89,7 @@ class AccountService {
   final AccountMemberRepository accountMembers;
   final AccountShareService shares;
   final LiveService live;
+  final ExpenseRepository expenses;
 
   /// Pending wallet invites are claimed first: sign-in claims them only
   /// once, so this fixes one it missed.
@@ -303,8 +306,41 @@ class AccountService {
     if (input.occurredOn != null) changes['occurred_on'] = input.occurredOn;
     if (input.note.isPresent) changes['note'] = input.note.value;
     if (changes.isEmpty) return entry;
+    if (entry.expenseId != null) {
+      return _updateExpenseEntry(entry, changes, input);
+    }
     AccountEntry updated = await entries.update(entry.id!, changes);
     await live.accountChanged(entry.accountId);
+    return updated;
+  }
+
+  /// An entry booked from an expense: the expense changes with it, so the
+  /// two never show different numbers. It stays money out.
+  ///
+  /// ponytail: a new note does not ask Claude for a new category, as an
+  /// expense edit does. Move this into ExpenseService if that matters.
+  Future<AccountEntry> _updateExpenseEntry(
+    AccountEntry entry,
+    Map<String, dynamic> changes,
+    UpdateEntry input,
+  ) async {
+    int? cents = changes['amount_cents'] as int?;
+    if (cents != null && cents > 0) {
+      throw HttpError.unprocessable('An expense is money out.');
+    }
+    Map<String, dynamic> expenseChanges = <String, dynamic>{
+      'amount_cents': ?(cents == null ? null : -cents),
+      'occurred_on': ?changes['occurred_on'],
+      // An expense keeps its note; a cleared entry note leaves it as it is.
+      'note': ?(input.note.isPresent ? input.note.value : null),
+    };
+    AccountEntry updated = await entries.update(entry.id!, changes);
+    if (expenseChanges.isNotEmpty) {
+      Expense expense = await expenses.update(entry.expenseId!, expenseChanges);
+      await live.expenseChanged(expense.groupId, entry.accountId);
+    } else {
+      await live.accountChanged(entry.accountId);
+    }
     return updated;
   }
 

@@ -57,7 +57,7 @@ function MonthInsightSheet({ month, open, onClose }: { month: string; open: bool
   }, [open, key])
 
   return (
-    <Sheet open={open} onClose={onClose} title={t('insight.title')} view={loading ? 'loading' : error ? 'error' : 'done'}>
+    <Sheet docked open={open} onClose={onClose} title={t('insight.title')} view={loading ? 'loading' : error ? 'error' : 'done'}>
       <div className="flex flex-col gap-3">
         {loading && <p className="py-8 text-center text-sm text-muted-foreground">{t('insight.loading')}</p>}
         {error && (

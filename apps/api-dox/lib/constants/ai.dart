@@ -115,12 +115,14 @@ const Map<String, Map<String, String>> smartAddText =
     <String, Map<String, String>>{
       'en': <String, String>{
         'save': 'Save',
+        'edit': 'Edit',
         'saved': '✓ Saved',
         'noWallet': 'No wallet',
         'nothing': 'No expenses found. Try "lunch 5000, taxi 3000".',
       },
       'my': <String, String>{
         'save': 'သိမ်းမယ်',
+        'edit': 'ပြင်မယ်',
         'saved': '✓ သိမ်းပြီးပြီ',
         'noWallet': 'ပိုက်ဆံအိတ် မရွေးထားဘူး',
         'nothing':
