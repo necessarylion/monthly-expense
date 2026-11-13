@@ -804,7 +804,8 @@ void main() {
               )['inputSchema']
               as Map<String, dynamic>;
       expect(addSchema['properties']['groupId']['description'], isNotEmpty);
-      expect(addSchema['required'], contains('categoryId'));
+      expect(addSchema['required'], isNot(contains('categoryId')));
+      expect(addSchema['properties'], contains('categoryId'));
 
       Map<String, dynamic> cats = await rpc(6, 'tools/call', <String, dynamic>{
         'name': 'list_categories',

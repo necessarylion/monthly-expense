@@ -59,6 +59,8 @@ interface AccountsState {
     occurredOn: string
     note?: string
   }): Promise<void>
+  /** A note of null clears it. An entry from an expense edits that expense too. */
+  updateEntry(accountId: number, entryId: number, payload: { amount: number; occurredOn: string; note: string | null }): Promise<void>
   deleteEntry(accountId: number, entryId: number): Promise<void>
   /** The owner and everyone the wallet is shared with. */
   loadMembers(accountId: number): Promise<AccountMember[]>
@@ -234,6 +236,11 @@ export const useAccounts = create<AccountsState>((set, get) => {
 
     async transfer(payload) {
       await api.post('/accounts/transfers', payload)
+      await reloadAll()
+    },
+
+    async updateEntry(accountId, entryId, payload) {
+      await api.patch(`/accounts/${accountId}/entries/${entryId}`, payload)
       await reloadAll()
     },
 

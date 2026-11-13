@@ -1,5 +1,5 @@
 import { PencilIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CategoryIcon } from '@/components/app/category-icon'
 import { Sheet } from '@/components/app/sheet'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/toast'
 import { errorMessage } from '@/lib/errors'
 import { formatMoneyFromCents, formatShortDate } from '@/lib/format'
 import { useT } from '@/lib/i18n'
+import { useAccounts } from '@/stores/accounts'
 import { useAuth } from '@/stores/auth'
 import { useCategoryById, useExpenses } from '@/stores/expenses'
 import { useActiveGroup, useGroups } from '@/stores/groups'
@@ -25,6 +26,13 @@ export function ExpenseDetailSheet() {
   // Keep the last expense while the sheet animates closed.
   const [shown, setShown] = useState(expense)
   if (expense && expense !== shown) setShown(expense)
+
+  // The wallet it was paid from. Not found when it is someone else's wallet.
+  const wallet = useAccounts((s) => s.accounts).find((a) => a.id === shown?.accountId)
+  useEffect(() => {
+    const acc = useAccounts.getState()
+    if (expense?.accountId != null && !acc.loaded) acc.load().catch(() => {})
+  }, [expense])
 
   const currency = group?.currency ?? 'USD'
   const category = shown?.categoryId == null ? undefined : categoryById.get(shown.categoryId)
@@ -89,6 +97,14 @@ export function ExpenseDetailSheet() {
             <Row label={t('expenseModal.date')}>
               {formatShortDate(shown.occurredOn)} {shown.occurredOn.slice(0, 4)}
             </Row>
+            {wallet && (
+              <Row label={t('expenseModal.payFrom')}>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="size-2.5 shrink-0 rounded-full" style={{ background: wallet.color }} />
+                  <span className="truncate">{wallet.name}</span>
+                </span>
+              </Row>
+            )}
             {payer && <Row label={t('expenseModal.paidBy')}>{payer}</Row>}
           </dl>
         </div>

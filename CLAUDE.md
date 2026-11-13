@@ -81,6 +81,28 @@ Read this before changing code. It captures the non-obvious bits.
 - Many isolates share events through dox_socketio's `IsolateAdapter`. No
   Redis. There is no pull to refresh; do not add it back.
 
+## AI screens (A2UI)
+
+- "Explain my month" (`MonthInsightService`) and smart add (`SmartAddService`)
+  send A2UI v0.9 messages; the web app draws them with `@a2ui/react`
+  (`components/app/a2ui-view.tsx`). The React renderer speaks v0.9 only.
+- The Dart SDK's catalog is wider than the React one: `List` with
+  `listStyle` is rejected by the renderer. Keep `insightComponents` to parts
+  both accept, and test a new one in the browser.
+- Claude writes the screen only when it is read-only. Smart add saves money,
+  so Claude only reads the text (JSON) and `SmartAddScreen` draws the cards.
+  A Save tap posts the A2UI action; its `context` is a `CreateExpense`.
+  The same Claude call picks each item's `categoryId` (a note used before
+  keeps its old category), and Save sends it, so create does not ask Claude
+  again. Its list look is the `.a2ui-smart-add` variables in `index.css`.
+- "Explain my month" has a fixed layout in `insightSystemPrompt` (summary,
+  then list cards); `.a2ui-insight` in `index.css` styles it. Change both
+  together. Percentages come worked out in the facts.
+- Cost: `ClaudeClient` marks the system prompt with `cache_control` (keep
+  system prompts fixed text; no dates or ids in them). The month answer is
+  kept in `FileCache` under a fingerprint of the prompt. AI routes share a
+  per-user rate limit (`insightsPerMinute`).
+
 ## Data shape
 
 - Money is **integer cents** in the DB. Convert at the edges with `MoneyUtil`.
@@ -110,6 +132,10 @@ Read this before changing code. It captures the non-obvious bits.
   and API keep `accounts`), List (`list`: the shopping list), Me (`settings`:
   a settings list with drill-in pages, `useUi.settingsTab`; Rates is one of
   them). The middle bar button opens the expense sheet; it is not a tab.
+- Add expense asks for no category; the note is required. The API finds the
+  category (`ExpenseCategorizer`): the group's last expense with the same note,
+  else Claude, after the answer is sent (a `changed` event updates the app).
+  A new note on edit sorts it again. MCP and quick-add may still send `categoryId`.
 - Home's quick-add chips come from `GET /expenses/frequent`; the wallet cards'
   trend lines from `GET /accounts/history?days=30`.
 - Stores live in `src/stores/` (Zustand). `useAuth` owns the Firebase listener

@@ -84,3 +84,6 @@ const Duration apiTokenLife = Duration(days: 30);
 /// After a refresh the old token still works this long, for calls already
 /// on the way and other tabs that have not read the new one yet.
 const Duration apiTokenRefreshGrace = Duration(minutes: 2);
+
+/// "Explain my month" calls per user per minute. Each one is a Claude call.
+const int insightsPerMinute = 3;

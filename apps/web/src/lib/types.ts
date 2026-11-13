@@ -53,6 +53,8 @@ export interface Expense {
   /** Who paid: the creator unless someone else was picked. */
   paidByUserId: number | null
   categoryId: number | null
+  /** The wallet it was paid from. It can be a wallet of someone else. */
+  accountId?: number | null
   amountCents: number
   occurredOn: string
   note: string | null
@@ -103,6 +105,8 @@ export interface AccountEntry {
   amountCents: number
   occurredOn: string
   note: string | null
+  /** Set when an expense booked it; editing it edits that expense too. */
+  expenseId: number | null
 }
 
 export interface ShoppingItem {

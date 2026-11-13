@@ -11,9 +11,14 @@ class CreateExpense {
   @Describe(groupIdHint)
   final int? groupId;
 
+  /// Missing: the note's category is found for you (same note as before,
+  /// else AI). Then the note is required.
   @Positive()
-  @Describe('Category ID (see list_categories).')
-  final int categoryId;
+  @Describe(
+    'Category ID (see list_categories). Leave it out to have it picked '
+    'from the note; the note is then required.',
+  )
+  final int? categoryId;
 
   @Min(0.01)
   @Max(10000000)
@@ -26,7 +31,7 @@ class CreateExpense {
 
   @Trim()
   @MaxLength(500)
-  @Describe(noteHint)
+  @Describe('What the money was for. Required when categoryId is left out.')
   final String? note;
 
   /// Account for the money-out entry. Missing: the member's default.
@@ -40,7 +45,7 @@ class CreateExpense {
 
   const CreateExpense({
     this.groupId,
-    required this.categoryId,
+    this.categoryId,
     required this.amount,
     required this.occurredOn,
     this.note,
@@ -83,6 +88,14 @@ class UpdateExpense {
   @Describe(clearNoteHint)
   final Maybe<String?> note;
 
+  /// Missing: the wallet entry stays where it is. `null`: remove it.
+  @Positive()
+  @Describe(
+    'Wallet to pay from (see list_wallets). Pass null to remove the '
+    'wallet entry. Leave it out to keep the wallet.',
+  )
+  final Maybe<int?> accountId;
+
   const UpdateExpense({
     this.groupId,
     this.id,
@@ -90,6 +103,7 @@ class UpdateExpense {
     this.amount,
     this.occurredOn,
     this.note = const Maybe<String?>.missing(),
+    this.accountId = const Maybe<int?>.missing(),
   });
 
   static const DtoSchema<UpdateExpense> schema = $UpdateExpenseDto;

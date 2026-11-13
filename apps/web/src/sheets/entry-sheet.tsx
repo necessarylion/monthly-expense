@@ -13,6 +13,7 @@ import { useT } from '@/lib/i18n'
 import { tintBg } from '@/lib/overview'
 import { centerPressedChip } from '@/lib/scroll'
 import { cn } from '@/lib/utils'
+import type { AccountEntry } from '@/lib/types'
 import { useAccounts } from '@/stores/accounts'
 import { AmountDisplay } from './expense-sheet'
 
@@ -20,19 +21,23 @@ type Mode = 'in' | 'out' | 'set'
 
 /**
  * Add money in, money out, or "set balance" (type the new balance, the server
- * books the difference). `accountId` preselects an account. Existing entries are
- * not edited here; `EntryDetailSheet` shows them read-only.
+ * books the difference). `accountId` preselects an account. With `entry` it
+ * edits that entry: same wallet, no "set balance", and an entry from an
+ * expense stays money out (the API edits the expense too).
  */
 export function EntrySheet({
   open,
   accountId: presetAccountId,
   initialMode = 'out',
+  entry,
   onClose,
 }: {
   open: boolean
   accountId: number | null
   /** Open straight in this mode (e.g. 'set' for "Set balance"). */
   initialMode?: Mode
+  /** The entry to edit; leave out to add a new one. */
+  entry?: AccountEntry
   onClose(): void
 }) {
   const t = useT()
@@ -54,14 +59,21 @@ export function EntrySheet({
     setError(null)
     const id = presetAccountId ?? useAccounts.getState().accounts[0]?.id ?? null
     setAccountId(id)
-    setMode(initialMode)
-    if (initialMode === 'set') startFromBalance(id)
-    else input.set('')
-    setDate(todayIso())
-    setNote('')
+    if (entry) {
+      setMode(entry.amountCents >= 0 ? 'in' : 'out')
+      input.set((Math.abs(entry.amountCents) / 100).toString(), true)
+      setDate(entry.occurredOn)
+      setNote(entry.note ?? '')
+    } else {
+      setMode(initialMode)
+      if (initialMode === 'set') startFromBalance(id)
+      else input.set('')
+      setDate(todayIso())
+      setNote('')
+    }
     requestAnimationFrame(() => centerPressedChip(chips.current))
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open
-  }, [open, presetAccountId, initialMode])
+  }, [open, presetAccountId, initialMode, entry])
 
   /** Set balance starts from the current balance; the first key replaces it. */
   function startFromBalance(id: number | null) {
@@ -92,6 +104,16 @@ export function EntrySheet({
     setError(null)
     try {
       const store = useAccounts.getState()
+      if (entry) {
+        await store.updateEntry(entry.accountId, entry.id, {
+          amount: mode === 'in' ? n : -n,
+          occurredOn: date,
+          note: note || null,
+        })
+        toast.success(t('toast.entryUpdated'))
+        onClose()
+        return
+      }
       if (mode === 'set') {
         await store.adjustBalance(accountId, {
           balance: n,
@@ -111,17 +133,21 @@ export function EntrySheet({
     }
   }
 
-  const modes: { value: Mode; label: string; Icon: typeof PlusIcon }[] = [
+  const allModes: { value: Mode; label: string; Icon: typeof PlusIcon }[] = [
     { value: 'in', label: t('accounts.money_in'), Icon: PlusIcon },
     { value: 'out', label: t('accounts.money_out'), Icon: MinusIcon },
     { value: 'set', label: t('accounts.setBalance'), Icon: EqualIcon },
   ]
+  // Editing: no "set balance"; an expense's entry is always money out.
+  const modes = entry
+    ? allModes.filter((m) => m.value !== 'set' && !(entry.expenseId && m.value === 'in'))
+    : allModes
 
   return (
     <FullScreen
       open={open}
       onClose={onClose}
-      title={t('accounts.addTransaction')}
+      title={entry ? t('accounts.editTransaction') : t('accounts.addTransaction')}
       top={<DatePicker value={date} onChange={setDate} />}
       fields={
         <>
@@ -138,6 +164,8 @@ export function EntrySheet({
                   key={a.id}
                   type="button"
                   aria-pressed={active}
+                  // An entry cannot move to another wallet.
+                  disabled={!!entry && !active}
                   onClick={() => chooseAccount(a.id)}
                   className={cn(
                     'flex items-center gap-2 rounded-lg border py-1.5 pr-3.5 pl-2 text-sm transition-colors disabled:opacity-40',
@@ -152,7 +180,7 @@ export function EntrySheet({
             })}
           </ChipRail>
 
-          <div role="group" className="flex shrink-0 gap-1 rounded-lg bg-muted p-1">
+          <div role="group" className="flex shrink-0 gap-1 rounded-lg border border-input bg-muted p-[3px]">
             {modes.map(({ value, label, Icon }) => (
               <button
                 key={value}
@@ -189,7 +217,7 @@ export function EntrySheet({
       }
       footer={
         <FullScreenSave
-          label={submitting ? t('common.saving') : mode === 'set' ? t('accounts.setBalance') : t('accounts.record')}
+          label={submitting ? t('common.saving') : entry ? t('common.save') : mode === 'set' ? t('accounts.setBalance') : t('accounts.record')}
           disabled={!valid || submitting}
           onClick={() => void submit()}
         />

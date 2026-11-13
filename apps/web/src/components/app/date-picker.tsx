@@ -41,7 +41,7 @@ export function DatePicker({ value, onChange }: { value: string; onChange(v: str
   }
 
   return (
-    <div role="group" aria-label={t('expenseModal.date')} className="flex gap-1 rounded-lg bg-muted p-1" data-vaul-no-drag="">
+    <div role="group" aria-label={t('expenseModal.date')} className="flex gap-1 rounded-lg border border-input bg-muted p-[3px]" data-vaul-no-drag="">
       <button type="button" className={segment(value === today)} onClick={() => onChange(today)}>
         {t('expenseModal.today')}
       </button>

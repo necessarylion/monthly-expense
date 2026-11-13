@@ -1,4 +1,5 @@
-/// Claude (Anthropic Messages API). Used to clean up the quick-add list.
+/// Claude (Anthropic Messages API). Picks expense categories and cleans up
+/// the quick-add list.
 const String claudeMessagesUrl = 'https://api.anthropic.com/v1/messages';
 const String claudeApiVersion = '2026-10-21';
 
@@ -10,3 +11,121 @@ const Duration claudeTimeout = Duration(seconds: 20);
 
 /// After Claude fails, show the plain list for this long before we ask again.
 const Duration claudeRetryAfter = Duration(minutes: 5);
+
+/// "Explain my month" writes a whole screen, so it may take longer.
+const Duration insightTimeout = Duration(seconds: 60);
+
+/// The A2UI components Claude may use for "Explain my month". The month is
+/// read-only, so no buttons or inputs. No `List`: the Dart SDK lets it have
+/// `listStyle`, which `@a2ui/react` 0.15 rejects. A `Column` does the same.
+const List<String> insightComponents = <String>[
+  'Text',
+  'Card',
+  'Column',
+  'Row',
+  'Divider',
+];
+
+/// How many of the month's biggest expenses Claude sees.
+const int insightTopExpenses = 8;
+
+const String insightSystemPrompt = '''
+You explain one month of spending to the person who logged it, in a small
+mobile screen. You get the month's numbers as JSON. Amounts are already in
+the group's currency; write them with the currency code, with thousands
+separators and no decimals unless the amount has cents ("2,643 THB").
+Percentages are worked out for you: use them as they are.
+
+Draw the screen with this layout exactly, top to bottom, in a root Column:
+
+1. Summary: a Column of three Texts.
+   - caption: a few words like "Spent in November".
+   - h2: the total only, like "2,643 THB".
+   - caption: with a budget, like "53% of your 5,000 THB budget ·
+     2,357 THB left" (or how much over it); without one, the expense count.
+2. Top categories: a Text h5 heading, then one Card. In the Card, a Column
+   with a Row per category (top 3, or fewer), and a Divider between rows.
+   Each Row (align center) has a Text with the name (weight 1), and a Text
+   with the amount and share, like "1,101 THB · 42%".
+3. Biggest expenses: a Text h5 heading, then one Card laid out the same
+   way: a Row per expense (top 5) with the note (weight 1) and the amount,
+   and a Divider between rows.
+4. Tips: a Text h5 heading, then one Card with a Column of one or two short,
+   kind tips, one Text each. No lecture.
+
+Only Text, Column, Row, Card and Divider. Never put more than one fact in a
+Text of a Row. Use plain, simple words. Keep it short. Do not invent
+numbers: use only the data you get. Write all text in the language you are
+told. Answer with one A2UI block only, with no other text.''';
+
+/// Smart add: at most this many expenses from one text.
+const int smartAddMaxItems = 10;
+
+/// The A2UI surface of smart add. One per answer.
+const String smartAddSurfaceId = 'smart-add';
+
+const String smartAddSystemPrompt = '''
+You read a short text where a person lists what they spent, like
+"lunch 5000, taxi 3000". Split it into expenses.
+
+- note: what the money was for, short, in the person's own words and language.
+- amount: the number as written. No currency conversion. 5k means 5000.
+- walletId: the id of the wallet the text names (from the list you get),
+  else null.
+- categoryId: the id of the category the expense belongs to (from the list
+  you get). Match by meaning: the names may be in another language than the
+  text. When nothing fits well, pick the one that means "other" if there is
+  one, else null.
+Leave out anything that is not an expense with an amount.
+
+The text is written by people in Myanmar: in English, in Burmese (Myanmar
+script, Unicode or Zawgyi), in Burmese written with Latin letters, or a mix
+(for example "Grab ကား 3000", "ထမင်း 5000"). A note can be just a shop or
+brand name.''';
+
+/// The JSON schema of Claude's smart add answer.
+const Map<String, Object?> smartAddSchema = <String, Object?>{
+  'type': 'object',
+  'properties': <String, Object?>{
+    'items': <String, Object?>{
+      'type': 'array',
+      'items': <String, Object?>{
+        'type': 'object',
+        'properties': <String, Object?>{
+          'note': <String, Object?>{'type': 'string'},
+          'amount': <String, Object?>{'type': 'number'},
+          'walletId': <String, Object?>{
+            'type': <String>['integer', 'null'],
+          },
+          'categoryId': <String, Object?>{
+            'type': <String>['integer', 'null'],
+          },
+        },
+        'required': <String>['note', 'amount', 'walletId', 'categoryId'],
+        'additionalProperties': false,
+      },
+    },
+  },
+  'required': <String>['items'],
+  'additionalProperties': false,
+};
+
+/// Button and label text of the smart add cards, per app language.
+const Map<String, Map<String, String>> smartAddText =
+    <String, Map<String, String>>{
+      'en': <String, String>{
+        'save': 'Save',
+        'edit': 'Edit',
+        'saved': '✓ Saved',
+        'noWallet': 'No wallet',
+        'nothing': 'No expenses found. Try "lunch 5000, taxi 3000".',
+      },
+      'my': <String, String>{
+        'save': 'သိမ်းမယ်',
+        'edit': 'ပြင်မယ်',
+        'saved': '✓ သိမ်းပြီးပြီ',
+        'noWallet': 'ပိုက်ဆံအိတ် မရွေးထားဘူး',
+        'nothing':
+            'အသုံးစရိတ် မတွေ့ဘူး။ "ထမင်း 5000, တက္ကစီ 3000" လို ရေးကြည့်ပါ။',
+      },
+    };

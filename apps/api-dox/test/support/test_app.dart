@@ -45,6 +45,7 @@ class FakeHttpFetch extends HttpFetch {
   /// URL prefix -> JSON body. A missing prefix is a failed fetch.
   final Map<String, Object?> answers = <String, Object?>{};
   int calls = 0;
+  String? lastPrompt;
 
   @override
   Future<Object?> getJson(
@@ -67,6 +68,7 @@ class FakeClaudeClient extends ClaudeClient {
   bool on = false;
   Object? answer;
   int calls = 0;
+  String? lastPrompt;
 
   @override
   bool get enabled => on;
@@ -78,7 +80,19 @@ class FakeClaudeClient extends ClaudeClient {
     required Map<String, Object?> schema,
   }) async {
     calls++;
+    lastPrompt = prompt;
     return answer;
+  }
+
+  @override
+  Future<String?> askText({
+    required String system,
+    required String prompt,
+    Duration timeout = Duration.zero,
+  }) async {
+    calls++;
+    lastPrompt = prompt;
+    return answer as String?;
   }
 }
 
