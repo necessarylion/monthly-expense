@@ -130,4 +130,19 @@ class AccountMemberGenerator extends Model<AccountMember> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<AccountMember> other) {
+    AccountMember o = other as AccountMember;
+    (this as AccountMember)
+      ..id = o.id
+      ..accountId = o.accountId
+      ..userId = o.userId
+      ..email = o.email
+      ..invitedByUserId = o.invitedByUserId
+      ..joinedAt = o.joinedAt
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

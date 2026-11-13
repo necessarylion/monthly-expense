@@ -123,4 +123,18 @@ class McpTokenGenerator extends Model<McpToken> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<McpToken> other) {
+    McpToken o = other as McpToken;
+    (this as McpToken)
+      ..id = o.id
+      ..userId = o.userId
+      ..name = o.name
+      ..tokenHash = o.tokenHash
+      ..lastUsedAt = o.lastUsedAt
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

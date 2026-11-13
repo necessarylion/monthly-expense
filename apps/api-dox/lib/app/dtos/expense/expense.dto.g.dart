@@ -23,6 +23,9 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
   String get name => 'CreateExpense';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CreateExpense? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -75,7 +78,7 @@ class _$CreateExpenseDto extends DtoSchema<CreateExpense> {
       'accountId',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -269,6 +272,9 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
   String get name => 'UpdateExpense';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   UpdateExpense? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -322,7 +328,7 @@ class _$UpdateExpenseDto extends DtoSchema<UpdateExpense> {
       'accountId',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -544,6 +550,9 @@ class _$MonthQueryDto extends DtoSchema<MonthQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   MonthQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -556,7 +565,7 @@ class _$MonthQueryDto extends DtoSchema<MonthQuery> {
     // month: String?
     Object? c1;
     c1 = s.string(s.read(input, 'month'), p, 'month', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -641,6 +650,9 @@ class _$SearchQueryDto extends DtoSchema<SearchQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   SearchQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -678,7 +690,7 @@ class _$SearchQueryDto extends DtoSchema<SearchQuery> {
     // to: String?
     Object? c4;
     c4 = s.string(s.read(input, 'to', emptyToNull: true), p, 'to', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -828,6 +840,9 @@ class _$YearQueryDto extends DtoSchema<YearQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   YearQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -840,7 +855,7 @@ class _$YearQueryDto extends DtoSchema<YearQuery> {
     // year: int?
     Object? c1;
     c1 = s.integer(s.read(input, 'year'), p, 'year', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(

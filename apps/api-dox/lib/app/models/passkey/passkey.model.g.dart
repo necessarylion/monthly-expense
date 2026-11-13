@@ -137,4 +137,20 @@ class PasskeyGenerator extends Model<Passkey> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<Passkey> other) {
+    Passkey o = other as Passkey;
+    (this as Passkey)
+      ..id = o.id
+      ..userId = o.userId
+      ..credentialId = o.credentialId
+      ..publicKey = o.publicKey
+      ..signCount = o.signCount
+      ..name = o.name
+      ..lastUsedAt = o.lastUsedAt
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

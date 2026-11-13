@@ -72,26 +72,30 @@ import 'package:api_dox/app/services/totp/totp.service.dart' as i64;
 import 'package:api_dox/app/services/user.service.dart' as i65;
 import 'package:api_dox/config/settings.dart' as i66;
 import 'package:api_dox/http/static_files.dart' as i67;
-import 'package:api_dox/routes/api.dart' as i68;
-import 'package:api_dox/routes/web.dart' as i69;
-import 'package:api_dox/app/models/account/account.model.dart' as i70;
+import 'package:api_dox/providers/auth_provider.dart' as i68;
+import 'package:api_dox/providers/orm_provider.dart' as i69;
+import 'package:api_dox/providers/schedule_provider.dart' as i70;
+import 'package:api_dox/providers/socket_io_provider.dart' as i71;
+import 'package:api_dox/routes/api.dart' as i72;
+import 'package:api_dox/routes/web.dart' as i73;
+import 'package:api_dox/app/models/account/account.model.dart' as i74;
 import 'package:api_dox/app/models/account_entry/account_entry.model.dart'
-    as i71;
+    as i75;
 import 'package:api_dox/app/models/account_member/account_member.model.dart'
-    as i72;
-import 'package:api_dox/app/models/category/category.model.dart' as i73;
-import 'package:api_dox/app/models/expense/expense.model.dart' as i74;
-import 'package:api_dox/app/models/group/group.model.dart' as i75;
-import 'package:api_dox/app/models/group_member/group_member.model.dart' as i76;
+    as i76;
+import 'package:api_dox/app/models/category/category.model.dart' as i77;
+import 'package:api_dox/app/models/expense/expense.model.dart' as i78;
+import 'package:api_dox/app/models/group/group.model.dart' as i79;
+import 'package:api_dox/app/models/group_member/group_member.model.dart' as i80;
 import 'package:api_dox/app/models/group_monthly_budget/group_monthly_budget.model.dart'
-    as i77;
-import 'package:api_dox/app/models/mcp_token/mcp_token.model.dart' as i78;
-import 'package:api_dox/app/models/passkey/passkey.model.dart' as i79;
-import 'package:api_dox/app/models/recurring_expense/recurring_expense.model.dart'
-    as i80;
-import 'package:api_dox/app/models/shopping_item/shopping_item.model.dart'
     as i81;
-import 'package:api_dox/app/models/user/user.model.dart' as i82;
+import 'package:api_dox/app/models/mcp_token/mcp_token.model.dart' as i82;
+import 'package:api_dox/app/models/passkey/passkey.model.dart' as i83;
+import 'package:api_dox/app/models/recurring_expense/recurring_expense.model.dart'
+    as i84;
+import 'package:api_dox/app/models/shopping_item/shopping_item.model.dart'
+    as i85;
+import 'package:api_dox/app/models/user/user.model.dart' as i86;
 
 /// Puts every class of the app into the container: the
 /// `@Inject()` classes, routers, providers and model binders.
@@ -682,71 +686,77 @@ void registerContainer(IocContainer c) {
   c.singleton<i67.StaticFiles>(
     (IocContainer c) => i67.StaticFiles(c.get<i66.AppSettings>()),
   );
-  c.router<i68.ApiRouter>((IocContainer c) => i68.ApiRouter());
-  c.router<i69.WebRouter>((IocContainer c) => i69.WebRouter());
-  c.bindModel<i70.Account>((String id) {
+  c.provider<i68.AppAuthProvider>((IocContainer c) => i68.AppAuthProvider());
+  c.provider<i69.ORMProvider>((IocContainer c) => i69.ORMProvider());
+  c.provider<i70.ScheduleProvider>((IocContainer c) => i70.ScheduleProvider());
+  c.provider<i71.AppSocketIoProvider>(
+    (IocContainer c) => i71.AppSocketIoProvider(),
+  );
+  c.router<i72.ApiRouter>((IocContainer c) => i72.ApiRouter());
+  c.router<i73.WebRouter>((IocContainer c) => i73.WebRouter());
+  c.bindModel<i74.Account>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i70.Account().find(key);
+    return i74.Account().find(key);
   });
-  c.bindModel<i71.AccountEntry>((String id) {
+  c.bindModel<i75.AccountEntry>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i71.AccountEntry().find(key);
+    return i75.AccountEntry().find(key);
   });
-  c.bindModel<i72.AccountMember>((String id) {
+  c.bindModel<i76.AccountMember>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i72.AccountMember().find(key);
+    return i76.AccountMember().find(key);
   });
-  c.bindModel<i73.Category>((String id) {
+  c.bindModel<i77.Category>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i73.Category().find(key);
+    return i77.Category().find(key);
   });
-  c.bindModel<i74.Expense>((String id) {
+  c.bindModel<i78.Expense>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i74.Expense().find(key);
+    return i78.Expense().find(key);
   });
-  c.bindModel<i75.Group>((String id) {
+  c.bindModel<i79.Group>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i75.Group().find(key);
+    return i79.Group().find(key);
   });
-  c.bindModel<i76.GroupMember>((String id) {
+  c.bindModel<i80.GroupMember>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i76.GroupMember().find(key);
+    return i80.GroupMember().find(key);
   });
-  c.bindModel<i77.GroupMonthlyBudget>((String id) {
+  c.bindModel<i81.GroupMonthlyBudget>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i77.GroupMonthlyBudget().find(key);
+    return i81.GroupMonthlyBudget().find(key);
   });
-  c.bindModel<i78.McpToken>((String id) {
+  c.bindModel<i82.McpToken>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i78.McpToken().find(key);
+    return i82.McpToken().find(key);
   });
-  c.bindModel<i79.Passkey>((String id) {
+  c.bindModel<i83.Passkey>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i79.Passkey().find(key);
+    return i83.Passkey().find(key);
   });
-  c.bindModel<i80.RecurringExpense>((String id) {
+  c.bindModel<i84.RecurringExpense>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i80.RecurringExpense().find(key);
+    return i84.RecurringExpense().find(key);
   });
-  c.bindModel<i81.ShoppingItem>((String id) {
+  c.bindModel<i85.ShoppingItem>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i81.ShoppingItem().find(key);
+    return i85.ShoppingItem().find(key);
   });
-  c.bindModel<i82.User>((String id) {
+  c.bindModel<i86.User>((String id) {
     int? key = int.tryParse(id);
     if (key == null) return null;
-    return i82.User().find(key);
+    return i86.User().find(key);
   });
 }

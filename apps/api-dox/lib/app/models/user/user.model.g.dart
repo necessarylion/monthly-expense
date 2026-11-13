@@ -137,4 +137,20 @@ class UserGenerator extends Model<User> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<User> other) {
+    User o = other as User;
+    (this as User)
+      ..id = o.id
+      ..firebaseUid = o.firebaseUid
+      ..email = o.email
+      ..displayName = o.displayName
+      ..photoUrl = o.photoUrl
+      ..totpSecret = o.totpSecret
+      ..totpEnabled = o.totpEnabled
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

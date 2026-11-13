@@ -261,10 +261,10 @@ packages:
     dependency: "direct dev"
     description:
       name: dox_builder
-      sha256: f519976380c220ed1049a30e4e6d6a3bd6dfbefc30d80b9dbabe590d94e23161
+      sha256: "66e789591b76c1a87ba35cce6361dc7048dc23e70a5132e032e96a19b9b4e473"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.2"
+    version: "3.2.0"
   dox_cache:
     dependency: transitive
     description:
@@ -293,18 +293,18 @@ packages:
     dependency: "direct main"
     description:
       name: dox_mcp
-      sha256: ad03d3b878b05dceee94ce8c96134f55c36acebfcad4647b5f4a423f1e2981e9
+      sha256: "23ad2d368340144c2282d7a9f0b8371030ce9843bc716f7c12d49a131d6fcf77"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.2"
+    version: "3.2.0"
   dox_migration:
     dependency: "direct main"
     description:
       name: dox_migration
-      sha256: "162bdcf75a4dcfe875d66ac1b7b935d9c71df2f9d15ffcdb9958650837c6861e"
+      sha256: be6e9618270174da6ec47a9a326c5ebf7ea5fad77cd067fc578ff1fdbbc799bd
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.2.0"
   dox_mysql_native:
     dependency: transitive
     description:
@@ -341,18 +341,18 @@ packages:
     dependency: "direct main"
     description:
       name: dox_scheduler
-      sha256: bb0f639acd35a7f6a9d9f10e6ca77ca858c8854ca8fc88f54620504f069edc5c
+      sha256: "6b1f239a88efe1e5b39bf54c517f8d338e705eefe247bc32924025dae92706ad"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "3.2.0"
   dox_socketio:
     dependency: "direct main"
     description:
       name: dox_socketio
-      sha256: "1ee8d0bf490a1e7dfa1a018653cd1db7eb3b302660bc3376cb3db9a716bf3264"
+      sha256: b8876f521a8dde856500f83ba5bc07ce543fa54d41eff0ed3d9eca84876e81fa
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "3.2.0"
   dox_validation:
     dependency: transitive
     description:

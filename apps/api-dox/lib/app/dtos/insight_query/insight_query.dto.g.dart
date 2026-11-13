@@ -26,6 +26,9 @@ class _$InsightQueryDto extends DtoSchema<InsightQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   InsightQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -38,7 +41,7 @@ class _$InsightQueryDto extends DtoSchema<InsightQuery> {
     // lang: String?
     Object? c1;
     c1 = s.string(s.read(input, 'lang'), p, 'lang', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(const DateFormatted('Y-m').check(c0, s.context(p, 'month', c0)))) {
         s.failRule(const DateFormatted('Y-m'), p, 'month', c0, _m);

@@ -123,4 +123,18 @@ class ShoppingItemGenerator extends Model<ShoppingItem> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<ShoppingItem> other) {
+    ShoppingItem o = other as ShoppingItem;
+    (this as ShoppingItem)
+      ..id = o.id
+      ..groupId = o.groupId
+      ..name = o.name
+      ..doneAt = o.doneAt
+      ..createdByUserId = o.createdByUserId
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

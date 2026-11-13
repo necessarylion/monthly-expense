@@ -23,6 +23,9 @@ class _$CreateRecurringDto extends DtoSchema<CreateRecurring> {
   String get name => 'CreateRecurring';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CreateRecurring? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -76,7 +79,7 @@ class _$CreateRecurringDto extends DtoSchema<CreateRecurring> {
       'accountId',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(

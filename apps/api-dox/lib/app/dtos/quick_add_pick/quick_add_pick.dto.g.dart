@@ -25,6 +25,9 @@ class _$QuickAddPickDto extends DtoSchema<QuickAddPick> {
   String get name => 'QuickAddPick';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   QuickAddPick? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -47,6 +50,7 @@ class _$QuickAddPickDto extends DtoSchema<QuickAddPick> {
     Object? c0;
     c0 = s.list(s.read(input, 'ids'), p, 'ids', _m);
     if (c0 is List) {
+      int b0 = s.issues.length;
       List<Object> q0 = <Object>[...p, 'ids'];
       List<int> o0 = <int>[];
       for (int i0 = 0; i0 < c0.length; i0++) {
@@ -58,9 +62,13 @@ class _$QuickAddPickDto extends DtoSchema<QuickAddPick> {
           o0.add(x0 as int);
         }
       }
-      c0 = o0;
+      c0 = s.issues.length != b0 ? invalid : o0;
     }
-    if (c0 == null || c0 is Undefined) s.required(p, 'ids', _m);
+    if (c0 == null || c0 is Undefined || s.emptyList(c0)) {
+      s.required(p, 'ids', _m);
+      c0 = invalid;
+    }
+    if (s.issues.length != e && !s.allErrors) return null;
     if (s.issues.length != e) return null;
     return QuickAddPick(ids: c0 as List<int>);
   }

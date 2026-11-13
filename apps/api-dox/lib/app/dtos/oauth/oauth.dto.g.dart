@@ -27,6 +27,9 @@ class _$OauthClientQueryDto extends DtoSchema<OauthClientQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   OauthClientQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -41,7 +44,7 @@ class _$OauthClientQueryDto extends DtoSchema<OauthClientQuery> {
     Object? c1;
     c1 = s.string(s.read(input, 'redirect_uri'), p, 'redirect_uri', _m);
     if (c1 == null || c1 is Undefined) s.required(p, 'redirect_uri', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 2000)) {
         s.fail(
@@ -124,6 +127,9 @@ class _$ApproveOauthDto extends DtoSchema<ApproveOauth> {
   String get name => 'ApproveOauth';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   ApproveOauth? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -177,7 +183,7 @@ class _$ApproveOauthDto extends DtoSchema<ApproveOauth> {
       'resource',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 2000)) {
         s.fail(
@@ -357,6 +363,9 @@ class _$DenyOauthDto extends DtoSchema<DenyOauth> {
   String get name => 'DenyOauth';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   DenyOauth? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -384,7 +393,7 @@ class _$DenyOauthDto extends DtoSchema<DenyOauth> {
     // state: String?
     Object? c2;
     c2 = s.string(s.read(input, 'state', emptyToNull: true), p, 'state', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 2000)) {
         s.fail(

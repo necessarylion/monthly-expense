@@ -23,6 +23,9 @@ class _$SmartAddTextDto extends DtoSchema<SmartAddText> {
   String get name => 'SmartAddText';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   SmartAddText? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -40,7 +43,7 @@ class _$SmartAddTextDto extends DtoSchema<SmartAddText> {
     // lang: String?
     Object? c2;
     c2 = s.string(s.read(input, 'lang'), p, 'lang', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 500)) {
         s.fail(
@@ -146,6 +149,9 @@ class _$SmartAddActionDto extends DtoSchema<SmartAddAction> {
   String get name => 'SmartAddAction';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   SmartAddAction? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -177,7 +183,7 @@ class _$SmartAddActionDto extends DtoSchema<SmartAddAction> {
     // lang: String?
     Object? c3;
     c3 = s.string(s.read(input, 'lang'), p, 'lang', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(const <String>{'save_expense'}.contains(c0))) {
         s.fail(

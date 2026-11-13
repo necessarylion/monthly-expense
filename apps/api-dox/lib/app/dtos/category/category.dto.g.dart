@@ -23,6 +23,9 @@ class _$CreateCategoryDto extends DtoSchema<CreateCategory> {
   String get name => 'CreateCategory';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CreateCategory? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -67,7 +70,7 @@ class _$CreateCategoryDto extends DtoSchema<CreateCategory> {
       trim: true,
     );
     if (c3 == null || c3 is Undefined) s.required(p, 'color', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -198,6 +201,9 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
   String get name => 'UpdateCategory';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   UpdateCategory? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -245,7 +251,7 @@ class _$UpdateCategoryDto extends DtoSchema<UpdateCategory> {
     // budget: Maybe<num?>
     Object? c5;
     c5 = s.number(s.read(input, 'budget', emptyToNull: true), p, 'budget', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(

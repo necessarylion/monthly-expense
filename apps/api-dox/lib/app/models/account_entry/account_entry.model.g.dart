@@ -130,4 +130,19 @@ class AccountEntryGenerator extends Model<AccountEntry> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<AccountEntry> other) {
+    AccountEntry o = other as AccountEntry;
+    (this as AccountEntry)
+      ..id = o.id
+      ..accountId = o.accountId
+      ..expenseId = o.expenseId
+      ..amountCents = o.amountCents
+      ..occurredOn = o.occurredOn
+      ..note = o.note
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

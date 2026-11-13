@@ -128,4 +128,19 @@ class CategoryGenerator extends Model<Category> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<Category> other) {
+    Category o = other as Category;
+    (this as Category)
+      ..id = o.id
+      ..groupId = o.groupId
+      ..name = o.name
+      ..slug = o.slug
+      ..iconKey = o.iconKey
+      ..color = o.color
+      ..budgetCents = o.budgetCents
+      ..createdAtText = o.createdAtText;
+    return true;
+  }
 }

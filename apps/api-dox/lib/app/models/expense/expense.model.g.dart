@@ -137,4 +137,20 @@ class ExpenseGenerator extends Model<Expense> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<Expense> other) {
+    Expense o = other as Expense;
+    (this as Expense)
+      ..id = o.id
+      ..groupId = o.groupId
+      ..createdByUserId = o.createdByUserId
+      ..categoryId = o.categoryId
+      ..amountCents = o.amountCents
+      ..occurredOn = o.occurredOn
+      ..note = o.note
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

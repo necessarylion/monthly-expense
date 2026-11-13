@@ -23,6 +23,9 @@ class _$AddPasskeyDto extends DtoSchema<AddPasskey> {
   String get name => 'AddPasskey';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   AddPasskey? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -63,7 +66,7 @@ class _$AddPasskeyDto extends DtoSchema<AddPasskey> {
     Object? c5;
     c5 = s.string(s.read(input, 'name'), p, 'name', _m, trim: true);
     if (c5 == null || c5 is Undefined) s.required(p, 'name', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 1400)) {
         s.fail(
@@ -235,6 +238,9 @@ class _$PasskeyLoginDto extends DtoSchema<PasskeyLogin> {
   String get name => 'PasskeyLogin';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   PasskeyLogin? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -262,7 +268,7 @@ class _$PasskeyLoginDto extends DtoSchema<PasskeyLogin> {
     Object? c3;
     c3 = s.string(s.read(input, 'signature'), p, 'signature', _m);
     if (c3 == null || c3 is Undefined) s.required(p, 'signature', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 1400)) {
         s.fail(

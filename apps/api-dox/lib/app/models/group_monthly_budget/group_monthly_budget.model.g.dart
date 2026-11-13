@@ -115,4 +115,17 @@ class GroupMonthlyBudgetGenerator extends Model<GroupMonthlyBudget> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<GroupMonthlyBudget> other) {
+    GroupMonthlyBudget o = other as GroupMonthlyBudget;
+    (this as GroupMonthlyBudget)
+      ..id = o.id
+      ..groupId = o.groupId
+      ..monthKey = o.monthKey
+      ..budgetCents = o.budgetCents
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }
