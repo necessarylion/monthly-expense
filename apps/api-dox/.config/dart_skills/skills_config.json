@@ -1,0 +1,149 @@
+{
+  "version": 2,
+  "installations": {
+    "generic": {
+      "package:dox_auth": {
+        "skills": [
+          {
+            "name": "dox-auth-guide",
+            "installedAt": "2026-11-13T11:08:40.820823Z",
+            "contentHash": "tV3udl8b0c/rw3X1SeoQJw==",
+            "path": "skills/dox-auth-guide"
+          }
+        ]
+      },
+      "package:dox_core": {
+        "skills": [
+          {
+            "name": "dox-core-guide",
+            "installedAt": "2026-11-13T11:08:40.821940Z",
+            "contentHash": "Tuvevr66EzZFULSnNS7wdQ==",
+            "path": "skills/dox-core-guide"
+          }
+        ]
+      },
+      "package:dox_mcp": {
+        "skills": [
+          {
+            "name": "dox-mcp-guide",
+            "installedAt": "2026-11-13T11:08:40.822644Z",
+            "contentHash": "5CUyArnJB/E5CdOD/PiI2w==",
+            "path": "skills/dox-mcp-guide"
+          }
+        ]
+      },
+      "package:dox_migration": {
+        "skills": [
+          {
+            "name": "dox-migration-guide",
+            "installedAt": "2026-11-13T11:08:40.823285Z",
+            "contentHash": "nkryC2vukGPgIgIqV66G8g==",
+            "path": "skills/dox-migration-guide"
+          }
+        ]
+      },
+      "package:dox_orm": {
+        "skills": [
+          {
+            "name": "dox-orm-guide",
+            "installedAt": "2026-11-13T11:08:40.823948Z",
+            "contentHash": "BBT0PcuwNynoCltu3g0OfQ==",
+            "path": "skills/dox-orm-guide"
+          }
+        ]
+      },
+      "package:dox_scheduler": {
+        "skills": [
+          {
+            "name": "dox-scheduler-guide",
+            "installedAt": "2026-11-13T11:08:40.824594Z",
+            "contentHash": "GJShCZOEVvKxASLaIRbE2A==",
+            "path": "skills/dox-scheduler-guide"
+          }
+        ]
+      },
+      "package:dox_socketio": {
+        "skills": [
+          {
+            "name": "dox-socketio-guide",
+            "installedAt": "2026-11-13T11:08:40.825230Z",
+            "contentHash": "/PFNjOFMSWngsbk1dmf/2w==",
+            "path": "skills/dox-socketio-guide"
+          }
+        ]
+      }
+    },
+    "claude": {
+      "package:dox_auth": {
+        "skills": [
+          {
+            "name": "dox-auth-guide",
+            "installedAt": "2026-11-13T11:08:40.826800Z",
+            "contentHash": "OFTa88W1QNvFReIHGVszUg==",
+            "path": "skills/dox-auth-guide"
+          }
+        ]
+      },
+      "package:dox_core": {
+        "skills": [
+          {
+            "name": "dox-core-guide",
+            "installedAt": "2026-11-13T11:08:40.828681Z",
+            "contentHash": "TPJuNIoxenVcORzkarc80Q==",
+            "path": "skills/dox-core-guide"
+          }
+        ]
+      },
+      "package:dox_mcp": {
+        "skills": [
+          {
+            "name": "dox-mcp-guide",
+            "installedAt": "2026-11-13T11:08:40.830301Z",
+            "contentHash": "nvkVwEAfVPsV/USIW4e+8Q==",
+            "path": "skills/dox-mcp-guide"
+          }
+        ]
+      },
+      "package:dox_migration": {
+        "skills": [
+          {
+            "name": "dox-migration-guide",
+            "installedAt": "2026-11-13T11:08:40.831358Z",
+            "contentHash": "n2Rwu9aorgA72dDYcyr5oA==",
+            "path": "skills/dox-migration-guide"
+          }
+        ]
+      },
+      "package:dox_orm": {
+        "skills": [
+          {
+            "name": "dox-orm-guide",
+            "installedAt": "2026-11-13T11:08:40.832454Z",
+            "contentHash": "R7E3kMGO6MPraz2qHCHoyQ==",
+            "path": "skills/dox-orm-guide"
+          }
+        ]
+      },
+      "package:dox_scheduler": {
+        "skills": [
+          {
+            "name": "dox-scheduler-guide",
+            "installedAt": "2026-11-13T11:08:40.833552Z",
+            "contentHash": "cKxl3b5ZxGQbSLp79EpLwQ==",
+            "path": "skills/dox-scheduler-guide"
+          }
+        ]
+      },
+      "package:dox_socketio": {
+        "skills": [
+          {
+            "name": "dox-socketio-guide",
+            "installedAt": "2026-11-13T11:08:40.834655Z",
+            "contentHash": "MC8HhbK1/e/LecMYel/JDw==",
+            "path": "skills/dox-socketio-guide"
+          }
+        ]
+      }
+    }
+  }
+}
