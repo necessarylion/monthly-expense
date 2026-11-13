@@ -105,6 +105,8 @@ export interface AccountEntry {
   amountCents: number
   occurredOn: string
   note: string | null
+  /** Set when an expense booked it; editing it edits that expense too. */
+  expenseId: number | null
 }
 
 export interface ShoppingItem {

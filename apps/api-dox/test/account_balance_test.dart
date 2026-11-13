@@ -93,6 +93,61 @@ void main() {
     },
   );
 
+  test('editing an expense entry edits the expense too', () async {
+    Account wallet = await account('Synced', 'THB');
+    Group group = await get<GroupRepository>().create(
+      name: 'entry-edit',
+      currency: 'THB',
+      createdByUserId: null,
+    );
+    ExpenseRepository expenseRepo = get<ExpenseRepository>();
+    Expense expense = await expenseRepo.create(
+      groupId: group.id!,
+      createdByUserId: user.id,
+      categoryId: null,
+      amountCents: 5000,
+      occurredOn: '2026-08-19',
+      note: 'Lunch',
+    );
+    AccountService service = get<AccountService>();
+    await service.recordExpenseOutflow(
+      user,
+      expense,
+      null,
+      hasAccountId: true,
+      accountId: wallet.id,
+    );
+    AccountEntry entry = (await get<AccountEntryRepository>().findByExpenseId(
+      expense.id!,
+    ))!;
+
+    await service.updateEntry(
+      entry,
+      const UpdateEntry(
+        amount: -70,
+        occurredOn: '2026-08-20',
+        note: Maybe<String?>('Dinner'),
+      ),
+    );
+    Expense after = (await expenseRepo.findById(expense.id!))!;
+    expect(after.amountCents, 7000);
+    expect(after.occurredOn, '2026-08-20');
+    expect(after.note, 'Dinner');
+
+    // A cleared entry note keeps the expense note.
+    await service.updateEntry(
+      entry,
+      const UpdateEntry(note: Maybe<String?>(null)),
+    );
+    expect((await expenseRepo.findById(expense.id!))!.note, 'Dinner');
+
+    // An expense cannot become money in.
+    await expectLater(
+      service.updateEntry(entry, const UpdateEntry(amount: 10)),
+      throwsA(isA<HttpError>()),
+    );
+  });
+
   test('transfer writes one OUT and one IN entry', () async {
     Account from = await account('From', 'THB');
     Account to = await account('To', 'USD');

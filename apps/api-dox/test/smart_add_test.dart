@@ -102,6 +102,10 @@ void main() {
       (dynamic c) => c['id'] == 'save_0',
     ) as Map<String, dynamic>;
     expect(button['action']['event']['name'], 'save_expense');
+    Map<String, dynamic> editButton = components.firstWhere(
+      (dynamic c) => c['id'] == 'edit_0',
+    ) as Map<String, dynamic>;
+    expect(editButton['action']['event']['name'], 'edit_expense');
     expect(button['action']['event']['context']['amount'], <String, dynamic>{
       'path': '/items/0/amount',
     });
@@ -139,6 +143,12 @@ void main() {
             as Map<String, dynamic>;
     expect(label['id'], 'save_0');
     expect(label['component'], 'Text');
+    // The saved row loses its Edit button.
+    Map<String, dynamic> row =
+        (messages.first['updateComponents']['components'] as List<dynamic>).last
+            as Map<String, dynamic>;
+    expect(row['id'], 'item_0');
+    expect(row['children'], isNot(contains('edit_0')));
 
     TestResponse list = await app.call(
       '/api/v1/expenses?month=2026-11',

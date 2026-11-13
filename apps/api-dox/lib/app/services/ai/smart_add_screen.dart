@@ -53,8 +53,10 @@ class SmartAddScreen {
   final Map<String, String> text;
 
   /// One card that lists the items, a row each: the note and its category
-  /// and wallet on the left, the amount and a Save button (`save_<index>`)
-  /// on the right.
+  /// and wallet on the left, the amount, an Edit button (`edit_<index>`) and
+  /// a Save button (`save_<index>`) on the right. The app answers Edit
+  /// itself: it changes `/items/<index>` in the data model, so Save sends
+  /// the edited values.
   List<Map<String, Object?>> cards(List<SmartAddItem> items, String currency) {
     if (items.isEmpty) {
       return <Map<String, Object?>>[
@@ -114,15 +116,26 @@ class SmartAddScreen {
   }
 
   /// After a save: the button becomes a "Saved" label, so it cannot be
-  /// tapped twice.
+  /// tapped twice, and the row loses its Edit button.
   List<Map<String, Object?>> saved(String buttonId) {
+    String i = buttonId.substring('save_'.length);
     return <Map<String, Object?>>[
       _message('updateComponents', <String, Object?>{
         'components': <Map<String, Object?>>[
           _text(buttonId, text['saved']!, variant: 'caption'),
+          _rowOf(i, <String>['info_$i', 'amount_$i', buttonId]),
         ],
       }),
     ];
+  }
+
+  static Map<String, Object?> _rowOf(Object i, List<String> children) {
+    return <String, Object?>{
+      'id': 'item_$i',
+      'component': 'Row',
+      'align': 'center',
+      'children': children,
+    };
   }
 
   List<Map<String, Object?>> _row(int i) {
@@ -130,12 +143,7 @@ class SmartAddScreen {
       'path': '/items/$i/$key',
     };
     return <Map<String, Object?>>[
-      <String, Object?>{
-        'id': 'item_$i',
-        'component': 'Row',
-        'align': 'center',
-        'children': <String>['info_$i', 'amount_$i', 'save_$i'],
-      },
+      _rowOf(i, <String>['info_$i', 'amount_$i', 'edit_$i', 'save_$i']),
       <String, Object?>{
         'id': 'info_$i',
         'component': 'Column',
@@ -159,6 +167,25 @@ class SmartAddScreen {
         'variant': 'h5',
         'text': at('amountText'),
       },
+      <String, Object?>{
+        'id': 'edit_$i',
+        'component': 'Button',
+        'variant': 'borderless',
+        'child': 'edit_label_$i',
+        'action': <String, Object?>{
+          'event': <String, Object?>{
+            'name': 'edit_expense',
+            'context': <String, Object?>{
+              'note': at('note'),
+              'amount': at('amount'),
+              'occurredOn': at('occurredOn'),
+              'accountId': at('accountId'),
+              'categoryId': at('categoryId'),
+            },
+          },
+        },
+      },
+      _text('edit_label_$i', text['edit']!),
       <String, Object?>{
         'id': 'save_$i',
         'component': 'Button',

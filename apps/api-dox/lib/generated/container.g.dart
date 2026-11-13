@@ -511,6 +511,7 @@ void registerContainer(IocContainer c) {
       c.get<i27.AccountMemberRepository>(),
       c.get<i40.AccountShareService>(),
       c.get<i58.LiveService>(),
+      c.get<i31.ExpenseRepository>(),
     ),
   );
   c.singleton<i40.AccountShareService>(

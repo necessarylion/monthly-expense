@@ -42,7 +42,7 @@ import { Page } from './page'
 type SheetState =
   | { kind: 'none' }
   | { kind: 'form'; account: Account | null }
-  | { kind: 'entry'; accountId: number | null; mode?: 'set' }
+  | { kind: 'entry'; accountId: number | null; mode?: 'set'; entry?: AccountEntry }
   | { kind: 'detail'; entry: AccountEntry }
   | { kind: 'transfer' }
 
@@ -466,9 +466,14 @@ export function AccountsScreen() {
         open={sheet.kind === 'entry'}
         accountId={sheet.kind === 'entry' ? sheet.accountId : null}
         initialMode={sheet.kind === 'entry' ? sheet.mode : undefined}
+        entry={sheet.kind === 'entry' ? sheet.entry : undefined}
         onClose={() => setSheet({ kind: 'none' })}
       />
-      <EntryDetailSheet entry={sheet.kind === 'detail' ? sheet.entry : null} onClose={() => setSheet({ kind: 'none' })} />
+      <EntryDetailSheet
+        entry={sheet.kind === 'detail' ? sheet.entry : null}
+        onClose={() => setSheet({ kind: 'none' })}
+        onEdit={(e) => setSheet({ kind: 'entry', accountId: e.accountId, entry: e })}
+      />
       <TransferSheet open={sheet.kind === 'transfer'} onClose={() => setSheet({ kind: 'none' })} />
       <ConfirmDialog
         open={pendingDelete !== null}
