@@ -144,4 +144,21 @@ class GroupGenerator extends Model<Group> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<Group> other) {
+    Group o = other as Group;
+    (this as Group)
+      ..id = o.id
+      ..name = o.name
+      ..currency = o.currency
+      ..createdByUserId = o.createdByUserId
+      ..splitEnabled = o.splitEnabled
+      ..kind = o.kind
+      ..tripStart = o.tripStart
+      ..tripDays = o.tripDays
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

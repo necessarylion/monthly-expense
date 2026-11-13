@@ -25,6 +25,9 @@ class _$CreateGroupDto extends DtoSchema<CreateGroup> {
   String get name => 'CreateGroup';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CreateGroup? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -70,7 +73,7 @@ class _$CreateGroupDto extends DtoSchema<CreateGroup> {
       'tripDays',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 80)) {
         s.fail(
@@ -238,6 +241,9 @@ class _$UpdateGroupDto extends DtoSchema<UpdateGroup> {
   String get name => 'UpdateGroup';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   UpdateGroup? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -298,7 +304,7 @@ class _$UpdateGroupDto extends DtoSchema<UpdateGroup> {
       'tripDays',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -498,6 +504,9 @@ class _$SetBudgetDto extends DtoSchema<SetBudget> {
   bool get hasChecks => true;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   SetBudget? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -525,7 +534,7 @@ class _$SetBudgetDto extends DtoSchema<SetBudget> {
     // budget: Maybe<num?>
     Object? c2;
     c2 = s.number(s.read(input, 'budget', emptyToNull: true), p, 'budget', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -652,6 +661,9 @@ class _$InviteDto extends DtoSchema<Invite> {
   String get name => 'Invite';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   Invite? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -685,7 +697,7 @@ class _$InviteDto extends DtoSchema<Invite> {
       textCase: 1,
     );
     if (c2 == null || c2 is Undefined) s.required(p, 'email', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -795,12 +807,16 @@ class _$NoInputDto extends DtoSchema<NoInput> {
   String get name => 'NoInput';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   NoInput? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
       return null;
     }
     int e = s.issues.length;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (s.issues.length != e) return null;
     return NoInput();
   }
@@ -840,6 +856,9 @@ class _$GroupRefDto extends DtoSchema<GroupRef> {
   String get name => 'GroupRef';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   GroupRef? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -850,7 +869,7 @@ class _$GroupRefDto extends DtoSchema<GroupRef> {
     Object? c0;
     c0 = s.integer(s.read(input, 'groupId'), p, 'groupId', _m);
     if (c0 == null || c0 is Undefined) s.required(p, 'groupId', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -911,6 +930,9 @@ class _$GroupItemRefDto extends DtoSchema<GroupItemRef> {
   String get name => 'GroupItemRef';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   GroupItemRef? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -925,7 +947,7 @@ class _$GroupItemRefDto extends DtoSchema<GroupItemRef> {
     Object? c1;
     c1 = s.integer(s.read(input, 'id'), p, 'id', _m);
     if (c1 == null || c1 is Undefined) s.required(p, 'id', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -1008,6 +1030,9 @@ class _$GroupMemberRefDto extends DtoSchema<GroupMemberRef> {
   String get name => 'GroupMemberRef';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   GroupMemberRef? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1022,7 +1047,7 @@ class _$GroupMemberRefDto extends DtoSchema<GroupMemberRef> {
     Object? c1;
     c1 = s.integer(s.read(input, 'memberId'), p, 'memberId', _m);
     if (c1 == null || c1 is Undefined) s.required(p, 'memberId', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(

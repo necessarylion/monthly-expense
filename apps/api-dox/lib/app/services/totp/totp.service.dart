@@ -5,6 +5,7 @@ import 'package:api_dox/app/services/totp/totp.dart';
 import 'package:api_dox/config/env.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/http_error.dart';
+import 'package:dox_auth/dox_auth.dart';
 import 'package:dox_core/dox_core.dart';
 
 /// Two-step sign-in with an authenticator app.
@@ -35,7 +36,7 @@ class TotpService {
 
   /// Step 2: one right code proves the app has the secret. Marks [token],
   /// so this browser stays signed in. Other browsers are asked for a code.
-  Future<void> enable(User user, ApiToken token, String code) async {
+  Future<void> enable(User user, AccessToken token, String code) async {
     _mustBeOff(user);
     await _check(user, code);
     await users.update(user.id!, <String, dynamic>{'totp_enabled': true});
@@ -43,7 +44,7 @@ class TotpService {
   }
 
   /// The second step of a sign-in: marks [token].
-  Future<void> verify(User user, ApiToken token, String code) async {
+  Future<void> verify(User user, AccessToken token, String code) async {
     if (user.totpEnabled != true) {
       throw HttpError.unprocessable('Two-step sign-in is off');
     }

@@ -137,4 +137,20 @@ class GroupMemberGenerator extends Model<GroupMember> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<GroupMember> other) {
+    GroupMember o = other as GroupMember;
+    (this as GroupMember)
+      ..id = o.id
+      ..groupId = o.groupId
+      ..userId = o.userId
+      ..email = o.email
+      ..invitedByUserId = o.invitedByUserId
+      ..joinedAt = o.joinedAt
+      ..defaultAccountId = o.defaultAccountId
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

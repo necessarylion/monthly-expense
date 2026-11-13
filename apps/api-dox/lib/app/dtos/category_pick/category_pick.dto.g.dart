@@ -25,6 +25,9 @@ class _$CategoryPickDto extends DtoSchema<CategoryPick> {
   String get name => 'CategoryPick';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CategoryPick? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -47,6 +50,7 @@ class _$CategoryPickDto extends DtoSchema<CategoryPick> {
     Object? c0;
     c0 = s.integer(s.read(input, 'categoryId'), p, 'categoryId', _m);
     if (c0 == null || c0 is Undefined) s.required(p, 'categoryId', _m);
+    if (s.issues.length != e && !s.allErrors) return null;
     if (s.issues.length != e) return null;
     return CategoryPick(categoryId: c0 as int);
   }

@@ -1,14 +1,9 @@
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:api_dox/app/models/models.dart';
-import 'package:api_dox/app/repositories/api_token.repository.dart';
-import 'package:api_dox/app/repositories/user.repository.dart';
 import 'package:api_dox/app/services/firebase.service.dart';
 import 'package:api_dox/app/services/user.service.dart';
 import 'package:api_dox/constants/limits.dart';
 import 'package:api_dox/http/http_error.dart';
-import 'package:api_dox/utils/date_util.dart';
+import 'package:dox_auth/dox_auth.dart';
 import 'package:dox_core/dox_core.dart';
 
 /// A signed-in browser: the user, and the token row it sent.
@@ -16,26 +11,26 @@ class ApiSession {
   const ApiSession(this.user, this.token);
 
   final User user;
-  final ApiToken token;
+  final AccessToken token;
 
   /// This sign-in gave the two-step code, or used a passkey.
-  bool get secondFactor => token.secondFactor == true;
+  bool get secondFactor => token.can(secondFactorAbility);
 }
 
-/// The web app's own tokens. Firebase is checked once, at sign-in
-/// ([signIn]), and never again: each call costs one lookup by hash, and the
-/// app trades its token for a new one before it ends ([refresh]). Only the
+/// The web app's tokens: dox_auth access tokens (`AccessTokenAuthDriver`,
+/// table `auth_access_tokens`). Firebase is checked once, at sign-in
+/// ([signIn]), and never again: each call costs one lookup, and the app
+/// trades its token for a new one before it ends ([refresh]). Only a
 /// SHA-256 is stored, so a row can be deleted to sign that browser out.
 @Inject()
 class ApiTokenService {
-  ApiTokenService(this.tokens, this.users, this.userService, this.firebase);
+  ApiTokenService(this.userService, this.firebase);
 
-  final ApiTokenRepository tokens;
-  final UserRepository users;
   final UserService userService;
   final FirebaseService firebase;
 
-  static final Random _random = Random.secure();
+  /// A new one per call: an `Auth` keeps the user it checked.
+  Auth get _auth => Auth(guard: apiGuard);
 
   /// Trades a Firebase ID token for an API token. The `mfa` claim of the
   /// ID token (a Firebase session from before these tokens) counts as the
@@ -71,97 +66,57 @@ class ApiTokenService {
     return (token, user);
   }
 
-  /// A new token for [user]. Also clears the user's expired ones.
+  /// A new token for [user]. Also clears the expired ones.
   Future<String> issue(
     User user, {
     required bool secondFactor,
     String? device,
   }) async {
-    await tokens.deleteExpiredForUser(user.id!, DateUtil.nowSql());
-    String token = _newToken();
-    await tokens.create(
-      userId: user.id!,
-      tokenHash: hash(token),
+    await _auth.pruneExpiredAccessTokens();
+    AccessToken token = await _auth.createAccessToken(
+      user,
       name: _deviceName(device),
-      secondFactor: secondFactor,
-      expiresAt: _expiresAt(),
+      abilities: <String>[if (secondFactor) secondFactorAbility],
     );
-    return token;
+    return token.value!;
   }
 
   /// The session of [token], or null when it is unknown, expired, or its
-  /// user may not sign in any more (`ALLOWED_EMAILS`).
+  /// user may not sign in any more (`ALLOWED_EMAILS`). Throws when the
+  /// database does not answer.
   Future<ApiSession?> verify(String token) async {
-    if (!token.startsWith(apiTokenPrefix)) return null;
-    ApiToken? row = await tokens.findByHash(hash(token));
-    if (row == null) return null;
-    DateTime now = DateTime.now().toUtc();
-    if (_isPast(row.expiresAt, now)) {
-      await tokens.delete(row.id!);
-      return null;
-    }
-    User? user = await users.findById(row.userId);
-    if (user == null || !userService.isEmailAllowed(user.email)) return null;
-    if (_stale(row.lastUsedAt, now)) await tokens.touch(row.id!);
+    Auth auth = _auth;
+    User? user = await auth.userFromToken<User>(token);
+    AccessToken? row = auth.currentAccessToken;
+    if (user == null || row == null) return null;
+    if (!userService.isEmailAllowed(user.email)) return null;
     return ApiSession(user, row);
   }
 
   /// A new token for the browser of [session], with the same two-step mark.
   /// The old one ends after [apiTokenRefreshGrace].
   Future<String> refresh(ApiSession session, {String? device}) async {
-    String token = await issue(
-      session.user,
-      secondFactor: session.secondFactor,
-      device: device ?? session.token.name,
+    await _auth.pruneExpiredAccessTokens();
+    AccessToken token = await _auth.rotateAccessToken(
+      session.token,
+      grace: apiTokenRefreshGrace,
+      name: device == null ? null : _deviceName(device),
     );
-    String graceEnd = DateUtil.timestampText(
-      DateTime.now().toUtc().add(apiTokenRefreshGrace),
-    )!;
-    // Two refreshes at once: keep the earlier end.
-    if (graceEnd.compareTo(session.token.expiresAt) < 0) {
-      await tokens.expireAt(session.token.id!, graceEnd);
-    }
-    return token;
+    return token.value!;
   }
 
   /// After the two-step code: this browser passes `TwoFactorMiddleware`.
-  Future<void> markSecondFactor(ApiToken token) async {
-    await tokens.markSecondFactor(token.id!);
-    token.secondFactor = true;
+  Future<void> markSecondFactor(AccessToken token) {
+    return _auth.setAccessTokenAbilities(token, <String>[secondFactorAbility]);
   }
 
   /// Signs this browser out.
-  Future<void> revoke(ApiToken token) => tokens.delete(token.id!);
-
-  /// SHA-256 hex. Only this is stored.
-  static String hash(String token) => Hash.sha256(token);
-
-  static String _newToken() {
-    List<int> bytes = <int>[for (int i = 0; i < 32; i++) _random.nextInt(256)];
-    return '$apiTokenPrefix${base64Url.encode(bytes).replaceAll('=', '')}';
-  }
-
-  static String _expiresAt() {
-    return DateUtil.timestampText(DateTime.now().toUtc().add(apiTokenLife))!;
+  Future<void> revoke(ApiSession session) async {
+    await _auth.revokeAccessToken(session.user, session.token.id);
   }
 
   static String _deviceName(String? device) {
     String name = (device ?? '').trim();
     return name.length > 200 ? name.substring(0, 200) : name;
-  }
-
-  static DateTime? _parse(String? text) {
-    return text == null || text.isEmpty ? null : DateTime.tryParse('${text}Z');
-  }
-
-  static bool _isPast(String text, DateTime now) {
-    DateTime? at = _parse(text);
-    return at == null || !at.isAfter(now);
-  }
-
-  /// `last_used_at` is written at most once an hour.
-  static bool _stale(String? lastUsedAt, DateTime now) {
-    DateTime? at = _parse(lastUsedAt);
-    return at == null || now.difference(at) > apiTokenTouchEvery;
   }
 }

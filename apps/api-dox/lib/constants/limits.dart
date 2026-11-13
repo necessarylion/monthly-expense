@@ -69,9 +69,12 @@ const String groupKindTrip = 'trip';
 /// A trip's budget row uses this in place of a `YYYY-MM` month key.
 const String tripBudgetKey = 'trip';
 
-/// Web app tokens (`POST /auth/token`) start with this, so a leaked one is
-/// easy to spot.
-const String apiTokenPrefix = 'mea_';
+/// The dox_auth guard of the web app's API tokens (lib/config/auth.dart).
+const String apiGuard = 'api';
+
+/// The ability of an API token that passed the two-step code, or was made
+/// with a passkey. See `TwoFactorMiddleware`.
+const String secondFactorAbility = '2fa';
 
 /// An API token works this long. The web app trades it for a new one
 /// (`POST /auth/token/refresh`) well before, so a user who opens the app
@@ -81,9 +84,6 @@ const Duration apiTokenLife = Duration(days: 30);
 /// After a refresh the old token still works this long, for calls already
 /// on the way and other tabs that have not read the new one yet.
 const Duration apiTokenRefreshGrace = Duration(minutes: 2);
-
-/// `api_tokens.last_used_at` is written at most this often.
-const Duration apiTokenTouchEvery = Duration(hours: 1);
 
 /// "Explain my month" calls per user per minute. Each one is a Claude call.
 const int insightsPerMinute = 3;

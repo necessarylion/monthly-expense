@@ -24,6 +24,9 @@ class _$CreateShoppingItemDto extends DtoSchema<CreateShoppingItem> {
   String get name => 'CreateShoppingItem';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CreateShoppingItem? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -48,7 +51,7 @@ class _$CreateShoppingItemDto extends DtoSchema<CreateShoppingItem> {
       trim: true,
     );
     if (c1 == null || c1 is Undefined) s.required(p, 'name', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -136,6 +139,9 @@ class _$UpdateShoppingItemDto extends DtoSchema<UpdateShoppingItem> {
   String get name => 'UpdateShoppingItem';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   UpdateShoppingItem? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -165,7 +171,7 @@ class _$UpdateShoppingItemDto extends DtoSchema<UpdateShoppingItem> {
     // done: bool?
     Object? c3;
     c3 = s.boolean(s.read(input, 'done', emptyToNull: true), p, 'done', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(

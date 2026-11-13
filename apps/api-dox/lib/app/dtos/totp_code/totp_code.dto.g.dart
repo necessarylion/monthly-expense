@@ -23,6 +23,9 @@ class _$TotpCodeDto extends DtoSchema<TotpCode> {
   String get name => 'TotpCode';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   TotpCode? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -33,7 +36,7 @@ class _$TotpCodeDto extends DtoSchema<TotpCode> {
     Object? c0;
     c0 = s.string(s.read(input, 'code'), p, 'code', _m, trim: true);
     if (c0 == null || c0 is Undefined) s.required(p, 'code', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length == 6)) {
         s.fail(

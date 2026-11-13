@@ -130,4 +130,19 @@ class AccountGenerator extends Model<Account> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<Account> other) {
+    Account o = other as Account;
+    (this as Account)
+      ..id = o.id
+      ..userId = o.userId
+      ..name = o.name
+      ..currency = o.currency
+      ..color = o.color
+      ..includeInTotal = o.includeInTotal
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }

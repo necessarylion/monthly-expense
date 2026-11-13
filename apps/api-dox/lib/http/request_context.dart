@@ -1,5 +1,6 @@
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/http/http_error.dart';
+import 'package:dox_auth/dox_auth.dart';
 import 'package:dox_core/dox_core.dart';
 
 const String _userKey = 'app.user';
@@ -22,13 +23,15 @@ extension RequestContext on DoxRequest {
 
   /// The API token row of this call. Only use on routes behind the auth
   /// middleware.
-  ApiToken get authToken {
+  AccessToken get authToken {
     Object? token = boundValues[_tokenKey];
-    if (token is! ApiToken) throw HttpError.unauthorized('Not authenticated');
+    if (token is! AccessToken) {
+      throw HttpError.unauthorized('Not authenticated');
+    }
     return token;
   }
 
-  set authToken(ApiToken token) => boundValues[_tokenKey] = token;
+  set authToken(AccessToken token) => boundValues[_tokenKey] = token;
 
   /// This sign-in passed the two-step code (or used a passkey).
   bool get secondFactorDone => boundValues[_secondFactorKey] == true;

@@ -25,6 +25,9 @@ class _$CreateAccountDto extends DtoSchema<CreateAccount> {
   String get name => 'CreateAccount';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CreateAccount? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -78,7 +81,7 @@ class _$CreateAccountDto extends DtoSchema<CreateAccount> {
       'isDefault',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is String) {
       if (!(c0.runes.length >= 1 && c0.runes.length <= 50)) {
         s.fail(
@@ -206,6 +209,9 @@ class _$UpdateAccountDto extends DtoSchema<UpdateAccount> {
   String get name => 'UpdateAccount';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   UpdateAccount? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -264,7 +270,7 @@ class _$UpdateAccountDto extends DtoSchema<UpdateAccount> {
       'isDefault',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -414,6 +420,9 @@ class _$CreateEntryDto extends DtoSchema<CreateEntry> {
   String get name => 'CreateEntry';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   CreateEntry? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -450,7 +459,7 @@ class _$CreateEntryDto extends DtoSchema<CreateEntry> {
       _m,
       trim: true,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -593,6 +602,9 @@ class _$UpdateEntryDto extends DtoSchema<UpdateEntry> {
   String get name => 'UpdateEntry';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   UpdateEntry? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -635,7 +647,7 @@ class _$UpdateEntryDto extends DtoSchema<UpdateEntry> {
       _m,
       trim: true,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -804,6 +816,9 @@ class _$TransferDto extends DtoSchema<Transfer> {
   String get name => 'Transfer';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   Transfer? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -858,7 +873,7 @@ class _$TransferDto extends DtoSchema<Transfer> {
       _m,
       trim: true,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -1060,6 +1075,9 @@ class _$AdjustBalanceDto extends DtoSchema<AdjustBalance> {
   String get name => 'AdjustBalance';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   AdjustBalance? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1101,7 +1119,7 @@ class _$AdjustBalanceDto extends DtoSchema<AdjustBalance> {
       _m,
       trim: true,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -1248,6 +1266,9 @@ class _$SetDefaultAccountDto extends DtoSchema<SetDefaultAccount> {
   bool get hasChecks => true;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   SetDefaultAccount? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1270,7 +1291,7 @@ class _$SetDefaultAccountDto extends DtoSchema<SetDefaultAccount> {
       'accountId',
       _m,
     );
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -1372,6 +1393,9 @@ class _$PageQueryDto extends DtoSchema<PageQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   PageQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1392,7 +1416,7 @@ class _$PageQueryDto extends DtoSchema<PageQuery> {
     c2 = s.number(s.read(input, 'offset'), p, 'offset', _m);
     if (c2 == null) s.required(p, 'offset', _m);
     if (s.dropIssuesAfter(f2)) c2 = undefined;
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -1494,6 +1518,9 @@ class _$HistoryQueryDto extends DtoSchema<HistoryQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   HistoryQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1506,7 +1533,7 @@ class _$HistoryQueryDto extends DtoSchema<HistoryQuery> {
     c0 = s.number(s.read(input, 'days'), p, 'days', _m);
     if (c0 == null) s.required(p, 'days', _m);
     if (s.dropIssuesAfter(f0)) c0 = undefined;
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     int r0 = s.issues.length;
     if (c0 is num) {
       if (!(!const <num>{0}.contains(c0))) {
@@ -1579,6 +1606,9 @@ class _$TotalQueryDto extends DtoSchema<TotalQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   TotalQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1589,6 +1619,7 @@ class _$TotalQueryDto extends DtoSchema<TotalQuery> {
     Object? c0;
     c0 = s.string(s.read(input, 'currency'), p, 'currency', _m);
     if (c0 == null) s.required(p, 'currency', _m);
+    if (s.issues.length != e && !s.allErrors) return null;
     if (s.issues.length != e) return null;
     return TotalQuery(
       currency: c0 is Undefined ? defaultTotalCurrency : c0 as String,
@@ -1644,6 +1675,9 @@ class _$FxQueryDto extends DtoSchema<FxQuery> {
   Source get source => Source.query;
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   FxQuery? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1654,6 +1688,7 @@ class _$FxQueryDto extends DtoSchema<FxQuery> {
     Object? c0;
     c0 = s.string(s.read(input, 'base'), p, 'base', _m);
     if (c0 == null) s.required(p, 'base', _m);
+    if (s.issues.length != e && !s.allErrors) return null;
     if (s.issues.length != e) return null;
     return FxQuery(base: c0 is Undefined ? defaultFxBase : c0 as String);
   }
@@ -1702,6 +1737,9 @@ class _$AccountRefDto extends DtoSchema<AccountRef> {
   String get name => 'AccountRef';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   AccountRef? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1712,7 +1750,7 @@ class _$AccountRefDto extends DtoSchema<AccountRef> {
     Object? c0;
     c0 = s.integer(s.read(input, 'accountId'), p, 'accountId', _m);
     if (c0 == null || c0 is Undefined) s.required(p, 'accountId', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -1774,6 +1812,9 @@ class _$AccountMemberRefDto extends DtoSchema<AccountMemberRef> {
   String get name => 'AccountMemberRef';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   AccountMemberRef? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1788,7 +1829,7 @@ class _$AccountMemberRefDto extends DtoSchema<AccountMemberRef> {
     Object? c1;
     c1 = s.integer(s.read(input, 'memberId'), p, 'memberId', _m);
     if (c1 == null || c1 is Undefined) s.required(p, 'memberId', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(
@@ -1871,6 +1912,9 @@ class _$EntryRefDto extends DtoSchema<EntryRef> {
   String get name => 'EntryRef';
 
   @override
+  bool get usesRequiredWhen => false;
+
+  @override
   EntryRef? convert(Object? input, DtoState s, List<Object> p) {
     if (input is! Map) {
       s.notObject(input, p, _m);
@@ -1885,7 +1929,7 @@ class _$EntryRefDto extends DtoSchema<EntryRef> {
     Object? c1;
     c1 = s.integer(s.read(input, 'entryId'), p, 'entryId', _m);
     if (c1 == null || c1 is Undefined) s.required(p, 'entryId', _m);
-    if (s.issues.length != e) return null;
+    if (s.issues.length != e && !s.allErrors) return null;
     if (c0 is int) {
       if (!(c0 > 0)) {
         s.fail(

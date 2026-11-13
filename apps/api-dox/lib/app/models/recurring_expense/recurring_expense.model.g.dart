@@ -151,4 +151,22 @@ class RecurringExpenseGenerator extends Model<RecurringExpense> {
     }
     return false;
   }
+
+  @override
+  bool $copyColumnsFrom(Model<RecurringExpense> other) {
+    RecurringExpense o = other as RecurringExpense;
+    (this as RecurringExpense)
+      ..id = o.id
+      ..groupId = o.groupId
+      ..createdByUserId = o.createdByUserId
+      ..categoryId = o.categoryId
+      ..accountId = o.accountId
+      ..amountCents = o.amountCents
+      ..note = o.note
+      ..dayOfMonth = o.dayOfMonth
+      ..nextOn = o.nextOn
+      ..createdAtText = o.createdAtText
+      ..updatedAtText = o.updatedAtText;
+    return true;
+  }
 }
