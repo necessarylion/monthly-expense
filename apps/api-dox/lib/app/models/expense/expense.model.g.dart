@@ -87,6 +87,32 @@ class ExpenseGenerator extends Model<Expense> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    Expense instance = this as Expense;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'group_id':
+        return instance.groupId;
+      case 'created_by_user_id':
+        return instance.createdByUserId;
+      case 'category_id':
+        return instance.categoryId;
+      case 'amount_cents':
+        return instance.amountCents;
+      case 'occurred_on':
+        return _occurredOnCast.set(instance.occurredOn);
+      case 'note':
+        return instance.note;
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     Expense instance = i as Expense;
     Map<String, dynamic> map = instance.columnsToMap();

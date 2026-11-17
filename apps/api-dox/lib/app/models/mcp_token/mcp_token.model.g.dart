@@ -81,6 +81,28 @@ class McpTokenGenerator extends Model<McpToken> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    McpToken instance = this as McpToken;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'user_id':
+        return instance.userId;
+      case 'name':
+        return instance.name;
+      case 'token_hash':
+        return instance.tokenHash;
+      case 'last_used_at':
+        return _lastUsedAtCast.set(instance.lastUsedAt);
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     McpToken instance = i as McpToken;
     Map<String, dynamic> map = instance.columnsToMap();

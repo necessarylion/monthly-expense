@@ -87,6 +87,32 @@ class PasskeyGenerator extends Model<Passkey> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    Passkey instance = this as Passkey;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'user_id':
+        return instance.userId;
+      case 'credential_id':
+        return instance.credentialId;
+      case 'public_key':
+        return instance.publicKey;
+      case 'sign_count':
+        return instance.signCount;
+      case 'name':
+        return instance.name;
+      case 'last_used_at':
+        return _lastUsedAtCast.set(instance.lastUsedAt);
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     Passkey instance = i as Passkey;
     Map<String, dynamic> map = instance.columnsToMap();
