@@ -87,6 +87,32 @@ class UserGenerator extends Model<User> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    User instance = this as User;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'firebase_uid':
+        return instance.firebaseUid;
+      case 'email':
+        return instance.email;
+      case 'display_name':
+        return instance.displayName;
+      case 'photo_url':
+        return instance.photoUrl;
+      case 'totp_secret':
+        return instance.totpSecret;
+      case 'totp_enabled':
+        return _totpEnabledCast.set(instance.totpEnabled);
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     User instance = i as User;
     Map<String, dynamic> map = instance.columnsToMap();

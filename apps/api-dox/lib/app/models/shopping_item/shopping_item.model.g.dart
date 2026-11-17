@@ -81,6 +81,28 @@ class ShoppingItemGenerator extends Model<ShoppingItem> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    ShoppingItem instance = this as ShoppingItem;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'group_id':
+        return instance.groupId;
+      case 'name':
+        return instance.name;
+      case 'done_at':
+        return _doneAtCast.set(instance.doneAt);
+      case 'created_by_user_id':
+        return instance.createdByUserId;
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     ShoppingItem instance = i as ShoppingItem;
     Map<String, dynamic> map = instance.columnsToMap();

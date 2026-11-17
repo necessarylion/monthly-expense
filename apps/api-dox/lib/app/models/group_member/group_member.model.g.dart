@@ -87,6 +87,32 @@ class GroupMemberGenerator extends Model<GroupMember> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    GroupMember instance = this as GroupMember;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'group_id':
+        return instance.groupId;
+      case 'user_id':
+        return instance.userId;
+      case 'email':
+        return instance.email;
+      case 'invited_by_user_id':
+        return instance.invitedByUserId;
+      case 'joined_at':
+        return _joinedAtCast.set(instance.joinedAt);
+      case 'default_account_id':
+        return instance.defaultAccountId;
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     GroupMember instance = i as GroupMember;
     Map<String, dynamic> map = instance.columnsToMap();

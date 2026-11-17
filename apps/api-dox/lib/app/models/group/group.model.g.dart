@@ -90,6 +90,34 @@ class GroupGenerator extends Model<Group> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    Group instance = this as Group;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'name':
+        return instance.name;
+      case 'currency':
+        return instance.currency;
+      case 'created_by_user_id':
+        return instance.createdByUserId;
+      case 'split_enabled':
+        return _splitEnabledCast.set(instance.splitEnabled);
+      case 'kind':
+        return instance.kind;
+      case 'trip_start':
+        return instance.tripStart;
+      case 'trip_days':
+        return instance.tripDays;
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     Group instance = i as Group;
     Map<String, dynamic> map = instance.columnsToMap();

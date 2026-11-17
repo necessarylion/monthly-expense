@@ -82,6 +82,30 @@ class CategoryGenerator extends Model<Category> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    Category instance = this as Category;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'group_id':
+        return instance.groupId;
+      case 'name':
+        return instance.name;
+      case 'slug':
+        return instance.slug;
+      case 'icon_key':
+        return instance.iconKey;
+      case 'color':
+        return instance.color;
+      case 'budget_cents':
+        return instance.budgetCents;
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     Category instance = i as Category;
     Map<String, dynamic> map = instance.columnsToMap();

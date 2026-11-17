@@ -93,6 +93,36 @@ class RecurringExpenseGenerator extends Model<RecurringExpense> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    RecurringExpense instance = this as RecurringExpense;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'group_id':
+        return instance.groupId;
+      case 'created_by_user_id':
+        return instance.createdByUserId;
+      case 'category_id':
+        return instance.categoryId;
+      case 'account_id':
+        return instance.accountId;
+      case 'amount_cents':
+        return instance.amountCents;
+      case 'note':
+        return instance.note;
+      case 'day_of_month':
+        return instance.dayOfMonth;
+      case 'next_on':
+        return _nextOnCast.set(instance.nextOn);
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     RecurringExpense instance = i as RecurringExpense;
     Map<String, dynamic> map = instance.columnsToMap();

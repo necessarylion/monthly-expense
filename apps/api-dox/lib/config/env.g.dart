@@ -8,18 +8,18 @@ part of 'env.dart';
 
 class _$AppEnv extends AppEnv {
   _$AppEnv._({
-    required this.appEnv,
-    required this.appKey,
+    required String? appEnv,
+    required String? appKey,
     required this.appTotalIsolate,
-    required this.port,
-    required this.host,
+    required int? port,
+    required String? host,
     required this.appUrl,
-    required this.databaseUrl,
-    required this.dbPath,
-    required this.publicDir,
-    required this.cacheDir,
-    required this.frontendUrls,
-    required this.allowedEmails,
+    required String? databaseUrl,
+    required String? dbPath,
+    required String? publicDir,
+    required String? cacheDir,
+    required String? frontendUrls,
+    required String? allowedEmails,
     required this.firebaseProjectId,
     required this.firebaseClientEmail,
     required this.firebasePrivateKey,
@@ -27,34 +27,55 @@ class _$AppEnv extends AppEnv {
     required this.firebaseAuthDomain,
     required this.firebaseAppId,
     required this.anthropicApiKey,
-    required this.anthropicModel,
-    required this.logLevel,
-  });
+    required String? anthropicModel,
+    required String? logLevel,
+  }) : _$appEnv = appEnv,
+       _$appKey = appKey,
+       _$port = port,
+       _$host = host,
+       _$databaseUrl = databaseUrl,
+       _$dbPath = dbPath,
+       _$publicDir = publicDir,
+       _$cacheDir = cacheDir,
+       _$frontendUrls = frontendUrls,
+       _$allowedEmails = allowedEmails,
+       _$anthropicModel = anthropicModel,
+       _$logLevel = logLevel;
 
+  final String? _$appEnv;
   @override
-  final String appEnv;
+  late final String appEnv = _$appEnv ?? super.appEnv;
+  final String? _$appKey;
   @override
-  final String appKey;
+  late final String appKey = _$appKey ?? super.appKey;
   @override
   final int? appTotalIsolate;
+  final int? _$port;
   @override
-  final int port;
+  late final int port = _$port ?? super.port;
+  final String? _$host;
   @override
-  final String host;
+  late final String host = _$host ?? super.host;
   @override
   final String? appUrl;
+  final String? _$databaseUrl;
   @override
-  final String databaseUrl;
+  late final String databaseUrl = _$databaseUrl ?? super.databaseUrl;
+  final String? _$dbPath;
   @override
-  final String dbPath;
+  late final String dbPath = _$dbPath ?? super.dbPath;
+  final String? _$publicDir;
   @override
-  final String publicDir;
+  late final String publicDir = _$publicDir ?? super.publicDir;
+  final String? _$cacheDir;
   @override
-  final String cacheDir;
+  late final String cacheDir = _$cacheDir ?? super.cacheDir;
+  final String? _$frontendUrls;
   @override
-  final String frontendUrls;
+  late final String frontendUrls = _$frontendUrls ?? super.frontendUrls;
+  final String? _$allowedEmails;
   @override
-  final String allowedEmails;
+  late final String allowedEmails = _$allowedEmails ?? super.allowedEmails;
   @override
   final String? firebaseProjectId;
   @override
@@ -69,91 +90,91 @@ class _$AppEnv extends AppEnv {
   final String? firebaseAppId;
   @override
   final String? anthropicApiKey;
+  final String? _$anthropicModel;
   @override
-  final String anthropicModel;
+  late final String anthropicModel = _$anthropicModel ?? super.anthropicModel;
+  final String? _$logLevel;
   @override
-  final String logLevel;
+  late final String logLevel = _$logLevel ?? super.logLevel;
+
+  /// true while [load] runs. A default that reads the global `env` calls
+  /// [load] again, and would loop until the stack overflows.
+  static bool _$$loading = false;
 
   /// reads and checks every key once. Throws `EnvException` with all
-  /// missing or bad keys.
-  static AppEnv load([EnvReader? reader]) {
-    EnvReader r = reader ?? EnvReader();
-    _$AppEnvDefaults d = _$AppEnvDefaults();
-    String appEnv = r.string('APP_ENV') ?? d.appEnv;
-    String appKey = r.string('APP_KEY') ?? d.appKey;
-    int? appTotalIsolate = r.integer('APP_TOTAL_ISOLATE');
-    int port = r.integer('PORT') ?? d.port;
-    String host = r.string('HOST') ?? d.host;
-    String? appUrl = r.string('APP_URL');
-    String databaseUrl = r.string('DATABASE_URL') ?? d.databaseUrl;
-    String dbPath = r.string('DB_PATH') ?? d.dbPath;
-    String publicDir = r.string('PUBLIC_DIR') ?? d.publicDir;
-    String cacheDir = r.string('CACHE_DIR') ?? d.cacheDir;
-    String frontendUrls = r.string('FRONTEND_URLS') ?? d.frontendUrls;
-    String allowedEmails = r.string('ALLOWED_EMAILS') ?? d.allowedEmails;
-    String? firebaseProjectId = r.string('FIREBASE_PROJECT_ID');
-    String? firebaseClientEmail = r.string('FIREBASE_CLIENT_EMAIL');
-    String? firebasePrivateKey = r.string('FIREBASE_PRIVATE_KEY');
-    String? firebaseApiKey = r.string('FIREBASE_API_KEY');
-    String? firebaseAuthDomain = r.string('FIREBASE_AUTH_DOMAIN');
-    String? firebaseAppId = r.string('FIREBASE_APP_ID');
-    String? anthropicApiKey = r.string('ANTHROPIC_API_KEY');
-    String anthropicModel = r.string('ANTHROPIC_MODEL') ?? d.anthropicModel;
-    String logLevel = r.string('LOG_LEVEL') ?? d.logLevel;
+  /// missing or bad keys. Then works out every default once, so a default
+  /// that throws stops the app here, at startup.
+  static AppEnv load([EnvReader? $reader]) {
+    if (_$$loading) {
+      throw StateError(
+        'A default of AppEnv reads the global `env`. Use the getter directly: write `appEnv`, not `env.appEnv`.',
+      );
+    }
+    _$$loading = true;
+    try {
+      EnvReader $r = $reader ?? EnvReader();
+      String? appEnv = $r.string('APP_ENV');
+      String? appKey = $r.string('APP_KEY');
+      int? appTotalIsolate = $r.integer('APP_TOTAL_ISOLATE');
+      int? port = $r.integer('PORT');
+      String? host = $r.string('HOST');
+      String? appUrl = $r.string('APP_URL');
+      String? databaseUrl = $r.string('DATABASE_URL');
+      String? dbPath = $r.string('DB_PATH');
+      String? publicDir = $r.string('PUBLIC_DIR');
+      String? cacheDir = $r.string('CACHE_DIR');
+      String? frontendUrls = $r.string('FRONTEND_URLS');
+      String? allowedEmails = $r.string('ALLOWED_EMAILS');
+      String? firebaseProjectId = $r.string('FIREBASE_PROJECT_ID');
+      String? firebaseClientEmail = $r.string('FIREBASE_CLIENT_EMAIL');
+      String? firebasePrivateKey = $r.string('FIREBASE_PRIVATE_KEY');
+      String? firebaseApiKey = $r.string('FIREBASE_API_KEY');
+      String? firebaseAuthDomain = $r.string('FIREBASE_AUTH_DOMAIN');
+      String? firebaseAppId = $r.string('FIREBASE_APP_ID');
+      String? anthropicApiKey = $r.string('ANTHROPIC_API_KEY');
+      String? anthropicModel = $r.string('ANTHROPIC_MODEL');
+      String? logLevel = $r.string('LOG_LEVEL');
 
-    r.check();
-    return _$AppEnv._(
-      appEnv: appEnv,
-      appKey: appKey,
-      appTotalIsolate: appTotalIsolate,
-      port: port,
-      host: host,
-      appUrl: appUrl,
-      databaseUrl: databaseUrl,
-      dbPath: dbPath,
-      publicDir: publicDir,
-      cacheDir: cacheDir,
-      frontendUrls: frontendUrls,
-      allowedEmails: allowedEmails,
-      firebaseProjectId: firebaseProjectId,
-      firebaseClientEmail: firebaseClientEmail,
-      firebasePrivateKey: firebasePrivateKey,
-      firebaseApiKey: firebaseApiKey,
-      firebaseAuthDomain: firebaseAuthDomain,
-      firebaseAppId: firebaseAppId,
-      anthropicApiKey: anthropicApiKey,
-      anthropicModel: anthropicModel,
-      logLevel: logLevel,
-    );
+      $r.check();
+      _$AppEnv $env = _$AppEnv._(
+        appEnv: appEnv,
+        appKey: appKey,
+        appTotalIsolate: appTotalIsolate,
+        port: port,
+        host: host,
+        appUrl: appUrl,
+        databaseUrl: databaseUrl,
+        dbPath: dbPath,
+        publicDir: publicDir,
+        cacheDir: cacheDir,
+        frontendUrls: frontendUrls,
+        allowedEmails: allowedEmails,
+        firebaseProjectId: firebaseProjectId,
+        firebaseClientEmail: firebaseClientEmail,
+        firebasePrivateKey: firebasePrivateKey,
+        firebaseApiKey: firebaseApiKey,
+        firebaseAuthDomain: firebaseAuthDomain,
+        firebaseAppId: firebaseAppId,
+        anthropicApiKey: anthropicApiKey,
+        anthropicModel: anthropicModel,
+        logLevel: logLevel,
+      );
+      $env.appEnv;
+      $env.appKey;
+      $env.port;
+      $env.host;
+      $env.databaseUrl;
+      $env.dbPath;
+      $env.publicDir;
+      $env.cacheDir;
+      $env.frontendUrls;
+      $env.allowedEmails;
+      $env.anthropicModel;
+      $env.logLevel;
+
+      return $env;
+    } finally {
+      _$$loading = false;
+    }
   }
-}
-
-/// gives the getter bodies of [AppEnv] (the defaults)
-class _$AppEnvDefaults extends AppEnv {
-  @override
-  int? get appTotalIsolate =>
-      throw StateError('APP_TOTAL_ISOLATE has no default');
-  @override
-  String? get appUrl => throw StateError('APP_URL has no default');
-  @override
-  String? get firebaseProjectId =>
-      throw StateError('FIREBASE_PROJECT_ID has no default');
-  @override
-  String? get firebaseClientEmail =>
-      throw StateError('FIREBASE_CLIENT_EMAIL has no default');
-  @override
-  String? get firebasePrivateKey =>
-      throw StateError('FIREBASE_PRIVATE_KEY has no default');
-  @override
-  String? get firebaseApiKey =>
-      throw StateError('FIREBASE_API_KEY has no default');
-  @override
-  String? get firebaseAuthDomain =>
-      throw StateError('FIREBASE_AUTH_DOMAIN has no default');
-  @override
-  String? get firebaseAppId =>
-      throw StateError('FIREBASE_APP_ID has no default');
-  @override
-  String? get anthropicApiKey =>
-      throw StateError('ANTHROPIC_API_KEY has no default');
 }

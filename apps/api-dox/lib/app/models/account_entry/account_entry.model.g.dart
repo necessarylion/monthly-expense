@@ -84,6 +84,30 @@ class AccountEntryGenerator extends Model<AccountEntry> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    AccountEntry instance = this as AccountEntry;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'account_id':
+        return instance.accountId;
+      case 'expense_id':
+        return instance.expenseId;
+      case 'amount_cents':
+        return instance.amountCents;
+      case 'occurred_on':
+        return _occurredOnCast.set(instance.occurredOn);
+      case 'note':
+        return instance.note;
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     AccountEntry instance = i as AccountEntry;
     Map<String, dynamic> map = instance.columnsToMap();

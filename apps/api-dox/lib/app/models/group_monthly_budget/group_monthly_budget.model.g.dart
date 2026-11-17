@@ -77,6 +77,26 @@ class GroupMonthlyBudgetGenerator extends Model<GroupMonthlyBudget> {
   }
 
   @override
+  dynamic $columnValue(String column) {
+    GroupMonthlyBudget instance = this as GroupMonthlyBudget;
+    switch (column) {
+      case 'id':
+        return instance.id;
+      case 'group_id':
+        return instance.groupId;
+      case 'month_key':
+        return instance.monthKey;
+      case 'budget_cents':
+        return instance.budgetCents;
+      case 'created_at':
+        return _createdAtTextCast.set(instance.createdAtText);
+      case 'updated_at':
+        return _updatedAtTextCast.set(instance.updatedAtText);
+    }
+    return super.$columnValue(column);
+  }
+
+  @override
   Map<String, dynamic> convertToMap(dynamic i) {
     GroupMonthlyBudget instance = i as GroupMonthlyBudget;
     Map<String, dynamic> map = instance.columnsToMap();
