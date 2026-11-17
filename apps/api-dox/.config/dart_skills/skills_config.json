@@ -6,7 +6,7 @@
         "skills": [
           {
             "name": "dox-auth-guide",
-            "installedAt": "2026-11-17T01:24:10.529932Z",
+            "installedAt": "2026-11-17T01:26:40.547509Z",
             "contentHash": "tV3udl8b0c/rw3X1SeoQJw==",
             "path": "skills/dox-auth-guide"
           }
@@ -16,7 +16,7 @@
         "skills": [
           {
             "name": "dox-core-guide",
-            "installedAt": "2026-11-17T01:24:10.532075Z",
+            "installedAt": "2026-11-17T01:26:40.551287Z",
             "contentHash": "IZtXloAS04XjchWZPCKtlA==",
             "path": "skills/dox-core-guide"
           }
@@ -26,7 +26,7 @@
         "skills": [
           {
             "name": "dox-mcp-guide",
-            "installedAt": "2026-11-17T01:24:10.533131Z",
+            "installedAt": "2026-11-17T01:26:40.552507Z",
             "contentHash": "5Qd75+eTxGy6Dh2MeroWYg==",
             "path": "skills/dox-mcp-guide"
           }
@@ -36,7 +36,7 @@
         "skills": [
           {
             "name": "dox-migration-guide",
-            "installedAt": "2026-11-17T01:24:10.534078Z",
+            "installedAt": "2026-11-17T01:26:40.554936Z",
             "contentHash": "nkryC2vukGPgIgIqV66G8g==",
             "path": "skills/dox-migration-guide"
           }
@@ -46,7 +46,7 @@
         "skills": [
           {
             "name": "dox-orm-guide",
-            "installedAt": "2026-11-17T01:24:10.535047Z",
+            "installedAt": "2026-11-17T01:26:40.557229Z",
             "contentHash": "mqhCKvFhJNWdkpicDNUoMg==",
             "path": "skills/dox-orm-guide"
           }
@@ -56,7 +56,7 @@
         "skills": [
           {
             "name": "dox-scheduler-guide",
-            "installedAt": "2026-11-17T01:24:10.535909Z",
+            "installedAt": "2026-11-17T01:26:40.558332Z",
             "contentHash": "95gUj0DMOevG27znZDAspw==",
             "path": "skills/dox-scheduler-guide"
           }
@@ -66,9 +66,39 @@
         "skills": [
           {
             "name": "dox-socketio-guide",
-            "installedAt": "2026-11-17T01:24:10.536745Z",
+            "installedAt": "2026-11-17T01:26:40.560650Z",
             "contentHash": "ODsiYEiXmJonnAZbnReYng==",
             "path": "skills/dox-socketio-guide"
+          }
+        ]
+      },
+      "package:dox_cache": {
+        "skills": [
+          {
+            "name": "dox-cache-guide",
+            "installedAt": "2026-11-17T01:26:40.548210Z",
+            "contentHash": "F32B4UATvFb/cKQ8TVyt4Q==",
+            "path": "skills/dox-cache-guide"
+          }
+        ]
+      },
+      "package:dox_openapi": {
+        "skills": [
+          {
+            "name": "dox-openapi-guide",
+            "installedAt": "2026-11-17T01:26:40.555794Z",
+            "contentHash": "KdtIeWC1mNFTHRe7KX/VdA==",
+            "path": "skills/dox-openapi-guide"
+          }
+        ]
+      },
+      "package:dox_validation": {
+        "skills": [
+          {
+            "name": "dox-validation-guide",
+            "installedAt": "2026-11-17T01:26:40.562266Z",
+            "contentHash": "J0qNDFrO+wNw51bD3VED8Q==",
+            "path": "skills/dox-validation-guide"
           }
         ]
       }
@@ -78,7 +108,7 @@
         "skills": [
           {
             "name": "dox-auth-guide",
-            "installedAt": "2026-11-17T01:24:10.539295Z",
+            "installedAt": "2026-11-17T01:26:40.565306Z",
             "contentHash": "OFTa88W1QNvFReIHGVszUg==",
             "path": "skills/dox-auth-guide"
           }
@@ -88,7 +118,7 @@
         "skills": [
           {
             "name": "dox-core-guide",
-            "installedAt": "2026-11-17T01:24:10.541772Z",
+            "installedAt": "2026-11-17T01:26:40.569508Z",
             "contentHash": "Qj2PYPRsPJv2t2660Osx0w==",
             "path": "skills/dox-core-guide"
           }
@@ -98,7 +128,7 @@
         "skills": [
           {
             "name": "dox-mcp-guide",
-            "installedAt": "2026-11-17T01:24:10.543297Z",
+            "installedAt": "2026-11-17T01:26:40.570732Z",
             "contentHash": "DjKimIvbTPhVoA+9OCCR5A==",
             "path": "skills/dox-mcp-guide"
           }
@@ -108,7 +138,7 @@
         "skills": [
           {
             "name": "dox-migration-guide",
-            "installedAt": "2026-11-17T01:24:10.544516Z",
+            "installedAt": "2026-11-17T01:26:40.572018Z",
             "contentHash": "n2Rwu9aorgA72dDYcyr5oA==",
             "path": "skills/dox-migration-guide"
           }
@@ -118,7 +148,7 @@
         "skills": [
           {
             "name": "dox-orm-guide",
-            "installedAt": "2026-11-17T01:24:10.545920Z",
+            "installedAt": "2026-11-17T01:26:40.574752Z",
             "contentHash": "T0H3mzOVGeNrH+9APjQyFA==",
             "path": "skills/dox-orm-guide"
           }
@@ -128,7 +158,7 @@
         "skills": [
           {
             "name": "dox-scheduler-guide",
-            "installedAt": "2026-11-17T01:24:10.547161Z",
+            "installedAt": "2026-11-17T01:26:40.576Z",
             "contentHash": "Oo6xaGDPjSm2pHjGrwOjOA==",
             "path": "skills/dox-scheduler-guide"
           }
@@ -138,9 +168,39 @@
         "skills": [
           {
             "name": "dox-socketio-guide",
-            "installedAt": "2026-11-17T01:24:10.548397Z",
+            "installedAt": "2026-11-17T01:26:40.577325Z",
             "contentHash": "DmIw6xhFK03LYdobtjjvww==",
             "path": "skills/dox-socketio-guide"
+          }
+        ]
+      },
+      "package:dox_cache": {
+        "skills": [
+          {
+            "name": "dox-cache-guide",
+            "installedAt": "2026-11-17T01:26:40.566747Z",
+            "contentHash": "pRd/NCvhrQME5mA7W3V90g==",
+            "path": "skills/dox-cache-guide"
+          }
+        ]
+      },
+      "package:dox_openapi": {
+        "skills": [
+          {
+            "name": "dox-openapi-guide",
+            "installedAt": "2026-11-17T01:26:40.573299Z",
+            "contentHash": "fozOPbqife9uoCKIxeG4cw==",
+            "path": "skills/dox-openapi-guide"
+          }
+        ]
+      },
+      "package:dox_validation": {
+        "skills": [
+          {
+            "name": "dox-validation-guide",
+            "installedAt": "2026-11-17T01:26:40.578538Z",
+            "contentHash": "h+C4c3R4y5KUP2EYyw7rYg==",
+            "path": "skills/dox-validation-guide"
           }
         ]
       }

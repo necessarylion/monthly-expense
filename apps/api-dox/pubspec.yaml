@@ -17,6 +17,11 @@ dependencies:
   mime: ^2.0.0
   path: ^1.9.0
   dox_scheduler: ^3.2.2
+  # dox_core already uses these three. They are listed here so that
+  # `dart run skills@ get` installs their skills too.
+  dox_cache: ^3.2.1
+  dox_validation: ^3.2.0
+  dox_openapi: ^3.2.0
   pointycastle: ^4.0.0
   crypto: ^3.0.6
   a2ui_agent: ^0.3.0

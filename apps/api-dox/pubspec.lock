@@ -266,7 +266,7 @@ packages:
     source: hosted
     version: "3.2.2"
   dox_cache:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dox_cache
       sha256: "289dcfafa6fd891173447fabec41f959992cabe68b7a3f312c84f01ebc0f78f2"
@@ -314,7 +314,7 @@ packages:
     source: hosted
     version: "3.2.1"
   dox_openapi:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dox_openapi
       sha256: "2b8e3a2719abf5320c8af8aa103a1f857628e4a2a69a5e95b723aadb6d098dcd"
@@ -354,7 +354,7 @@ packages:
     source: hosted
     version: "3.2.1"
   dox_validation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dox_validation
       sha256: a7f096bcdfe01429a0bf826b5c29c9cb40f983735ec7c990c08bf7f87ffd2810
