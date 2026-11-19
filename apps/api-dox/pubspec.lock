@@ -277,10 +277,10 @@ packages:
     dependency: "direct main"
     description:
       name: dox_core
-      sha256: "9e993280cea1dd50e2246feb66d3d196131fe12589f6ea64f2967011270cc374"
+      sha256: fdcb7867df51d8d3632da87ac0983bfc4a175d30bf064bd34352357d78191331
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.2"
+    version: "3.2.3"
   dox_http_native:
     dependency: transitive
     description:
