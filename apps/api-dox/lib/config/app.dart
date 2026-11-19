@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:api_dox/app/exception_handler.dart';
 import 'package:api_dox/config/cache.dart';
 import 'package:api_dox/config/cors.dart';
@@ -22,7 +20,7 @@ AppConfig appConfig = AppConfig(
 
   /// One isolate per CPU core by default. Set `APP_TOTAL_ISOLATE` to
   /// change it.
-  totalIsolate: env.appTotalIsolate ?? Platform.numberOfProcessors,
+  totalIsolate: env.appTotalIsolate,
 
   /// one log line per request, off in production (the proxy logs there)
   globalMiddleware: <dynamic>[LogMiddleware(enabled: env.isDevelopment)],
