@@ -468,6 +468,13 @@ export default {
     failed: 'ဒီလကို ရှင်းပြလို့ မရဘူး။',
     retry: 'ထပ်စမ်းမယ်',
     note: 'AI ရေးထားတာပါ။ ဂဏန်းတွေကို အရင် စစ်ကြည့်ပါ။',
+    spentIn: '{month} မှာ သုံးခဲ့တာ',
+    count: 'အသုံးစရိတ် {n} ခု',
+    budgetLeft: 'ဘတ်ဂျက် {budget} ရဲ့ {percent}% · {amount} ကျန်သေးတယ်',
+    budgetOver: 'ဘတ်ဂျက် {budget} ရဲ့ {percent}% · {amount} ကျော်သွားပြီ',
+    topCategories: 'အများဆုံး သုံးတဲ့ အမျိုးအစား',
+    biggest: 'အကြီးဆုံး အသုံးစရိတ်',
+    tips: 'အကြံပြုချက်',
   },
   smartAdd: {
     open: 'အမြန်ထည့်မယ်',
@@ -479,5 +486,8 @@ export default {
     done: 'ပြီးပြီ',
     noWallet: 'ပိုက်ဆံအိတ် မရွေးထားဘူး',
     autoCategory: 'ကိုယ်တိုင် ရွေးပေး',
+    edit: 'ပြင်မယ်',
+    saved: 'သိမ်းပြီးပြီ',
+    nothing: 'အသုံးစရိတ် မတွေ့ဘူး။ "ထမင်း 5000, တက္ကစီ 3000" လို ရေးကြည့်ပါ။',
   },
 } as const;

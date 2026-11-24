@@ -50,7 +50,6 @@ const List<DtoSchema<Object>> dtos = <DtoSchema<Object>>[
   $SearchQueryDto,
   $SetBudgetDto,
   $SetDefaultAccountDto,
-  $SmartAddActionDto,
   $SmartAddTextDto,
   $TotalQueryDto,
   $TotpCodeDto,

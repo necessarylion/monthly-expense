@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:a2ui_agent/a2ui_agent.dart';
-import 'package:a2ui_core/a2ui_core.dart';
 import 'package:crypto/crypto.dart';
 import 'package:api_dox/app/models/models.dart';
 import 'package:api_dox/app/services/ai/claude_client.dart';
@@ -14,15 +12,13 @@ import 'package:api_dox/utils/money_util.dart';
 import 'package:api_dox/utils/month_util.dart';
 import 'package:dox_core/dox_core.dart';
 
-/// "Explain my month": Claude writes a small screen about the month, in
-/// A2UI. The web app draws it with `@a2ui/react`.
+/// "Explain my month": the month's numbers, with a short summary and tips
+/// that Claude writes. The web app draws the screen
+/// (`month-insight-sheet.tsx`); Claude never writes a number the app shows.
 ///
-/// The React renderer speaks A2UI v0.9 only, so this uses the v0.9 basic
-/// catalog, cut down to [insightComponents].
-///
-/// The answer is kept in the file cache with a fingerprint of what Claude
-/// saw. Opening the sheet again costs nothing until an expense, the budget,
-/// the language or the prompt changes.
+/// Claude's words are kept in the file cache with a fingerprint of what
+/// Claude saw. Opening the sheet again costs nothing until an expense, the
+/// budget, the language or the prompt changes.
 // ponytail: two isolates can ask Claude for the same month at once; add a cache lock if that costs too much.
 @Inject()
 class MonthInsightService {
@@ -33,68 +29,61 @@ class MonthInsightService {
   final ClaudeClient claude;
   final FileCache cache;
 
-  static final A2uiGenerator _generator = A2uiGenerator(
-    catalogs: <CatalogConfig>[
-      CatalogConfig(
-        BasicCatalog.v0_9(),
-        transformers: <CatalogTransformer>[
-          ComponentPruningTransformer(insightComponents),
-        ],
-      ),
-    ],
-  );
-
-  /// The A2UI messages that draw the month, as JSON.
-  Future<List<Map<String, dynamic>>> explain(
+  /// `{facts, summary, tips}`: the numbers of [_facts] and Claude's words.
+  Future<Map<String, Object?>> explain(
     Group group,
     MonthRange month,
     String lang,
   ) async {
-    A2uiRequestProcessor processor = _generator.createProcessor(
-      A2uiRendererCapabilities.forCatalogIds(<String>[BasicCatalog.v0_9Id]),
-    );
-    String system = '$insightSystemPrompt\n\n${processor.promptSnippet}';
-    String prompt = jsonEncode(await _facts(group, month, lang));
+    Map<String, Object?> facts = await _facts(group, month, lang);
+    String prompt = jsonEncode(facts);
     String key = 'insight-${group.id}-${month.key}-$lang';
     String fingerprint = sha256
-        .convert(utf8.encode('$system\n$prompt'))
+        .convert(utf8.encode('$insightSystemPrompt\n$prompt'))
         .toString();
     Object? stored = (await cache.read(key))?.value;
-    if (stored is Map &&
-        stored['fingerprint'] == fingerprint &&
-        stored['messages'] is List) {
-      return <Map<String, dynamic>>[
-        for (Object? message in stored['messages'] as List<dynamic>)
-          message as Map<String, dynamic>,
-      ];
-    }
-
-    String? answer = await claude.askText(
-      system: system,
-      prompt: prompt,
-      timeout: insightTimeout,
-    );
-    if (answer == null) {
-      throw HttpError.badGateway('Could not explain the month. Try again.');
-    }
-    try {
-      List<Map<String, dynamic>> messages = <Map<String, dynamic>>[
-        for (A2uiPart part
-            in processor.parseResponse(answer).whereType<A2uiPart>())
-          for (AgentToRendererMessage message in part.a2ui) message.toJson(),
-      ];
+    Map<String, Object?>? words =
+        stored is Map && stored['fingerprint'] == fingerprint
+        ? _words(stored)
+        : null;
+    if (words == null) {
+      words = _words(
+        await claude.askJson(
+          system: insightSystemPrompt,
+          prompt: prompt,
+          schema: insightSchema,
+        ),
+      );
+      if (words == null) {
+        throw HttpError.badGateway('Could not explain the month. Try again.');
+      }
       await cache.write(key, <String, Object?>{
         'fingerprint': fingerprint,
-        'messages': messages,
+        ...words,
       });
-      return messages;
-    } on A2uiError catch (error) {
-      Logger.warn('[insight] bad A2UI from Claude: $error');
-      throw HttpError.badGateway('Could not explain the month. Try again.');
     }
+    return <String, Object?>{'facts': facts, ...words};
   }
 
-  /// What Claude sees: the month's totals, by category, and the biggest
+  /// The summary and tips of [raw] (Claude's answer, or the cached one), or
+  /// null when it is not usable.
+  static Map<String, Object?>? _words(Object? raw) {
+    if (raw is! Map) return null;
+    Object? summary = raw['summary'];
+    Object? tips = raw['tips'];
+    if (summary is! String || summary.trim().isEmpty || tips is! List) {
+      return null;
+    }
+    return <String, Object?>{
+      'summary': summary.trim(),
+      'tips': <String>[
+        for (Object? tip in tips)
+          if (tip is String && tip.trim().isNotEmpty) tip.trim(),
+      ].take(insightMaxTips).toList(),
+    };
+  }
+
+  /// What Claude sees and the app shows: the month's totals, by category, and the biggest
   /// expenses. Money is in currency units, not cents.
   Future<Map<String, Object?>> _facts(
     Group group,
@@ -125,6 +114,7 @@ class MonthInsightService {
       'byCategory': <Map<String, Object?>>[
         for (CategoryTotal row in summary.byCategory)
           <String, Object?>{
+            'categoryId': row.categoryId,
             'category': names[row.categoryId]?.name ?? 'No category',
             'total': MoneyUtil.fromCents(row.totalCents),
             'shareOfTotalPercent': total == 0
@@ -139,6 +129,7 @@ class MonthInsightService {
             'note': row.expense.note,
             'amount': MoneyUtil.fromCents(row.expense.amountCents),
             'date': row.expense.occurredOn,
+            'categoryId': row.category?.id,
             'category': row.category?.name,
           },
       ],

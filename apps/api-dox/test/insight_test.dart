@@ -5,8 +5,8 @@ import 'package:test/test.dart';
 
 import 'support/test_app.dart';
 
-/// "Explain my month": Claude's A2UI answer becomes v0.9 JSON messages, and
-/// a broken answer is a 502.
+/// "Explain my month": the month's numbers come with Claude's summary and
+/// tips, and a broken answer is a 502.
 void main() {
   late TestApp app;
   late int groupId;
@@ -31,26 +31,30 @@ void main() {
 
   tearDownAll(() => app.close());
 
-  test('sends the month to Claude and returns A2UI messages', () async {
-    claude
-      ..on = true
-      ..answer = '''
-<a2ui>
-surface("month")
-root = Column([Text("You spent 12.50 USD"), Divider()])
-</a2ui>''';
-    TestResponse res = await app.call(
-      '/api/v1/insights/month?month=2026-11&lang=my',
-      group: groupId,
-    );
-    expect(res.status, 200);
-    expect(claude.lastPrompt, contains('"total":12.5'));
-    expect(claude.lastPrompt, contains('Burmese'));
-    List<dynamic> messages = res.json['data']['messages'] as List<dynamic>;
-    expect(messages.first['version'], 'v0.9');
-    expect(messages.first['createSurface']['surfaceId'], 'month');
-    expect(messages.any((dynamic m) => m['updateComponents'] != null), isTrue);
-  });
+  test(
+    'sends the month to Claude and returns its words with the facts',
+    () async {
+      claude
+        ..on = true
+        ..answer = <String, dynamic>{
+          'summary': ' You spent 12.50 USD. ',
+          'tips': <dynamic>['Cook more.', '', 'a', 'b', 'c'],
+        };
+      TestResponse res = await app.call(
+        '/api/v1/insights/month?month=2026-11&lang=my',
+        group: groupId,
+      );
+      expect(res.status, 200);
+      expect(claude.lastPrompt, contains('"total":12.5'));
+      expect(claude.lastPrompt, contains('Burmese'));
+      Map<String, dynamic> data = res.json['data'] as Map<String, dynamic>;
+      expect(data['summary'], 'You spent 12.50 USD.');
+      expect(data['tips'], <String>['Cook more.', 'a', 'b']);
+      expect(data['facts']['total'], 12.5);
+      expect(data['facts']['biggestExpenses'].first['note'], 'lunch');
+      expect(data['facts']['byCategory'].first['shareOfTotalPercent'], 100);
+    },
+  );
 
   test('the same month is not asked again until it changes', () async {
     int before = claude.calls;
@@ -85,7 +89,7 @@ root = Column([Text("You spent 12.50 USD"), Divider()])
     int bobGroup = (groups.json['data'] as List<dynamic>).first['id'] as int;
     claude
       ..on = true
-      ..answer = '<a2ui>root = NotAComponent()</a2ui>';
+      ..answer = <String, dynamic>{'summary': '', 'tips': <dynamic>[]};
     Future<TestResponse> ask() => app.call(
       '/api/v1/insights/month?month=2026-10',
       user: 'bob',

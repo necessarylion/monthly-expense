@@ -14,15 +14,15 @@ class InsightController {
 
   @Summary('Explain a month')
   @Description(
-    'Claude explains `?month=YYYY-MM` as A2UI v0.9 messages, for '
-    '`@a2ui/react`. `?lang=en|my` picks the language.',
+    'The numbers of `?month=YYYY-MM` (`facts`), with a short `summary` and '
+    '`tips` that Claude writes. `?lang=en|my` picks the language.',
   )
   Future<Map<String, dynamic>> month(DoxRequest req, InsightQuery query) async {
-    List<Map<String, dynamic>> messages = await insights.explain(
+    Map<String, Object?> insight = await insights.explain(
       req.activeGroup,
       MonthUtil.parse(query.month),
       query.lang ?? 'en',
     );
-    return JsonResponse.ok(<String, dynamic>{'messages': messages});
+    return JsonResponse.ok(insight);
   }
 }

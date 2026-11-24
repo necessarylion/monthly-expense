@@ -5,7 +5,7 @@ import 'package:api_dox/constants/ai.dart';
 import 'package:dox_core/dox_core.dart';
 import 'package:dox_http_client/dox_http_client.dart';
 
-/// One call to the Claude Messages API, answered with JSON or text.
+/// One call to the Claude Messages API, answered with JSON.
 ///
 /// There is no official Anthropic SDK for Dart, so this is plain HTTP.
 /// Null on any failure, or when no API key is set. Tests replace it.
@@ -41,15 +41,6 @@ class ClaudeClient {
       Logger.warn('[claude] answer is not JSON: $error');
       return null;
     }
-  }
-
-  /// Asks Claude and returns its answer as plain text.
-  Future<String?> askText({
-    required String system,
-    required String prompt,
-    Duration timeout = claudeTimeout,
-  }) {
-    return _ask(system, prompt, timeout, <String, Object?>{'effort': 'low'});
   }
 
   Future<String?> _ask(

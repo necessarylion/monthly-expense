@@ -1,6 +1,5 @@
 import { WandSparklesIcon } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { type A2uiAction, A2uiView } from '@/components/app/a2ui-view'
 import { Sheet } from '@/components/app/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,19 +8,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { api } from '@/lib/api'
 import { errorMessage } from '@/lib/errors'
-import { todayIso } from '@/lib/format'
-import { t, useLocale, useT } from '@/lib/i18n'
-import { cn } from '@/lib/utils'
+import { formatMoney, todayIso } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { useAccounts } from '@/stores/accounts'
 import { useExpenses } from '@/stores/expenses'
 import { useGroups } from '@/stores/groups'
 
 /**
  * Smart add: type "lunch 5000, taxi 3000", get a list of the expenses with
- * their category and wallet (`POST /smart-add`, A2UI), and tap Save on each. A tap sends the A2UI
- * action to `POST /smart-add/actions`, which saves it and marks it saved.
- * Edit is answered here, not by the API: a small form changes the row's
- * data model, and its Save button then sends the edited values.
+ * their category and wallet (`POST /smart-add`), and tap Save on each. Save
+ * is a normal `POST /expenses`. Edit opens a small form that changes the row
+ * before it is saved.
  */
 export function SmartAddButton() {
   const t = useT()
@@ -37,94 +34,7 @@ export function SmartAddButton() {
   )
 }
 
-function SmartAddSheet({ open, onClose }: { open: boolean; onClose(): void }) {
-  const t = useT()
-  const lang = useLocale((s) => s.locale)
-  const [text, setText] = useState('')
-  const [messages, setMessages] = useState<unknown[] | null>(null)
-  const [reading, setReading] = useState(false)
-  const [editing, setEditing] = useState<Editing | null>(null)
-
-  async function read(e: FormEvent) {
-    e.preventDefault()
-    if (!text.trim() || reading) return
-    setReading(true)
-    try {
-      const { data } = await api.post<{ data: { messages: unknown[] } }>('/smart-add', { text, today: todayIso(), lang })
-      setMessages(data.data.messages)
-    } catch (err) {
-      toast.error(errorMessage(err, t('smartAdd.failed')))
-    } finally {
-      setReading(false)
-    }
-  }
-
-  async function onAction(action: A2uiAction): Promise<unknown[] | undefined> {
-    if (action.name !== 'edit_expense') return save(action)
-    // The row waits until the form is done; the reply updates its data.
-    return new Promise((resolve) => {
-      setEditing({ index: Number(action.sourceComponentId.slice('edit_'.length)), item: action.context as unknown as EditItem, resolve })
-    })
-  }
-
-  function finishEdit(item: EditItem | null) {
-    editing?.resolve(item ? rowUpdate(editing.index, item) : undefined)
-    setEditing(null)
-  }
-
-  async function save(action: A2uiAction): Promise<unknown[] | undefined> {
-    try {
-      const { data } = await api.post<{ data: { messages: unknown[] } }>('/smart-add/actions', {
-        name: action.name,
-        sourceComponentId: action.sourceComponentId,
-        context: action.context,
-        lang,
-      })
-      return data.data.messages
-    } catch (err) {
-      toast.error(errorMessage(err, t('expenseModal.failedToSave')))
-      return undefined
-    }
-  }
-
-  function close() {
-    finishEdit(null)
-    onClose()
-    setText('')
-    setMessages(null)
-  }
-
-  return (
-    <Sheet docked open={open} onClose={close} title={t('smartAdd.title')} view={messages ? 'cards' : 'form'}>
-      {/* pt-1: room for the focus ring; the sheet body clips what sits outside it. */}
-      <div className="flex flex-col gap-3 pt-1">
-        {editing && <EditForm item={editing.item} onDone={finishEdit} />}
-        <form onSubmit={read} className={cn('flex flex-col gap-2', editing && 'hidden')}>
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            // Enter adds a line (one expense per line is fine); Cmd/Ctrl+Enter reads.
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void read(e)
-            }}
-            placeholder={t('smartAdd.placeholder')}
-            maxLength={500}
-            rows={3}
-            className="field-sizing-fixed resize-none"
-            autoFocus
-          />
-          <Button type="submit" className="self-end" disabled={reading || !text.trim()}>
-            {reading ? t('smartAdd.reading') : t('smartAdd.read')}
-          </Button>
-        </form>
-        {/* Hidden, not unmounted, while editing: it keeps which rows are saved. */}
-        {messages && <A2uiView messages={messages} onAction={onAction} className={cn('a2ui-smart-add', editing && 'hidden')} />}
-      </div>
-    </Sheet>
-  )
-}
-
-/** A row's values, with the keys of `POST /expenses`. The form does not change the date. */
+/** One read expense, with the keys of `POST /expenses`. The form does not change the date. */
 interface EditItem {
   note: string
   occurredOn: string
@@ -133,38 +43,133 @@ interface EditItem {
   categoryId: number | null
 }
 
-interface Editing {
-  index: number
-  item: EditItem
-  resolve(reply: unknown[] | undefined): void
+interface Row extends EditItem {
+  state?: 'saving' | 'saved'
 }
 
-/** The A2UI update that writes the edited item into row `index`, with the texts the row shows. */
-function rowUpdate(index: number, item: EditItem): unknown[] {
-  const groups = useGroups.getState()
-  const currency = groups.groups.find((g) => g.id === groups.activeId)?.currency ?? ''
-  const category = useExpenses.getState().categories.find((c) => c.id === item.categoryId)
-  const wallet = useAccounts.getState().accounts.find((a) => a.id === item.accountId)
-  const walletName = wallet?.name ?? t('smartAdd.noWallet')
-  const whole = Number.isInteger(item.amount)
-  const number = item.amount.toLocaleString('en-US', {
-    minimumFractionDigits: whole ? 0 : 2,
-    maximumFractionDigits: 2,
-  })
-  return [
-    {
-      version: 'v0.9',
-      updateDataModel: {
-        surfaceId: 'smart-add',
-        path: `/items/${index}`,
-        value: {
-          ...item,
-          amountText: `${number} ${currency}`.trim(),
-          details: category ? `${category.name} · ${walletName}` : walletName,
-        },
-      },
-    },
-  ]
+function SmartAddSheet({ open, onClose }: { open: boolean; onClose(): void }) {
+  const t = useT()
+  const [text, setText] = useState('')
+  const [rows, setRows] = useState<Row[] | null>(null)
+  const [reading, setReading] = useState(false)
+  /** The index of the row in the edit form. */
+  const [editing, setEditing] = useState<number | null>(null)
+  const categories = useExpenses((s) => s.categories)
+  const accounts = useAccounts((s) => s.accounts)
+  const currency = useGroups((s) => s.groups.find((g) => g.id === s.activeId)?.currency ?? 'USD')
+
+  function patch(index: number, change: Partial<Row>) {
+    setRows((old) => old && old.map((row, i) => (i === index ? { ...row, ...change } : row)))
+  }
+
+  async function read(e: FormEvent) {
+    e.preventDefault()
+    if (!text.trim() || reading) return
+    setReading(true)
+    try {
+      const { data } = await api.post<{ data: { items: EditItem[] } }>('/smart-add', { text, today: todayIso() })
+      setRows(data.data.items)
+    } catch (err) {
+      toast.error(errorMessage(err, t('smartAdd.failed')))
+    } finally {
+      setReading(false)
+    }
+  }
+
+  async function save(index: number, row: Row) {
+    if (row.state) return
+    patch(index, { state: 'saving' })
+    try {
+      await useExpenses.getState().addExpense({
+        note: row.note,
+        amount: row.amount,
+        occurredOn: row.occurredOn,
+        accountId: row.accountId,
+        categoryId: row.categoryId ?? undefined,
+      })
+      patch(index, { state: 'saved' })
+    } catch (err) {
+      patch(index, { state: undefined })
+      toast.error(errorMessage(err, t('expenseModal.failedToSave')))
+    }
+  }
+
+  function close() {
+    onClose()
+    setText('')
+    setRows(null)
+    setEditing(null)
+  }
+
+  const edited = editing === null ? undefined : rows?.[editing]
+
+  return (
+    <Sheet docked open={open} onClose={close} title={t('smartAdd.title')} view={edited ? 'edit' : rows ? 'cards' : 'form'}>
+      {/* pt-1: room for the focus ring; the sheet body clips what sits outside it. */}
+      <div className="flex flex-col gap-3 pt-1">
+        {edited ? (
+          <EditForm
+            item={edited}
+            onDone={(item) => {
+              if (item && editing !== null) patch(editing, item)
+              setEditing(null)
+            }}
+          />
+        ) : (
+          <>
+            <form onSubmit={read} className="flex flex-col gap-2">
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                // Enter adds a line (one expense per line is fine); Cmd/Ctrl+Enter reads.
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void read(e)
+                }}
+                placeholder={t('smartAdd.placeholder')}
+                maxLength={500}
+                rows={3}
+                className="field-sizing-fixed resize-none"
+                autoFocus
+              />
+              <Button type="submit" className="self-end" disabled={reading || !text.trim()}>
+                {reading ? t('smartAdd.reading') : t('smartAdd.read')}
+              </Button>
+            </form>
+            {rows?.length === 0 && <p className="py-2 text-sm text-muted-foreground">{t('smartAdd.nothing')}</p>}
+            {rows && rows.length > 0 && (
+              <ul className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card px-3.5 text-[15px]">
+                {rows.map((row, i) => {
+                  const category = categories.find((c) => c.id === row.categoryId)
+                  const wallet = accounts.find((a) => a.id === row.accountId)?.name ?? t('smartAdd.noWallet')
+                  return (
+                    <li key={i} className="flex items-center gap-2 py-3">
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate">{row.note}</span>
+                        <span className="truncate text-xs text-muted-foreground">{category ? `${category.name} · ${wallet}` : wallet}</span>
+                      </span>
+                      <span className="shrink-0 font-semibold tabular-nums">{formatMoney(row.amount, currency, !Number.isInteger(row.amount))}</span>
+                      {row.state === 'saved' ? (
+                        <span className="shrink-0 px-2 text-xs text-muted-foreground">✓ {t('smartAdd.saved')}</span>
+                      ) : (
+                        <>
+                          <Button variant="ghost" size="sm" disabled={row.state === 'saving'} onClick={() => setEditing(i)}>
+                            {t('smartAdd.edit')}
+                          </Button>
+                          <Button size="sm" disabled={row.state === 'saving'} onClick={() => void save(i, row)}>
+                            {t('common.save')}
+                          </Button>
+                        </>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </>
+        )}
+      </div>
+    </Sheet>
+  )
 }
 
 const selectClass =
