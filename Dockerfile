@@ -39,6 +39,21 @@ RUN mkdir -p /out/app/storage /out/tmp \
   && cp -r build/bundle/bin build/bundle/lib /out/app/ \
   && chown -R 1000:1000 /out/app/storage
 
+# curl, wget and /bin/sh for the health check of the host (like Coolify).
+# Which tool Coolify uses depends on its version, so both are here.
+# The final image is `FROM scratch`, so their shared libraries (from `ldd`)
+# are copied too.
+RUN apt-get update && apt-get install -y --no-install-recommends curl wget \
+  && mkdir -p /out/usr/bin /out/bin \
+  && cp -L /bin/sh /out/bin/sh \
+  && for tool in curl wget; do \
+       cp "$(command -v $tool)" /out/usr/bin/$tool; \
+       for lib in $(ldd "$(command -v $tool)" | awk '$3 ~ /^\// {print $3}'); do \
+         dir="/out$(realpath "$(dirname "$lib")")"; \
+         mkdir -p "$dir" && cp -L "$lib" "$dir/$(basename "$lib")"; \
+       done; \
+     done
+
 
 # /runtime/ of the Dart image has glibc and the CA certificates.
 FROM scratch

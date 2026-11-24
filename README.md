@@ -93,7 +93,8 @@ for the full list. The main ones:
 
 The `Dockerfile` builds the web app, compiles the API to a native binary
 (`dart build cli`), and puts both in a `FROM scratch` image of approximately
-26 MB. The image has no shell. The binary runs migrations on start.
+50 MB. The image also has `curl`, `wget` and `/bin/sh` for health checks. The binary
+runs migrations on start.
 
 ```bash
 cp apps/api-dox/.env.example .env   # fill in APP_KEY, APP_URL, FIREBASE_*

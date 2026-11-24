@@ -181,7 +181,8 @@ Read this before changing code. It captures the non-obvious bits.
 - One image, multi-stage: builds the SPA → AOT-compiles the API (`dart build cli`)
   → a `FROM scratch` runtime with the binary, its `lib/*.so` and `public/`.
   glibc and the CA certificates come from `/runtime/` of the Dart image.
-  The container has no shell, no `curl` and no `tini` (Dox handles SIGTERM).
+  The image adds only `curl`, `wget` and `/bin/sh`, for the Coolify health
+  check. It has no `tini` (Dox handles SIGTERM).
 - The binary runs migrations on start. No separate migrate command in compose.
 - The image is `ghcr.io/<owner>/<repo>`. After it is pushed on `main`, CI
   calls the Coolify deploy webhook (skipped when `COOLIFY_DEPLOY_URL` is not set).
