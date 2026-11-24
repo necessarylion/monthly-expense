@@ -282,7 +282,7 @@ packages:
     source: hosted
     version: "3.2.5"
   dox_http_client:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dox_http_client
       sha256: b0e3a8c5f0717009f7c3eed491031796374b7de354a671dfc3838c18a8e18fc4
@@ -530,7 +530,7 @@ packages:
     source: hosted
     version: "2.2.0"
   http:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: http
       sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"

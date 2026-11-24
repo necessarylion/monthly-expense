@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:api_dox/config/settings.dart';
 import 'package:api_dox/constants/ai.dart';
 import 'package:dox_core/dox_core.dart';
-import 'package:http/http.dart' as http;
+import 'package:dox_http_client/dox_http_client.dart';
 
 /// One call to the Claude Messages API, answered with JSON or text.
 ///
@@ -14,6 +14,9 @@ class ClaudeClient {
   ClaudeClient(this.settings);
 
   final AppSettings settings;
+
+  /// One client for the isolate: it keeps its connections open.
+  late final DoxHttpClient _client = DoxHttpClient();
 
   bool get enabled => (settings.anthropicApiKey ?? '').isNotEmpty;
 
@@ -56,38 +59,36 @@ class ClaudeClient {
     Map<String, Object?> outputConfig,
   ) async {
     if (!enabled) return null;
-    http.Client client = http.Client();
     try {
-      http.Response res = await client
-          .post(
-            Uri.parse(claudeMessagesUrl),
-            headers: <String, String>{
-              'content-type': 'application/json',
-              'x-api-key': settings.anthropicApiKey!,
-              'anthropic-version': claudeApiVersion,
-              if (_hasFallbacks) 'anthropic-beta': claudeFallbackBeta,
+      DoxHttpClientResponse res = await _client.post(
+        Uri.parse(claudeMessagesUrl),
+        headers: <String, String>{
+          'content-type': 'application/json',
+          'x-api-key': settings.anthropicApiKey!,
+          'anthropic-version': claudeApiVersion,
+          if (_hasFallbacks) 'anthropic-beta': claudeFallbackBeta,
+        },
+        body: jsonEncode(<String, Object?>{
+          'model': settings.anthropicModel,
+          'max_tokens': 4096,
+          if (_hasFallbacks) 'fallbacks': 'default',
+          // The system prompts are fixed text, so Anthropic caches them:
+          // a call within 5 minutes reads them at a fraction of the price.
+          // Under 512 tokens nothing is cached, and nothing breaks.
+          'system': <Map<String, Object?>>[
+            <String, Object?>{
+              'type': 'text',
+              'text': system,
+              'cache_control': <String, Object?>{'type': 'ephemeral'},
             },
-            body: jsonEncode(<String, Object?>{
-              'model': settings.anthropicModel,
-              'max_tokens': 4096,
-              if (_hasFallbacks) 'fallbacks': 'default',
-              // The system prompts are fixed text, so Anthropic caches them:
-              // a call within 5 minutes reads them at a fraction of the price.
-              // Under 512 tokens nothing is cached, and nothing breaks.
-              'system': <Map<String, Object?>>[
-                <String, Object?>{
-                  'type': 'text',
-                  'text': system,
-                  'cache_control': <String, Object?>{'type': 'ephemeral'},
-                },
-              ],
-              'output_config': outputConfig,
-              'messages': <Map<String, Object?>>[
-                <String, Object?>{'role': 'user', 'content': prompt},
-              ],
-            }),
-          )
-          .timeout(timeout);
+          ],
+          'output_config': outputConfig,
+          'messages': <Map<String, Object?>>[
+            <String, Object?>{'role': 'user', 'content': prompt},
+          ],
+        }),
+        timeout: timeout,
+      );
       if (res.statusCode < 200 || res.statusCode >= 300) {
         Logger.warn('[claude] HTTP ${res.statusCode}: ${res.body}');
         return null;
@@ -107,8 +108,6 @@ class ClaudeClient {
     } catch (error) {
       Logger.warn('[claude] call failed: $error');
       return null;
-    } finally {
-      client.close();
     }
   }
 
