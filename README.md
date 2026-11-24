@@ -92,8 +92,8 @@ for the full list. The main ones:
 ## Self-host with Docker
 
 The `Dockerfile` builds the web app, compiles the API to a native binary
-(`dart build cli`), and puts both in a small Debian image. The binary runs
-migrations on start.
+(`dart build cli`), and puts both in a `FROM scratch` image of approximately
+26 MB. The image has no shell. The binary runs migrations on start.
 
 ```bash
 cp apps/api-dox/.env.example .env   # fill in APP_KEY, APP_URL, FIREBASE_*

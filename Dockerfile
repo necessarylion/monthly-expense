@@ -53,28 +53,30 @@ RUN dart pub get --offline \
        echo "dart build failed, retry $i in 15s"; sleep 15; \
      done
 
+# Lay out the final file tree. /tmp must be writable: big uploads are
+# streamed to a temp file. uid 1000 owns storage: it matches the user of
+# the old images, so existing volumes stay writable.
+RUN mkdir -p /out/app/storage /out/tmp \
+  && chmod 1777 /out/tmp \
+  && cp -r build/bundle/bin build/bundle/lib /out/app/ \
+  && chown -R 1000:1000 /out/app/storage
+
 
 ############################
 # 3. Runtime image: the binary, its native libraries and the SPA
 ############################
-FROM debian:bookworm-slim AS runtime
+# No OS: /runtime/ of the Dart image has glibc and the CA certificates,
+# and that is all the binary needs (Dox native libraries 3.2.4 or newer).
+# So there is no shell and no curl in the container. Dox handles SIGTERM
+# itself, so it needs no tini.
+FROM scratch AS runtime
 
-# ca-certificates: outgoing HTTPS (Firebase keys, FX rates). curl: for checks
-# from inside the container.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates tini curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# uid 1000 matches the `node` user of the old image, so existing volumes stay writable.
-RUN useradd --uid 1000 --create-home app \
-    && mkdir -p /app/storage && chown -R app:app /app/storage
+COPY --from=api-builder /runtime/ /
+COPY --from=api-builder /out/ /
+# The binary loads its native libraries from ../lib, so bin/ and lib/ stay together.
+COPY --from=web-builder /app/web/dist /app/public
 
 WORKDIR /app
-# The binary loads its native libraries from ../lib, so keep bin/ and lib/ together.
-COPY --from=api-builder /app/api/build/bundle/bin ./bin
-COPY --from=api-builder /app/api/build/bundle/lib ./lib
-COPY --from=web-builder /app/web/dist ./public
-
 VOLUME /app/storage
 
 ENV APP_ENV=production \
@@ -86,10 +88,9 @@ ENV APP_ENV=production \
     CACHE_DIR=/app/storage/cache
 EXPOSE 3333
 
-USER app
+USER 1000:1000
 # No HEALTHCHECK: a call every minute kept the server busy for nothing.
 # GET /healthz still works if Coolify or a monitor wants to check it.
 
 # The API runs pending migrations itself on start (a SQLite backup first).
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["./bin/server"]
+CMD ["/app/bin/server"]
