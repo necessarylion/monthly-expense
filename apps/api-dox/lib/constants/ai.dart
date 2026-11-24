@@ -12,57 +12,44 @@ const Duration claudeTimeout = Duration(seconds: 20);
 /// After Claude fails, show the plain list for this long before we ask again.
 const Duration claudeRetryAfter = Duration(minutes: 5);
 
-/// "Explain my month" writes a whole screen, so it may take longer.
-const Duration insightTimeout = Duration(seconds: 60);
-
-/// The A2UI components Claude may use for "Explain my month". The month is
-/// read-only, so no buttons or inputs. No `List`: the Dart SDK lets it have
-/// `listStyle`, which `@a2ui/react` 0.15 rejects. A `Column` does the same.
-const List<String> insightComponents = <String>[
-  'Text',
-  'Card',
-  'Column',
-  'Row',
-  'Divider',
-];
-
 /// How many of the month's biggest expenses Claude sees.
 const int insightTopExpenses = 8;
 
+/// At most this many tips on the "Explain my month" screen.
+const int insightMaxTips = 3;
+
 const String insightSystemPrompt = '''
-You explain one month of spending to the person who logged it, in a small
-mobile screen. You get the month's numbers as JSON. Amounts are already in
-the group's currency; write them with the currency code, with thousands
-separators and no decimals unless the amount has cents ("2,643 THB").
-Percentages are worked out for you: use them as they are.
+You explain one month of spending to the person who logged it. You get the
+month's numbers as JSON. The app shows the numbers itself (the total, the
+budget, the top categories, the biggest expenses), so you write only the
+words.
 
-Draw the screen with this layout exactly, top to bottom, in a root Column:
+- summary: one or two short sentences on how the month went: what stands
+  out, and how it sits against the budget when there is one.
+- tips: one or two short, kind tips that fit these numbers. No lecture.
 
-1. Summary: a Column of three Texts.
-   - caption: a few words like "Spent in November".
-   - h2: the total only, like "2,643 THB".
-   - caption: with a budget, like "53% of your 5,000 THB budget ·
-     2,357 THB left" (or how much over it); without one, the expense count.
-2. Top categories: a Text h5 heading, then one Card. In the Card, a Column
-   with a Row per category (top 3, or fewer), and a Divider between rows.
-   Each Row (align center) has a Text with the name (weight 1), and a Text
-   with the amount and share, like "1,101 THB · 42%".
-3. Biggest expenses: a Text h5 heading, then one Card laid out the same
-   way: a Row per expense (top 5) with the note (weight 1) and the amount,
-   and a Divider between rows.
-4. Tips: a Text h5 heading, then one Card with a Column of one or two short,
-   kind tips, one Text each. No lecture.
+Amounts are in the group's currency; write them with the currency code,
+with thousands separators and no decimals unless the amount has cents
+("2,643 THB"). Percentages are worked out for you: use them as they are.
+Use plain, simple words. Do not invent numbers: use only the data you get.
+Write all text in the language you are told.''';
 
-Only Text, Column, Row, Card and Divider. Never put more than one fact in a
-Text of a Row. Use plain, simple words. Keep it short. Do not invent
-numbers: use only the data you get. Write all text in the language you are
-told. Answer with one A2UI block only, with no other text.''';
+/// The JSON schema of Claude's "Explain my month" answer.
+const Map<String, Object?> insightSchema = <String, Object?>{
+  'type': 'object',
+  'properties': <String, Object?>{
+    'summary': <String, Object?>{'type': 'string'},
+    'tips': <String, Object?>{
+      'type': 'array',
+      'items': <String, Object?>{'type': 'string'},
+    },
+  },
+  'required': <String>['summary', 'tips'],
+  'additionalProperties': false,
+};
 
 /// Smart add: at most this many expenses from one text.
 const int smartAddMaxItems = 10;
-
-/// The A2UI surface of smart add. One per answer.
-const String smartAddSurfaceId = 'smart-add';
 
 const String smartAddSystemPrompt = '''
 You read a short text where a person lists what they spent, like
@@ -109,23 +96,3 @@ const Map<String, Object?> smartAddSchema = <String, Object?>{
   'required': <String>['items'],
   'additionalProperties': false,
 };
-
-/// Button and label text of the smart add cards, per app language.
-const Map<String, Map<String, String>> smartAddText =
-    <String, Map<String, String>>{
-      'en': <String, String>{
-        'save': 'Save',
-        'edit': 'Edit',
-        'saved': '✓ Saved',
-        'noWallet': 'No wallet',
-        'nothing': 'No expenses found. Try "lunch 5000, taxi 3000".',
-      },
-      'my': <String, String>{
-        'save': 'သိမ်းမယ်',
-        'edit': 'ပြင်မယ်',
-        'saved': '✓ သိမ်းပြီးပြီ',
-        'noWallet': 'ပိုက်ဆံအိတ် မရွေးထားဘူး',
-        'nothing':
-            'အသုံးစရိတ် မတွေ့ဘူး။ "ထမင်း 5000, တက္ကစီ 3000" လို ရေးကြည့်ပါ။',
-      },
-    };

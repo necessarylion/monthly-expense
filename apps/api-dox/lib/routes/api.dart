@@ -169,9 +169,6 @@ class ApiRouter extends Router {
           Route.post('/smart-add', (SmartAddController c) => c.read);
         });
 
-        // A tapped Save card of smart add: a normal write, so no AI limit.
-        Route.post('/smart-add/actions', (SmartAddController c) => c.action);
-
         Route.get('/recurring', (RecurringController c) => c.index);
         Route.post('/recurring', (RecurringController c) => c.store);
         Route.delete('/recurring/{id}', (RecurringController c) => c.destroy);

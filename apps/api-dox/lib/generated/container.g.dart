@@ -542,7 +542,6 @@ void registerContainer(IocContainer c) {
     (IocContainer c) => i44.SmartAddService(
       c.get<i40.ClaudeClient>(),
       c.get<i38.AccountService>(),
-      c.get<i48.ExpenseService>(),
       c.get<i47.CategoryService>(),
       c.get<i41.ExpenseCategorizer>(),
     ),

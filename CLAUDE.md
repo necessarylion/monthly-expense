@@ -81,25 +81,23 @@ Read this before changing code. It captures the non-obvious bits.
 - Many isolates share events through dox_socketio's `IsolateAdapter`. No
   Redis. There is no pull to refresh; do not add it back.
 
-## AI screens (A2UI)
+## AI screens
 
 - "Explain my month" (`MonthInsightService`) and smart add (`SmartAddService`)
-  send A2UI v0.9 messages; the web app draws them with `@a2ui/react`
-  (`components/app/a2ui-view.tsx`). The React renderer speaks v0.9 only.
-- The Dart SDK's catalog is wider than the React one: `List` with
-  `listStyle` is rejected by the renderer. Keep `insightComponents` to parts
-  both accept, and test a new one in the browser.
-- Claude writes the screen only when it is read-only. Smart add saves money,
-  so Claude only reads the text (JSON) and `SmartAddScreen` draws the cards.
-  A Save tap posts the A2UI action; its `context` is a `CreateExpense`.
+  return plain JSON. The web app draws both screens with its own components
+  (`sheets/month-insight-sheet.tsx`, `sheets/smart-add-sheet.tsx`). There is
+  no A2UI; do not add it back.
+- Claude never writes a number that the app shows. For "Explain my month",
+  the API sends the numbers (`facts`) and Claude writes only `summary` and
+  `tips` (`insightSchema`). Percentages come worked out in the facts.
+- Smart add saves nothing. Claude reads the text, the server checks each
+  item, and the answer is a list of `CreateExpense` bodies. A Save tap is a
+  normal `POST /expenses`.
   The same Claude call picks each item's `categoryId` (a note used before
   keeps its old category), and Save sends it, so create does not ask Claude
-  again. Its list look is the `.a2ui-smart-add` variables in `index.css`.
-- "Explain my month" has a fixed layout in `insightSystemPrompt` (summary,
-  then list cards); `.a2ui-insight` in `index.css` styles it. Change both
-  together. Percentages come worked out in the facts.
+  again.
 - Cost: `ClaudeClient` marks the system prompt with `cache_control` (keep
-  system prompts fixed text; no dates or ids in them). The month answer is
+  system prompts fixed text; no dates or ids in them). Claude's words for the month are
   kept in `FileCache` under a fingerprint of the prompt. AI routes share a
   per-user rate limit (`insightsPerMinute`).
 

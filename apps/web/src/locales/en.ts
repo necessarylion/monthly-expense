@@ -467,6 +467,13 @@ export default {
     failed: 'Could not explain the month.',
     retry: 'Try again',
     note: 'Written by AI. Check the numbers before you act on them.',
+    spentIn: 'Spent in {month}',
+    count: '{n} expenses',
+    budgetLeft: '{percent}% of your {budget} budget · {amount} left',
+    budgetOver: '{percent}% of your {budget} budget · {amount} over',
+    topCategories: 'Top categories',
+    biggest: 'Biggest expenses',
+    tips: 'Tips',
   },
   smartAdd: {
     open: 'Smart add',
@@ -478,5 +485,8 @@ export default {
     done: 'Done',
     noWallet: 'No wallet',
     autoCategory: 'Pick for me',
+    edit: 'Edit',
+    saved: 'Saved',
+    nothing: 'No expenses found. Try "lunch 5000, taxi 3000".',
   },
 } as const
